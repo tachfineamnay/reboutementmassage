@@ -1,12 +1,52 @@
-FROM nginx:alpine
+FROM node:18-alpine AS base
 
-# Copie des fichiers du projet dans le dossier par défaut de Nginx
-COPY . /usr/share/nginx/html
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
 
-# Modification du port par défaut de Nginx pour 3000 (comme configuré dans Coolify)
-RUN sed -i 's/listen\(.*\)80;/listen 3000;/' /etc/nginx/conf.d/default.conf
+# Install dependencies
+COPY package.json package-lock.json* ./
+RUN npm ci
 
-# Exposition du port
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Next.js collects completely anonymous telemetry data about general usage.
+# Learn more here: https://nextjs.org/telemetry
+ENV NEXT_TELEMETRY_DISABLED 1
+
+RUN npm run build
+
+# Production image, copy all the files and run next
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
+
+# Set the correct permission for prerender cache
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
+
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
 EXPOSE 3000
 
-CMD ["nginx", "-g", "daemon off;"]
+ENV PORT 3000
+
+# server.js is created by next build from the standalone output
+CMD ["node", "server.js"]

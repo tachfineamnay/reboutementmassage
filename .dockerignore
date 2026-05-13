@@ -1,5 +1,8 @@
+node_modules
+.next
 .git
 .gitignore
-Dockerfile
-.dockerignore
-node_modules
+.env
+README.md
+old-project
+index.html

@@ -1,11 +1,13 @@
-/* global React, ReactDOM, COPY, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakSelect */
-const { useState, useEffect, useRef, useMemo } = React;
+"use client";
+
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { COPY, Language } from "@/data/copy";
 
 /* ──────────────────────────────────────────────────────────
    Reveal-on-scroll hook (Framer-Motion-style fade-up)
    ────────────────────────────────────────────────────────── */
 function useReveal() {
-  const ref = useRef(null);
+  const ref = useRef<HTMLDivElement>(null);
   const [shown, setShown] = useState(false);
   useEffect(() => {
     if (!ref.current) return;
@@ -24,12 +26,25 @@ function useReveal() {
     io.observe(el);
     return () => io.disconnect();
   }, []);
-  return [ref, shown];
+  return [ref, shown] as const;
 }
 
-function Reveal({ as: Tag = "div", delay = 0, children, className = "", style = {}, ...rest }) {
+function Reveal({ 
+  as: Tag = "div", 
+  delay = 0, 
+  children, 
+  className = "", 
+  style = {}, 
+  ...rest 
+}: { 
+  as?: any, 
+  delay?: number, 
+  children: React.ReactNode, 
+  className?: string, 
+  style?: React.CSSProperties 
+}) {
   const [ref, shown] = useReveal();
-  const s = {
+  const s: React.CSSProperties = {
     opacity: shown ? 1 : 0,
     transform: shown ? "translateY(0)" : "translateY(20px)",
     transition: `opacity .8s cubic-bezier(.25,.1,.25,1), transform .8s cubic-bezier(.25,.1,.25,1)`,
@@ -46,7 +61,7 @@ function Reveal({ as: Tag = "div", delay = 0, children, className = "", style = 
 /* ──────────────────────────────────────────────────────────
    Header — fixed, transparent → ink/85 on scroll
    ────────────────────────────────────────────────────────── */
-function Header({ lang, setLang, t }) {
+function Header({ lang, setLang, t }: { lang: Language, setLang: (l: Language) => void, t: any }) {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -80,7 +95,7 @@ function Header({ lang, setLang, t }) {
         </a>
 
         <nav className="lang-switch" aria-label="Language">
-          {["EN", "FR", "ES"].map((code, i) => (
+          {(["EN", "FR", "ES"] as Language[]).map((code, i) => (
             <React.Fragment key={code}>
               {i > 0 && <span className="lang-sep" aria-hidden="true">·</span>}
               <button
@@ -101,7 +116,7 @@ function Header({ lang, setLang, t }) {
 /* ──────────────────────────────────────────────────────────
    Section 01 — Hero
    ────────────────────────────────────────────────────────── */
-function Hero({ t, heroTreatment, layout }) {
+function Hero({ t, heroTreatment, layout }: { t: any, heroTreatment: string, layout: string }) {
   const filter = useMemo(() => {
     if (heroTreatment === "duotone") return "grayscale(.6) sepia(.06) contrast(1.02) brightness(.96)";
     if (heroTreatment === "bw") return "grayscale(1) contrast(1.05) brightness(.94)";
@@ -111,7 +126,7 @@ function Hero({ t, heroTreatment, layout }) {
   /* ── Layout B: Cream — type-led, portrait inset ── */
   if (layout === "cream") {
     return (
-      <section className="hero hero--cream" id="top" data-screen-label="01 Hero">
+      <section className="hero hero--cream" id="top">
         <div className="hero-cream-grid">
           <div className="hero-cream-text">
             <Reveal delay={0.05}>
@@ -132,7 +147,7 @@ function Hero({ t, heroTreatment, layout }) {
           </div>
 
           <Reveal className="hero-cream-photo" delay={0.2}>
-            <img src="assets/hero.jpg" alt="Gregory at work" style={{ filter }} />
+            <img src="/hero.jpg" alt="Gregory at work" style={{ filter }} />
             <span className="hero-cream-cap eyebrow eyebrow--gold">Méthode TMS®</span>
           </Reveal>
         </div>
@@ -150,9 +165,9 @@ function Hero({ t, heroTreatment, layout }) {
 
   /* ── Layout A: Editorial — full-bleed dark hero ── */
   return (
-    <section className="hero" id="top" data-screen-label="01 Hero">
+    <section className="hero" id="top">
       <div className="hero-photo" aria-hidden="false">
-        <img src="assets/hero.jpg" alt="Gregory at work" style={{ filter }} />
+        <img src="/hero.jpg" alt="Gregory at work" style={{ filter }} />
         <div className="hero-vignette" />
       </div>
 
@@ -194,9 +209,9 @@ function Hero({ t, heroTreatment, layout }) {
 /* ──────────────────────────────────────────────────────────
    Section 02 — Problem
    ────────────────────────────────────────────────────────── */
-function Problem({ t }) {
+function Problem({ t }: { t: any }) {
   return (
-    <section className="problem" data-screen-label="02 Problem">
+    <section className="problem">
       <div className="container container--narrow">
         <Reveal>
           <p className="problem-lead">{t.problem[0]}</p>
@@ -211,12 +226,11 @@ function Problem({ t }) {
 
 /* ──────────────────────────────────────────────────────────
    Section 03 — Three Practices
-   Asymmetric: dominant 60% (with image), two stacked at 40%
    ────────────────────────────────────────────────────────── */
-function Practices({ t }) {
+function Practices({ t }: { t: any }) {
   const items = t.practices.items;
   return (
-    <section className="practices" data-screen-label="03 Practices">
+    <section className="practices">
       <div className="container">
         <div className="practices-head">
           <Reveal>
@@ -230,7 +244,7 @@ function Practices({ t }) {
         <div className="practices-grid">
           <Reveal className="practice practice--lead" delay={0}>
             <div className="practice-image">
-              <img src="assets/practice-01.jpg" alt="" />
+              <img src="/practice-01.jpg" alt="" />
             </div>
             <div className="practice-body">
               <div className="practice-meta">
@@ -267,11 +281,11 @@ function Practices({ t }) {
 }
 
 /* ──────────────────────────────────────────────────────────
-   Section 04 — Client Profiles (on ink)
+   Section 04 — Client Profiles
    ────────────────────────────────────────────────────────── */
-function Profiles({ t }) {
+function Profiles({ t }: { t: any }) {
   return (
-    <section className="profiles" data-screen-label="04 Profiles">
+    <section className="profiles">
       <div className="profiles-grid">
         <div className="profiles-text">
           <Reveal>
@@ -282,7 +296,7 @@ function Profiles({ t }) {
           </Reveal>
 
           <ul className="profiles-list">
-            {t.profiles.items.map((p, i) => (
+            {t.profiles.items.map((p: any, i: number) => (
               <Reveal as="li" key={i} delay={0.15 + i * 0.08} className="profile-row">
                 <span className="profile-index">{String(i + 1).padStart(2, "0")}</span>
                 <span className="profile-rule" />
@@ -296,7 +310,7 @@ function Profiles({ t }) {
         </div>
 
         <Reveal className="profiles-photo" delay={0.1}>
-          <img src="assets/profiles.jpg" alt="Gregory at work" />
+          <img src="/profiles.jpg" alt="Gregory at work" />
         </Reveal>
       </div>
     </section>
@@ -304,11 +318,11 @@ function Profiles({ t }) {
 }
 
 /* ──────────────────────────────────────────────────────────
-   Section 05 — For your teams
+   Section 05 — Teams
    ────────────────────────────────────────────────────────── */
-function Teams({ t }) {
+function Teams({ t }: { t: any }) {
   return (
-    <section className="teams" data-screen-label="05 Teams">
+    <section className="teams">
       <div className="container container--narrow">
         <Reveal>
           <span className="eyebrow eyebrow--gold">B2B</span>
@@ -327,9 +341,9 @@ function Teams({ t }) {
 /* ──────────────────────────────────────────────────────────
    Section 06 — How it works
    ────────────────────────────────────────────────────────── */
-function How({ t }) {
+function How({ t }: { t: any }) {
   return (
-    <section className="how" data-screen-label="06 How">
+    <section className="how">
       <div className="container">
         <Reveal>
           <div className="how-eyebrow">
@@ -337,7 +351,7 @@ function How({ t }) {
           </div>
         </Reveal>
         <div className="how-grid">
-          {t.how.steps.map((s, i) => (
+          {t.how.steps.map((s: any, i: number) => (
             <Reveal className="how-step" key={i} delay={i * 0.1}>
               <p className="how-word">{s.word}</p>
               <p className="how-sub">{s.sub}</p>
@@ -350,14 +364,14 @@ function How({ t }) {
 }
 
 /* ──────────────────────────────────────────────────────────
-   Section 07 — About Gregory (forest bg)
+   Section 07 — About
    ────────────────────────────────────────────────────────── */
-function About({ t }) {
+function About({ t }: { t: any }) {
   return (
-    <section className="about" data-screen-label="07 About">
+    <section className="about">
       <div className="about-grid">
         <Reveal className="about-photo">
-          <img src="assets/portrait.jpg" alt="Grégory Tordjman" />
+          <img src="/portrait.jpg" alt="Grégory Tordjman" />
         </Reveal>
         <div className="about-text">
           <Reveal>
@@ -367,7 +381,7 @@ function About({ t }) {
             <h2 className="about-name">{t.about.name}</h2>
           </Reveal>
           <ul className="about-lines">
-            {t.about.lines.map((line, i) => (
+            {t.about.lines.map((line: string, i: number) => (
               <Reveal as="li" key={i} delay={0.2 + i * 0.08}>
                 {line}
               </Reveal>
@@ -382,20 +396,20 @@ function About({ t }) {
 /* ──────────────────────────────────────────────────────────
    Section 08 — Contact
    ────────────────────────────────────────────────────────── */
-function Contact({ t }) {
+function Contact({ t }: { t: any }) {
   const [form, setForm] = useState({ establishment: "", contact: "", message: "" });
   const [sent, setSent] = useState(false);
   const [focused, setFocused] = useState("");
 
-  function update(k, v) { setForm((f) => ({ ...f, [k]: v })); }
-  function submit(e) {
+  function update(k: string, v: string) { setForm((f) => ({ ...f, [k]: v })); }
+  function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.establishment.trim() || !form.contact.trim()) return;
     setSent(true);
   }
 
   return (
-    <section className="contact" id="contact" data-screen-label="08 Contact">
+    <section className="contact" id="contact">
       <div className="container container--form">
         <div className="contact-head">
           <Reveal>
@@ -472,7 +486,7 @@ function Contact({ t }) {
   );
 }
 
-function Field({ label, placeholder, value, onChange, onFocus, onBlur, focused, multiline, required }) {
+function Field({ label, placeholder, value, onChange, onFocus, onBlur, focused, multiline, required }: any) {
   const Input = multiline ? "textarea" : "input";
   return (
     <label className={"field " + (focused ? "is-focused " : "") + (value ? "has-value " : "")}>
@@ -482,7 +496,7 @@ function Field({ label, placeholder, value, onChange, onFocus, onBlur, focused, 
         type="text"
         placeholder={placeholder}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e: any) => onChange(e.target.value)}
         onFocus={onFocus}
         onBlur={onBlur}
         rows={multiline ? 3 : undefined}
@@ -495,7 +509,7 @@ function Field({ label, placeholder, value, onChange, onFocus, onBlur, focused, 
 /* ──────────────────────────────────────────────────────────
    Footer
    ────────────────────────────────────────────────────────── */
-function Footer({ t }) {
+function Footer({ t }: { t: any }) {
   return (
     <footer className="site-footer">
       <div className="footer-inner">
@@ -507,7 +521,7 @@ function Footer({ t }) {
           </svg>
         </div>
         <div className="footer-lines">
-          {t.footer.lines.map((l, i) => (
+          {t.footer.lines.map((l: string, i: number) => (
             <p key={i} className={i === 0 ? "footer-name" : "footer-line"}>{l}</p>
           ))}
         </div>
@@ -519,39 +533,13 @@ function Footer({ t }) {
   );
 }
 
-/* ──────────────────────────────────────────────────────────
-   Tweaks
-   ────────────────────────────────────────────────────────── */
-const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
-  "lang": "EN",
-  "heroTreatment": "natural",
-  "density": "editorial",
-  "layout": "editorial"
-}/*EDITMODE-END*/;
+export default function LandingPage() {
+  const [lang, setLang] = useState<Language>("FR");
 
-function App() {
-  const [t_, setTweak] = useTweaks(TWEAK_DEFAULTS);
-  const lang = t_.lang;
-  const setLang = (v) => setTweak("lang", v);
-
-  // Apply density + palette to root via data-attr
   useEffect(() => {
-    document.documentElement.setAttribute("data-density", t_.density);
-  }, [t_.density]);
-  useEffect(() => {
-    // palette is locked to forest
+    document.documentElement.setAttribute("data-density", "editorial");
     document.documentElement.setAttribute("data-palette", "forest");
-    document.documentElement.setAttribute("data-layout", t_.layout);
-  }, [t_.layout]);
-
-  // Update <title> + <lang>
-  useEffect(() => {
-    const titles = {
-      EN: "Gregory Tordjman — Méthode TMS® | Saint-Barth & Saint-Martin",
-      FR: "Grégory Tordjman — Méthode TMS® | Saint-Barth & Saint-Martin",
-      ES: "Gregory Tordjman — Método TMS® | San Bartolomé & San Martín",
-    };
-    document.title = titles[lang] || titles.EN;
+    document.documentElement.setAttribute("data-layout", "editorial");
     document.documentElement.lang = lang.toLowerCase();
   }, [lang]);
 
@@ -561,7 +549,7 @@ function App() {
     <>
       <Header lang={lang} setLang={setLang} t={t} />
       <main>
-        <Hero t={t} heroTreatment={t_.heroTreatment} layout={t_.layout} />
+        <Hero t={t} heroTreatment="natural" layout="editorial" />
         <Problem t={t} />
         <Practices t={t} />
         <Profiles t={t} />
@@ -571,57 +559,6 @@ function App() {
         <Contact t={t} />
       </main>
       <Footer t={t} />
-
-      <TweaksPanel title="Tweaks">
-        <TweakSection title="Language">
-          <TweakRadio
-            tweaks={t_}
-            setTweak={setTweak}
-            tweakKey="lang"
-            options={[
-              { value: "EN", label: "EN" },
-              { value: "FR", label: "FR" },
-              { value: "ES", label: "ES" },
-            ]}
-          />
-        </TweakSection>
-        <TweakSection title="Hero photo">
-          <TweakRadio
-            tweaks={t_}
-            setTweak={setTweak}
-            tweakKey="heroTreatment"
-            options={[
-              { value: "natural", label: "Natural" },
-              { value: "duotone", label: "Warm" },
-              { value: "bw", label: "B&W" },
-            ]}
-          />
-        </TweakSection>
-        <TweakSection title="Layout">
-          <TweakRadio
-            tweaks={t_}
-            setTweak={setTweak}
-            tweakKey="layout"
-            options={[
-              { value: "editorial", label: "Dark hero" },
-              { value: "cream", label: "Cream hero" },
-            ]}
-          />
-        </TweakSection>
-        <TweakSection title="Density">
-          <TweakRadio
-            tweaks={t_}
-            setTweak={setTweak}
-            tweakKey="density"
-            options={[
-              { value: "editorial", label: "Editorial" },
-              { value: "compact", label: "Compact" },
-            ]}
-          />
-        </TweakSection>
-      </TweaksPanel>
     </>
   );
 }
-
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);

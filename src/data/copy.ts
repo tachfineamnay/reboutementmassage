@@ -1,5 +1,4 @@
-// Localized copy for EN / FR / ES
-window.COPY = {
+export const COPY = {
   EN: {
     nav: { contact: "Contact" },
     hero: {
@@ -267,7 +266,7 @@ window.COPY = {
       },
       submit: "Enviar",
       sent: "Recibido. Le respondemos en breve.",
-      whatsapp: "O directamente:",
+      whatsapp: "Or directement:",
       whatsappLink: "wa.me/33663443284",
     },
     footer: {
@@ -275,8 +274,10 @@ window.COPY = {
         "Grégory Tordjman · Método TMS®",
         "reboutementmassage.fr · formationreboutement.fr",
         "+33 6 63 44 32 84 · contact@reboutementmassage.fr",
-        "San Bartolomé · San Martín · Antillas",
+        "San Bartolomé · San Martín · Antilles",
       ],
     },
   },
-};
+} as const;
+
+export type Language = keyof typeof COPY;
