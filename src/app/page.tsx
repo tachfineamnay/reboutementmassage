@@ -41,7 +41,8 @@ function Reveal({
   delay?: number, 
   children: React.ReactNode, 
   className?: string, 
-  style?: React.CSSProperties 
+  style?: React.CSSProperties,
+  [key: string]: any
 }) {
   const [ref, shown] = useReveal();
   const s: React.CSSProperties = {
@@ -423,7 +424,7 @@ function Contact({ t }: { t: any }) {
               label={t.contact.fields.establishment}
               placeholder={t.contact.fields.establishmentPh}
               value={form.establishment}
-              onChange={(v) => update("establishment", v)}
+              onChange={(v: string) => update("establishment", v)}
               onFocus={() => setFocused("establishment")}
               onBlur={() => setFocused("")}
               focused={focused === "establishment"}
@@ -433,7 +434,7 @@ function Contact({ t }: { t: any }) {
               label={t.contact.fields.contact}
               placeholder={t.contact.fields.contactPh}
               value={form.contact}
-              onChange={(v) => update("contact", v)}
+              onChange={(v: string) => update("contact", v)}
               onFocus={() => setFocused("contact")}
               onBlur={() => setFocused("")}
               focused={focused === "contact"}
@@ -443,7 +444,7 @@ function Contact({ t }: { t: any }) {
               label={t.contact.fields.message}
               placeholder={t.contact.fields.messagePh}
               value={form.message}
-              onChange={(v) => update("message", v)}
+              onChange={(v: string) => update("message", v)}
               onFocus={() => setFocused("message")}
               onBlur={() => setFocused("")}
               focused={focused === "message"}
