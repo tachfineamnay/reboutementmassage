@@ -1,5 +1,8 @@
 .git
-.gitignore
-Dockerfile
-.dockerignore
+.github
 node_modules
+npm-debug.log
+.DS_Store
+.env
+.env.*
+README_DEPLOY_COOLIFY.md
