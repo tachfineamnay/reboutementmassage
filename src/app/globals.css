@@ -259,7 +259,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 /* ─────────── Header ─────────── */
 .site-header {
   position: fixed; top: 0; left: 0; right: 0;
-  z-index: 50; height: 64px;
+  z-index: 50; height: 76px;
   transition: background .35s ease, backdrop-filter .35s ease, border-color .35s ease;
 }
 .header-inner {
@@ -276,6 +276,19 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .bw-1 { font-family: var(--serif); font-style: italic; font-weight: 300; font-size: 16px; color: var(--cream); letter-spacing: 0.01em; }
 .bw-2 { font-family: var(--sans); font-weight: 500; font-size: 11px; letter-spacing: 0.22em; color: var(--cream); text-transform: uppercase; }
 .bw-2 sup { font-size: 7px; top: -0.6em; position: relative; }
+
+/* Real logo image in header */
+.brand-logo {
+  height: 52px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+  /* Invert to white on dark/transparent header */
+  filter: brightness(0) invert(1);
+  transition: filter .35s ease, opacity .25s ease;
+}
+/* When scrolled: keep white logo on semi-dark backdrop */
+.brand:hover .brand-logo { opacity: 0.85; }
 
 .lang-switch { display: inline-flex; align-items: center; gap: 10px; }
 .lang-btn {
@@ -813,7 +826,17 @@ textarea.field-input::placeholder { font-style: normal; }
   align-items: center;
   gap: 32px;
 }
-.footer-mark { color: var(--gold); display: inline-flex; }
+.footer-mark { color: var(--gold); display: inline-flex; align-items: center; }
+.footer-logo {
+  height: 70px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+  /* Keep original colors on dark footer background */
+  opacity: 0.92;
+  transition: opacity .25s ease;
+}
+.footer-logo:hover { opacity: 1; }
 .footer-lines { display: flex; flex-direction: column; gap: 2px; }
 .footer-name {
   font-family: var(--serif); font-style: italic; font-weight: 300;

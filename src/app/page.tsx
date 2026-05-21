@@ -80,18 +80,12 @@ function Header({ lang, setLang, t }: { lang: Language, setLang: (l: Language) =
       }}
     >
       <div className="header-inner">
-        <a href="#top" className="brand" aria-label="Méthode TMS — home">
-          <span className="brand-mark">
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-              <circle cx="11" cy="11" r="10.25" stroke="currentColor" strokeWidth="0.5" />
-              <path d="M6.2 11.6c1.6-2.6 3-3.9 4.8-3.9s3.2 1.3 4.8 3.9" stroke="currentColor" strokeWidth="0.6" strokeLinecap="round" />
-              <circle cx="11" cy="11" r="0.9" fill="currentColor" />
-            </svg>
-          </span>
-          <span className="brand-word">
-            <span className="bw-1">Méthode</span>
-            <span className="bw-2">TMS<sup>®</sup></span>
-          </span>
+        <a href="#top" className="brand" aria-label="Thérapie Manuelle by Grégory Tordjman — home">
+          <img
+            src="/logo-therapie-manuelle.png"
+            alt="Thérapie Manuelle · Reboutement & Massage by Grégory Tordjman"
+            className="brand-logo"
+          />
         </a>
 
         <nav className="lang-switch" aria-label="Language">
@@ -514,11 +508,11 @@ function Footer({ t }: { t: any }) {
     <footer className="site-footer">
       <div className="footer-inner">
         <div className="footer-mark">
-          <svg width="18" height="18" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-            <circle cx="11" cy="11" r="10.25" stroke="currentColor" strokeWidth="0.5" />
-            <path d="M6.2 11.6c1.6-2.6 3-3.9 4.8-3.9s3.2 1.3 4.8 3.9" stroke="currentColor" strokeWidth="0.6" strokeLinecap="round" />
-            <circle cx="11" cy="11" r="0.9" fill="currentColor" />
-          </svg>
+          <img
+            src="/logo-therapie-manuelle.png"
+            alt="Thérapie Manuelle logo"
+            className="footer-logo"
+          />
         </div>
         <div className="footer-lines">
           {t.footer.lines.map((l: string, i: number) => (
