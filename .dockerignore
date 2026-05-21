@@ -3,6 +3,11 @@ node_modules
 .git
 .gitignore
 .env
+.env.*
 README.md
+README_DEPLOY_COOLIFY.md
 old-project
 index.html
+.github
+npm-debug.log
+.DS_Store
