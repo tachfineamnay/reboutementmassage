@@ -279,7 +279,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 /* Real logo image in header */
 .brand-logo {
-  height: 52px;
+  height: 64px;
   width: auto;
   display: block;
   object-fit: contain;
@@ -828,11 +828,12 @@ textarea.field-input::placeholder { font-style: normal; }
 }
 .footer-mark { color: var(--gold); display: inline-flex; align-items: center; }
 .footer-logo {
-  height: 70px;
+  height: 80px;
   width: auto;
   display: block;
   object-fit: contain;
-  /* Keep original colors on dark footer background */
+  /* Invert to white on dark footer background */
+  filter: brightness(0) invert(1);
   opacity: 0.92;
   transition: opacity .25s ease;
 }
