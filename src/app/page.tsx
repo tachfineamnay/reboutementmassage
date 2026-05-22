@@ -83,7 +83,7 @@ function Header({ lang, setLang, t }: { lang: Language, setLang: (l: Language) =
       <div className="header-inner">
         <a href="#top" className="brand" aria-label="Thérapie Manuelle by Grégory Tordjman — home">
           <img
-            src="/logo-therapie-manuelle.png"
+            src="/logo.png"
             alt="Thérapie Manuelle · Reboutement & Massage by Grégory Tordjman"
             className="brand-logo"
           />
@@ -510,7 +510,7 @@ function Footer({ t }: { t: any }) {
       <div className="footer-inner">
         <div className="footer-mark">
           <img
-            src="/logo-therapie-manuelle.png"
+            src="/logo.png"
             alt="Thérapie Manuelle logo"
             className="footer-logo"
           />

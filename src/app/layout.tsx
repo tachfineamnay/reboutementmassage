@@ -20,7 +20,11 @@ export const metadata: Metadata = {
   description: "Reboutement, therapeutic massage & manual therapy. On-site. In 20 minutes. Saint-Barthélemy, Saint-Martin, aboard.",
   viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
   icons: {
-    icon: "/logo.png", // Using the existing logo as icon if needed
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
+  openGraph: {
+    images: ["/logo.png"],
   },
 };
 

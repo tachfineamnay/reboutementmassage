@@ -149,20 +149,16 @@ html[data-palette="forest"] ::selection { background: var(--gold); color: var(--
 
 /* Header darkens against cream hero */
 html[data-layout="cream"] .site-header { color: var(--ink); }
-html[data-layout="cream"] .brand,
-html[data-layout="cream"] .bw-1,
-html[data-layout="cream"] .bw-2 { color: var(--ink); }
-html[data-layout="cream"] .brand-mark { color: var(--forest); }
+html[data-layout="cream"] .brand { color: var(--ink); }
+html[data-layout="cream"] .brand-logo { border-color: rgba(30,77,58,0.28); }
 html[data-layout="cream"] .lang-btn { color: var(--mid); }
 html[data-layout="cream"] .lang-btn:hover { color: var(--ink); }
 html[data-layout="cream"] .lang-btn.is-active { color: var(--forest); }
 html[data-layout="cream"] .lang-sep { color: var(--line); }
 /* When scrolled — header still uses ink/85 + cream text from base rule */
 html[data-layout="cream"] .site-header[style*="rgba(26,23,20"] .brand,
-html[data-layout="cream"] .site-header[style*="rgba(26,23,20"] .bw-1,
-html[data-layout="cream"] .site-header[style*="rgba(26,23,20"] .bw-2,
 html[data-layout="cream"] .site-header[style*="rgba(26,23,20"] .lang-btn { color: var(--cream); }
-html[data-layout="cream"] .site-header[style*="rgba(26,23,20"] .brand-mark { color: var(--gold); }
+html[data-layout="cream"] .site-header[style*="rgba(26,23,20"] .brand-logo { border-color: rgba(201,169,90,0.38); }
 
 .hero-scroll--ink { color: var(--gold-muted); bottom: 22px; }
 
@@ -270,22 +266,19 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   display: flex; align-items: center; justify-content: space-between;
   color: var(--cream);
 }
-.brand { display: inline-flex; align-items: center; gap: 12px; color: var(--cream); }
-.brand-mark { color: var(--gold); display: inline-flex; }
-.brand-word { display: inline-flex; align-items: baseline; gap: 8px; line-height: 1; }
-.bw-1 { font-family: var(--serif); font-style: italic; font-weight: 300; font-size: 16px; color: var(--cream); letter-spacing: 0.01em; }
-.bw-2 { font-family: var(--sans); font-weight: 500; font-size: 11px; letter-spacing: 0.22em; color: var(--cream); text-transform: uppercase; }
-.bw-2 sup { font-size: 7px; top: -0.6em; position: relative; }
+.brand { display: inline-flex; align-items: center; color: var(--cream); }
 
 /* Real logo image in header */
 .brand-logo {
-  height: 64px;
-  width: auto;
+  width: 46px;
+  height: 46px;
   display: block;
   object-fit: contain;
-  /* Invert to white on dark/transparent header */
-  filter: brightness(0) invert(1);
-  transition: filter .35s ease, opacity .25s ease;
+  border-radius: 50%;
+  border: 1px solid rgba(250,248,243,0.3);
+  background: rgba(250,248,243,0.92);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.16);
+  transition: border-color .35s ease, opacity .25s ease;
 }
 /* When scrolled: keep white logo on semi-dark backdrop */
 .brand:hover .brand-logo { opacity: 0.85; }
@@ -826,15 +819,23 @@ textarea.field-input::placeholder { font-style: normal; }
   align-items: center;
   gap: 32px;
 }
-.footer-mark { color: var(--gold); display: inline-flex; align-items: center; }
+.footer-mark {
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(250,248,243,0.94);
+  border: 1px solid rgba(201,169,90,0.28);
+  overflow: hidden;
+}
 .footer-logo {
-  height: 80px;
-  width: auto;
+  width: 100%;
+  height: 100%;
   display: block;
   object-fit: contain;
-  /* Invert to white on dark footer background */
-  filter: brightness(0) invert(1);
-  opacity: 0.92;
+  border-radius: 50%;
   transition: opacity .25s ease;
 }
 .footer-logo:hover { opacity: 1; }
@@ -852,6 +853,24 @@ textarea.field-input::placeholder { font-style: normal; }
 /* ─────────── Mobile ─────────── */
 @media (max-width: 920px) {
   :root { --x-pad: 24px; }
+
+  .brand-logo { width: 40px; height: 40px; }
+  .footer-mark { width: 44px; height: 44px; }
+  .header-inner { position: relative; }
+  .lang-switch { gap: 6px; }
+  .header-inner .lang-switch {
+    position: absolute;
+    top: 50%;
+    left: 82px;
+    right: auto;
+    transform: translateY(-50%);
+    white-space: nowrap;
+  }
+  .lang-btn {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    padding: 6px 1px;
+  }
 
   .hero { min-height: 100vh; padding-bottom: 100px; }
   .hero-grid { grid-template-columns: 1fr; gap: 24px; }
