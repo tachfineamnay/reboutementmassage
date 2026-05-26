@@ -1,11 +1,9 @@
 export const COPY = {
   EN: {
     nav: { contact: "Contact" },
-    hero: {
-      eyebrow: "Méthode TMS® · Luxury hospitality · Saint-Barth & Saint-Martin",
+      eyebrow: "Méthode TMS® · Luxury hospitality · International",
       headline: ["When the body stops.", "The experience must continue."],
       scroll: "Discover",
-    },
     problem: [
       "In luxury hospitality, physical comfort is part of the guest experience.",
       "Grégory Tordjman provides discreet on-site manual relief therapy for private guests, villas, hotels, conciergeries and yachts — in Saint-Barth, Saint-Martin and internationally on request.",
@@ -63,7 +61,7 @@ export const COPY = {
       lines: [
         "Creator of the Méthode TMS® — Technique Manuelle de Soulagement.",
         "9,000+ bodies supported · 230+ therapists trained · 465 workshops delivered.",
-        "France, Switzerland, Spain, West Africa, the Caribbean — available internationally on request.",
+        "Available internationally on request · Aboard.",
       ],
     },
     contact: {
@@ -88,14 +86,14 @@ export const COPY = {
         "Grégory Tordjman · Méthode TMS®",
         "Manual relief therapy · Hospitality · Villas · Yachting · Teams",
         "+33 6 65 51 77 35 · contact@reboutementmassage.fr",
-        "Saint-Barthélemy · Saint-Martin · International on request",
+        "International on request",
       ],
     },
   },
   FR: {
     nav: { contact: "Contact" },
     hero: {
-      eyebrow: "Méthode TMS® · Hospitality de luxe · Saint-Barth & Saint-Martin",
+      eyebrow: "Méthode TMS® · Hospitality de luxe · International",
       headline: ["Quand le corps bloque.", "L’expérience doit continuer."],
       scroll: "Découvrir",
     },
@@ -156,7 +154,7 @@ export const COPY = {
       lines: [
         "Créateur de la Méthode TMS® — Technique Manuelle de Soulagement.",
         "9 000+ corps accompagnés · 230+ thérapeutes formés · 465 workshops animés.",
-        "France, Suisse, Espagne, Afrique de l’Ouest, Antilles — disponible à l’international sur demande.",
+        "Disponible à l’international sur demande · À bord.",
       ],
     },
     contact: {
@@ -181,14 +179,14 @@ export const COPY = {
         "Grégory Tordjman · Méthode TMS®",
         "Thérapie manuelle de soulagement · Hospitality · Villas · Yachting · Équipes",
         "+33 6 65 51 77 35 · contact@reboutementmassage.fr",
-        "Saint-Barthélemy · Saint-Martin · International sur demande",
+        "International sur demande",
       ],
     },
   },
   ES: {
     nav: { contact: "Contacto" },
     hero: {
-      eyebrow: "Método TMS® · Hospitality de lujo · San Bartolomé & San Martín",
+      eyebrow: "Método TMS® · Hospitality de lujo · Internacional",
       headline: ["Cuando el cuerpo se bloquea.", "La experiencia debe continuar."],
       scroll: "Descubrir",
     },
@@ -249,7 +247,7 @@ export const COPY = {
       lines: [
         "Creador del Método TMS® — Técnica Manual de Alivio.",
         "9.000+ cuerpos acompañados · 230+ terapeutas formados · 465 workshops realizados.",
-        "Francia, Suiza, España, África Occidental, Antillas — disponible internacionalmente bajo solicitud.",
+        "Disponible internacionalmente bajo solicitud · A bordo.",
       ],
     },
     contact: {
@@ -274,7 +272,7 @@ export const COPY = {
         "Grégory Tordjman · Método TMS®",
         "Terapia manual de alivio · Hospitality · Villas · Yachting · Equipos",
         "+33 6 65 51 77 35 · contact@reboutementmassage.fr",
-        "San Bartolomé · San Martín · Internacional bajo solicitud",
+        "Internacional bajo solicitud",
       ],
     },
   },
