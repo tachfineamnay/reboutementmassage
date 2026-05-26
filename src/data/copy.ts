@@ -1,12 +1,14 @@
 export const COPY = {
   EN: {
     nav: { contact: "Contact" },
+    hero: {
       eyebrow: "Méthode TMS® · Luxury hospitality · International",
       headline: ["When the body stops.", "The experience must continue."],
       scroll: "Discover",
+    },
     problem: [
       "In luxury hospitality, physical comfort is part of the guest experience.",
-      "Grégory Tordjman provides discreet on-site manual relief therapy for private guests, villas, hotels, conciergeries and yachts — in Saint-Barth, Saint-Martin and internationally on request.",
+      "Grégory Tordjman provides discreet on-site manual relief therapy for private guests, villas, hotels, conciergeries and yachts — wherever in the world they are.",
     ],
     practices: {
       label: "The method",
@@ -99,7 +101,7 @@ export const COPY = {
     },
     problem: [
       "Dans l’hospitality de luxe, le confort corporel fait partie de l’expérience client.",
-      "Grégory Tordjman intervient avec la Méthode TMS® auprès des clients privés, villas, hôtels, conciergeries et yachts — à Saint-Barth, Saint-Martin et à l’international sur demande.",
+      "Grégory Tordjman intervient avec la Méthode TMS® auprès des clients privés, villas, hôtels, conciergeries et yachts — partout dans le monde où ils se trouvent.",
     ],
     practices: {
       label: "La méthode",
@@ -192,7 +194,7 @@ export const COPY = {
     },
     problem: [
       "En el hospitality de lujo, el confort corporal forma parte de la experiencia del huésped.",
-      "Grégory Tordjman interviene con el Método TMS® para clientes privados, villas, hoteles, conserjerías y yates — en San Bartolomé, San Martín e internacionalmente bajo solicitud.",
+      "Grégory Tordjman interviene con el Método TMS® para clientes privados, villas, hoteles, conserjerías y yates — allí donde se encuentren sus huéspedes.",
     ],
     practices: {
       label: "El método",
