@@ -16,8 +16,8 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Gregory Tordjman — Méthode TMS® | Saint-Barth & Saint-Martin",
-  description: "Reboutement, therapeutic massage & manual therapy. On-site. In 20 minutes. Saint-Barthélemy, Saint-Martin, aboard.",
+  title: "Grégory Tordjman — Méthode TMS® | International Luxury Hospitality",
+  description: "Reboutement, therapeutic massage & manual therapy for luxury hotels, private villas & yachts. Discreet on-site intervention, worldwide.",
   viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
   icons: {
     icon: "/logo.png",

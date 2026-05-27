@@ -7,8 +7,8 @@ export const COPY = {
       scroll: "Discover",
     },
     problem: [
-      "In luxury hospitality, physical comfort is part of the guest experience.",
-      "Grégory Tordjman provides discreet on-site manual relief therapy for private guests, villas, hotels, conciergeries and yachts — wherever in the world they are.",
+      "In luxury hospitality, physical comfort is inseparable from the guest experience.",
+      "Grégory Tordjman delivers discreet, on-site manual relief therapy for private guests, premier hotels, villas, conciergeries and yachts — wherever your standards demand it.",
     ],
     practices: {
       label: "The method",
@@ -46,8 +46,8 @@ export const COPY = {
       ],
     },
     teams: {
-      headline: "Also for teams under pressure.",
-      body: "During peak season, luxury service depends on bodies that can keep going. Grégory supports spa teams, villa staff, operations teams and managers through targeted on-site sessions or bespoke workshops.",
+      headline: "For the teams behind the experience.",
+      body: "When the season demands more, the body must follow. Grégory supports spa practitioners, villa staff, operations teams and managers through targeted on-site sessions or bespoke recovery workshops.",
     },
     how: {
       label: "How it works",
@@ -74,7 +74,7 @@ export const COPY = {
         establishment: "Organization / property",
         establishmentPh: "Hotel, villa, concierge, yacht, company…",
         contact: "Email or WhatsApp",
-        contactPh: "+33, +590…",
+        contactPh: "your number or email",
         message: "Context",
         messagePh: "Location, date, guest context, team need…",
       },
@@ -100,8 +100,8 @@ export const COPY = {
       scroll: "Découvrir",
     },
     problem: [
-      "Dans l’hospitality de luxe, le confort corporel fait partie de l’expérience client.",
-      "Grégory Tordjman intervient avec la Méthode TMS® auprès des clients privés, villas, hôtels, conciergeries et yachts — partout dans le monde où ils se trouvent.",
+      "Dans l'hospitality de luxe, le confort corporel est indissociable de l'expérience client.",
+      "Grégory Tordjman intervient avec la Méthode TMS® auprès des clients privés, hôtels d'exception, villas, conciergeries et yachts — partout où vos standards l'exigent.",
     ],
     practices: {
       label: "La méthode",
@@ -139,8 +139,8 @@ export const COPY = {
       ],
     },
     teams: {
-      headline: "Et pour vos équipes sous pression.",
-      body: "En haute saison, la qualité du service dépend aussi de corps capables de tenir. Grégory accompagne équipes spa, villas, opérations et managers avec des séances ciblées sur site ou des ateliers sur mesure.",
+      headline: "Pour les équipes derrière l'expérience.",
+      body: "Quand la saison exige plus, le corps doit suivre. Grégory accompagne praticiens spa, équipes villa, opérations et managers avec des séances ciblées sur site ou des ateliers de récupération sur mesure.",
     },
     how: {
       label: "Comment ça marche",
@@ -167,7 +167,7 @@ export const COPY = {
         establishment: "Organisation / propriété",
         establishmentPh: "Hôtel, villa, conciergerie, yacht, entreprise…",
         contact: "Email ou WhatsApp",
-        contactPh: "+33, +590…",
+        contactPh: "votre numéro ou email",
         message: "Contexte",
         messagePh: "Lieu, date, contexte client, besoin équipe…",
       },
@@ -193,8 +193,8 @@ export const COPY = {
       scroll: "Descubrir",
     },
     problem: [
-      "En el hospitality de lujo, el confort corporal forma parte de la experiencia del huésped.",
-      "Grégory Tordjman interviene con el Método TMS® para clientes privados, villas, hoteles, conserjerías y yates — allí donde se encuentren sus huéspedes.",
+      "En el hospitality de lujo, el confort corporal es inseparable de la experiencia del huésped.",
+      "Grégory Tordjman interviene con el Método TMS® para clientes privados, hoteles de prestigio, villas, conserjerías y yates — allí donde sus estándares lo exigen.",
     ],
     practices: {
       label: "El método",
@@ -232,8 +232,8 @@ export const COPY = {
       ],
     },
     teams: {
-      headline: "También para equipos bajo presión.",
-      body: "En temporada alta, la calidad del servicio depende también de cuerpos capaces de sostener el ritmo. Grégory acompaña equipos de spa, villas, operaciones y managers con sesiones específicas en sitio o workshops a medida.",
+      headline: "Para los equipos detrás de la experiencia.",
+      body: "Cuando la temporada exige más, el cuerpo debe seguir. Grégory acompaña a profesionales de spa, equipos de villa, operaciones y managers con sesiones específicas en sitio o talleres de recuperación a medida.",
     },
     how: {
       label: "Cómo funciona",
@@ -260,7 +260,7 @@ export const COPY = {
         establishment: "Organización / propiedad",
         establishmentPh: "Hotel, villa, conserjería, yate, empresa…",
         contact: "Email o WhatsApp",
-        contactPh: "+33, +590…",
+        contactPh: "su número o email",
         message: "Contexto",
         messagePh: "Lugar, fecha, contexto del huésped, necesidad del equipo…",
       },

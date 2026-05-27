@@ -136,7 +136,7 @@ function Hero({ t, heroTreatment, layout }: { t: any, heroTreatment: string, lay
             <Reveal delay={0.4}>
               <div className="hero-cream-meta">
                 <span className="rule-thin" />
-                <span className="eyebrow eyebrow--faint">Saint-Barthélemy · Saint-Martin · Aboard</span>
+                <span className="eyebrow eyebrow--faint">International · Aboard</span>
               </div>
             </Reveal>
           </div>
@@ -181,7 +181,7 @@ function Hero({ t, heroTreatment, layout }: { t: any, heroTreatment: string, lay
 
         <Reveal delay={0.5} className="hero-meta">
           <div className="hero-meta-row">
-            <span className="eyebrow eyebrow--faint">Saint-Barthélemy · Saint-Martin · Aboard</span>
+            <span className="eyebrow eyebrow--faint">International · Aboard</span>
           </div>
           <div className="hero-meta-row hero-meta-row--rule">
             <span className="rule-thin" />
