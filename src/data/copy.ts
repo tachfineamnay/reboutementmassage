@@ -6,6 +6,12 @@ export const COPY = {
       headline: ["When the body stops.", "The experience must continue."],
       scroll: "Discover",
     },
+    imageAlts: {
+      hero: "Grégory Tordjman performing private manual therapy in a premium hospitality setting",
+      practice: "Manual therapy gesture for targeted body relief",
+      profiles: "Private manual therapy session for hospitality clients",
+      portrait: "Portrait of Grégory Tordjman, creator of the Méthode TMS®",
+    },
     problem: [
       "In luxury hospitality, physical comfort is inseparable from the guest experience.",
       "Grégory Tordjman delivers discreet, on-site manual relief therapy for private guests, premier hotels, villas, conciergeries and yachts — wherever your standards demand it.",
@@ -120,6 +126,12 @@ export const COPY = {
       headline: ["Quand le corps bloque.", "L’expérience doit continuer."],
       scroll: "Découvrir",
     },
+    imageAlts: {
+      hero: "Grégory Tordjman lors d’une intervention privée en thérapie manuelle dans un cadre premium",
+      practice: "Geste de thérapie manuelle pour un soulagement corporel ciblé",
+      profiles: "Séance privée de thérapie manuelle pour clients hospitality",
+      portrait: "Portrait de Grégory Tordjman, créateur de la Méthode TMS®",
+    },
     problem: [
       "Dans l'hospitality de luxe, le confort corporel est indissociable de l'expérience client.",
       "Grégory Tordjman intervient avec la Méthode TMS® auprès des clients privés, hôtels d'exception, villas, conciergeries et yachts — partout où vos standards l'exigent.",
@@ -233,6 +245,12 @@ export const COPY = {
       eyebrow: "Método TMS® · Hospitality de lujo · Internacional",
       headline: ["Cuando el cuerpo se bloquea.", "La experiencia debe continuar."],
       scroll: "Descubrir",
+    },
+    imageAlts: {
+      hero: "Grégory Tordjman durante una intervención privada de terapia manual en un entorno premium",
+      practice: "Gesto de terapia manual para alivio corporal dirigido",
+      profiles: "Sesión privada de terapia manual para clientes de hospitality",
+      portrait: "Retrato de Grégory Tordjman, creador del Método TMS®",
     },
     problem: [
       "En el hospitality de lujo, el confort corporal es inseparable de la experiencia del huésped.",
