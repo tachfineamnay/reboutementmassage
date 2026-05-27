@@ -65,6 +65,57 @@ function Reveal({
 }
 
 /* ──────────────────────────────────────────────────────────
+   HandLogo SVG — the spiral-hand icon used as brand mark
+   ────────────────────────────────────────────────────────── */
+function HandLogo({ size = 46, className = "", color = "currentColor" }: { size?: number; className?: string; color?: string }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 200 200"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-hidden="true"
+    >
+      {/* Outer circle */}
+      <circle cx="100" cy="100" r="94" stroke={color} strokeWidth="5" fill="none" />
+      {/* Hand palm outline */}
+      <path
+        d="M90 52 C90 52, 82 52, 80 64 L74 108 C72 118, 58 120, 56 110 L52 88 C50 78, 62 74, 64 84 L66 96"
+        stroke={color}
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      {/* Fingers */}
+      <line x1="88" y1="52" x2="88" y2="92" stroke={color} strokeWidth="5" strokeLinecap="round" />
+      <line x1="100" y1="46" x2="100" y2="92" stroke={color} strokeWidth="5" strokeLinecap="round" />
+      <line x1="112" y1="50" x2="112" y2="92" stroke={color} strokeWidth="5" strokeLinecap="round" />
+      <line x1="124" y1="58" x2="122" y2="90" stroke={color} strokeWidth="5" strokeLinecap="round" />
+      {/* Palm body */}
+      <path
+        d="M74 108 C74 120, 78 132, 86 140 C94 148, 106 152, 118 148 C130 144, 136 132, 134 118 L126 90"
+        stroke={color}
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      {/* Spiral in palm */}
+      <path
+        d="M100 118 C92 118, 88 112, 88 106 C88 98, 94 94, 100 94 C108 94, 112 100, 112 106 C112 114, 106 120, 98 122 C88 124, 82 118, 80 110 C78 100, 84 90, 96 88"
+        stroke={color}
+        strokeWidth="4.5"
+        strokeLinecap="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────
    Header — fixed, transparent → ink/85 on scroll
    ────────────────────────────────────────────────────────── */
 function Header({ lang }: { lang: Language }) {
@@ -87,14 +138,9 @@ function Header({ lang }: { lang: Language }) {
     >
       <div className="header-inner">
         <a href="#top" className="brand" aria-label="Thérapie Manuelle by Grégory Tordjman — home">
-          <Image
-            src="/logo.png"
-            alt="Thérapie Manuelle · Reboutement & Massage by Grégory Tordjman"
-            className="brand-logo"
-            width={46}
-            height={46}
-            priority
-          />
+          <span className="brand-logo">
+            <HandLogo size={32} color="var(--ink)" />
+          </span>
         </a>
 
         <nav className="lang-switch" aria-label="Language">
@@ -230,12 +276,50 @@ function Hero({ t, heroTreatment, layout }: { t: LandingCopy, heroTreatment: str
 function Problem({ t }: { t: LandingCopy }) {
   return (
     <section className="problem">
-      <div className="container container--narrow">
+      <div className="container container--narrow problem-container">
+        {/* Watermark logo behind text */}
+        <div className="problem-watermark" aria-hidden="true">
+          <HandLogo size={280} color="var(--ink)" className="problem-watermark__svg" />
+        </div>
         <Reveal>
           <p className="problem-lead">{t.problem[0]}</p>
         </Reveal>
         <Reveal delay={0.1}>
           <p className="problem-body">{t.problem[1]}</p>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────
+   Section 02b — Trust Bar (chiffres clés + garanties)
+   ────────────────────────────────────────────────────────── */
+function TrustBar({ t }: { t: LandingCopy }) {
+  return (
+    <section className="trust-bar">
+      <div className="container">
+        <Reveal>
+          <div className="trust-bar__stats">
+            {t.trustBar.stats.map((stat: { value: string; label: string }, i: number) => (
+              <div className="trust-bar__stat" key={i}>
+                <span className="trust-bar__value">{stat.value}</span>
+                <span className="trust-bar__label">{stat.label}</span>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+        <Reveal delay={0.15}>
+          <div className="trust-bar__guarantees">
+            {t.trustBar.guarantees.map((g: string, i: number) => (
+              <span className="trust-bar__guarantee" key={i}>
+                <svg width="14" height="11" viewBox="0 0 14 11" fill="none" aria-hidden="true">
+                  <polyline points="1,5.5 5,9.5 13,1" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                {g}
+              </span>
+            ))}
+          </div>
         </Reveal>
       </div>
     </section>
@@ -774,10 +858,16 @@ function Contact({ t, lang }: { t: LandingCopy; lang: Language }) {
                 ))}
               </div>
 
-              {/* Trust signals */}
-              <div className="sf-trust">
+              {/* Trust signals — enhanced with logo */}
+              <div className="sf-trust sf-trust--enhanced">
+                <div className="sf-trust__brand" aria-hidden="true">
+                  <HandLogo size={28} color="var(--forest)" />
+                </div>
                 {t.contact.step3.trust.map((sig: string, i: number) => (
-                  <span key={i} className="sf-trust__item">{checkIcon}{sig}</span>
+                  <span key={i} className="sf-trust__item">
+                    <span className="sf-trust__icon">{checkIcon}</span>
+                    {sig}
+                  </span>
                 ))}
               </div>
 
@@ -854,13 +944,7 @@ function Footer({ t }: { t: LandingCopy }) {
     <footer className="site-footer">
       <div className="footer-inner">
         <div className="footer-mark">
-          <Image
-            src="/logo.png"
-            alt="Thérapie Manuelle logo"
-            className="footer-logo"
-            width={48}
-            height={48}
-          />
+          <HandLogo size={34} color="var(--ink)" />
         </div>
         <div className="footer-lines">
           {t.footer.lines.map((l: string, i: number) => (
@@ -892,6 +976,7 @@ export default function LandingPage({ initialLang }: { initialLang: Language }) 
       <main>
         <Hero t={t} heroTreatment="natural" layout="editorial" />
         <Problem t={t} />
+        <TrustBar t={t} />
         <Practices t={t} />
         <Profiles t={t} />
         <Teams t={t} />

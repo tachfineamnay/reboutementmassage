@@ -16,6 +16,15 @@ export const COPY = {
       "In luxury hospitality, physical comfort is inseparable from the guest experience.",
       "Grégory Tordjman delivers discreet, on-site manual relief therapy for private guests, premier hotels, villas, conciergeries and yachts — wherever your standards demand it.",
     ],
+    trustBar: {
+      stats: [
+        { value: "9,000+", label: "Bodies supported" },
+        { value: "230+", label: "Therapists trained" },
+        { value: "2014", label: "Est." },
+        { value: "465", label: "Workshops delivered" },
+      ],
+      guarantees: ["Confidential", "International on request", "Personal reply within 12h", "No commitment"],
+    },
     practices: {
       label: "The method",
       title: "One expert practitioner. Three complementary disciplines.",
@@ -136,6 +145,15 @@ export const COPY = {
       "Dans l'hospitality de luxe, le confort corporel est indissociable de l'expérience client.",
       "Grégory Tordjman intervient avec la Méthode TMS® auprès des clients privés, hôtels d'exception, villas, conciergeries et yachts — partout où vos standards l'exigent.",
     ],
+    trustBar: {
+      stats: [
+        { value: "9 000+", label: "Corps accompagnés" },
+        { value: "230+", label: "Thérapeutes formés" },
+        { value: "2014", label: "Depuis" },
+        { value: "465", label: "Workshops animés" },
+      ],
+      guarantees: ["Confidentiel", "International sur demande", "Réponse personnelle sous 12h", "Sans engagement"],
+    },
     practices: {
       label: "La méthode",
       title: "Un praticien expert. Trois disciplines complémentaires.",
@@ -256,6 +274,15 @@ export const COPY = {
       "En el hospitality de lujo, el confort corporal es inseparable de la experiencia del huésped.",
       "Grégory Tordjman interviene con el Método TMS® para clientes privados, hoteles de prestigio, villas, conserjerías y yates — allí donde sus estándares lo exigen.",
     ],
+    trustBar: {
+      stats: [
+        { value: "9.000+", label: "Cuerpos acompañados" },
+        { value: "230+", label: "Terapeutas formados" },
+        { value: "2014", label: "Desde" },
+        { value: "465", label: "Workshops realizados" },
+      ],
+      guarantees: ["Confidencial", "Internacional bajo solicitud", "Respuesta personal en 12h", "Sin compromiso"],
+    },
     practices: {
       label: "El método",
       title: "Un profesional experto. Tres disciplinas complementarias.",
