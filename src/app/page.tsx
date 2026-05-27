@@ -538,36 +538,34 @@ function Contact({ t, lang }: { t: any; lang: string }) {
           </div>
         </Reveal>
 
-        {/* Step indicators */}
+        {/* Step indicators — editorial style */}
         <Reveal delay={0.35}>
-          <div className="sf-steps">
-            {(["I", "II", "III", "IV"] as const).map((numeral, i) => (
-              <React.Fragment key={i}>
-                {i > 0 && <span className={`sf-steps__line ${step > i ? "is-done" : ""}`} />}
-                <div className="sf-steps__item">
-                  <button
-                    className={`sf-steps__dot ${step === i + 1 ? "is-active" : ""} ${step > i + 1 ? "is-done" : ""}`}
-                    onClick={() => { if (step > i + 1) setStep(i + 1); }}
-                    disabled={step <= i}
-                    aria-label={`Step ${i + 1}`}
-                  >
-                    {step > i + 1 ? checkIcon : numeral}
-                  </button>
-                  <span className={`sf-steps__label ${step === i + 1 ? "is-active" : ""} ${step > i + 1 ? "is-done" : ""}`}>
-                    {t.contact.stepLabels[i]}
-                  </span>
-                </div>
-              </React.Fragment>
+          <div className="sf-indicators">
+            {[0, 1, 2, 3].map((i) => (
+              <button
+                key={i}
+                className={`sf-ind ${step === i + 1 ? "is-active" : ""} ${step > i + 1 ? "is-done" : ""}`}
+                onClick={() => { if (step > i + 1) setStep(i + 1); }}
+                disabled={step <= i}
+                type="button"
+              >
+                <span className="sf-ind__num">{String(i + 1).padStart(2, "0")}</span>
+                <span className="sf-ind__sep">—</span>
+                <span className="sf-ind__text">{t.contact.stepLabels[i]}</span>
+              </button>
             ))}
+            <div className="sf-ind__track">
+              <div className="sf-ind__fill" style={{ width: `${((step - 1) / 3) * 100}%` }} />
+            </div>
           </div>
         </Reveal>
 
-        {/* ─── Step content ─── */}
+        {/* ─── Step content — smooth slider ─── */}
         <div className="sf-content">
+          <div className="sf-slider" style={{ transform: `translateX(-${(step - 1) * 100}%)` }}>
 
-          {/* STEP 1 — Identity */}
-          {step === 1 && (
-            <div className="sf-step" key="s1">
+            {/* STEP 1 — Identity */}
+            <div className={`sf-slide ${step === 1 ? "is-active" : ""}`}>
               <p className="sf-step__title">{t.contact.step1.title}</p>
               <div className="sf-fields">
                 <StepField
@@ -592,11 +590,9 @@ function Contact({ t, lang }: { t: any; lang: string }) {
                 </button>
               </div>
             </div>
-          )}
 
-          {/* STEP 2 — Need */}
-          {step === 2 && (
-            <div className="sf-step" key="s2">
+            {/* STEP 2 — Need */}
+            <div className={`sf-slide ${step === 2 ? "is-active" : ""}`}>
               <p className="sf-step__title">{t.contact.step2.title}</p>
               <div className="sf-types">
                 {t.contact.step2.types.map((tp: string) => (
@@ -624,11 +620,9 @@ function Contact({ t, lang }: { t: any; lang: string }) {
                 </button>
               </div>
             </div>
-          )}
 
-          {/* STEP 3 — Callback Scheduler */}
-          {step === 3 && (
-            <div className="sf-step" key="s3">
+            {/* STEP 3 — Callback Scheduler */}
+            <div className={`sf-slide ${step === 3 ? "is-active" : ""}`}>
               <p className="sf-step__title">{t.contact.step3.title}</p>
               <p className="sf-step__avail">
                 <span className="sf-step__avail-n">{availableCount}</span>{" "}{t.contact.step3.slotsAvailable}
@@ -674,11 +668,9 @@ function Contact({ t, lang }: { t: any; lang: string }) {
                 </button>
               </div>
             </div>
-          )}
 
-          {/* STEP 4 — Confirmation (Peak-End) */}
-          {step === 4 && (
-            <div className="sf-step sf-step--confirm" key="s4">
+            {/* STEP 4 — Confirmation (Peak-End) */}
+            <div className={`sf-slide ${step === 4 ? "is-active" : ""}`}>
               <div className="sf-confirm">
                 <div className="sf-confirm__photo">
                   <img src="/portrait.jpg" alt="Grégory Tordjman" />
@@ -713,7 +705,8 @@ function Contact({ t, lang }: { t: any; lang: string }) {
                 </button>
               </div>
             </div>
-          )}
+
+          </div>
         </div>
       </div>
     </section>

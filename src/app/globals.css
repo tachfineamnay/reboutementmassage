@@ -707,96 +707,109 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   transition: width 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
-/* ── Step indicators ── */
-.sf-steps {
+/* ── Step indicators — editorial ── */
+.sf-indicators {
   display: flex;
-  align-items: flex-start;
   justify-content: center;
-  gap: 0;
+  gap: 6px;
+  flex-wrap: wrap;
   margin-bottom: 48px;
+  position: relative;
+  padding-bottom: 16px;
 }
-.sf-steps__item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  min-width: 80px;
-}
-.sf-steps__dot {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  border: 1px solid var(--line);
+.sf-ind {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  font-family: var(--serif);
-  font-weight: 300;
-  font-size: 13px;
-  color: var(--faint);
-  background: transparent;
-  transition: all 0.35s ease;
+  gap: 7px;
+  font-family: var(--sans);
+  background: none;
+  border: 0;
+  padding: 6px 12px;
   cursor: default;
+  transition: opacity 0.4s ease;
+  opacity: 0.38;
+  border-radius: 2px;
 }
-.sf-steps__dot.is-active {
-  border-color: var(--gold);
-  color: var(--gold);
-  background: rgba(201, 169, 90, 0.08);
+.sf-ind.is-active {
+  opacity: 1;
 }
-.sf-steps__dot.is-done {
-  border-color: var(--forest);
-  color: var(--forest);
-  background: rgba(47, 106, 79, 0.08);
+.sf-ind.is-done {
+  opacity: 0.65;
   cursor: pointer;
 }
-.sf-steps__dot.is-done:hover {
-  background: rgba(47, 106, 79, 0.15);
+.sf-ind.is-done:hover { opacity: 0.85; }
+.sf-ind__num {
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--faint);
+  transition: color 0.4s ease;
 }
-.sf-steps__label {
-  font-family: var(--sans);
+.sf-ind.is-active .sf-ind__num { color: var(--gold); }
+.sf-ind.is-done .sf-ind__num { color: var(--forest); }
+.sf-ind__sep {
+  font-size: 10px;
+  color: var(--line);
+  transition: color 0.4s ease;
+}
+.sf-ind.is-active .sf-ind__sep { color: var(--gold-muted); }
+.sf-ind.is-done .sf-ind__sep { color: var(--forest); opacity: 0.5; }
+.sf-ind__text {
   font-weight: 400;
   font-size: 9px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--faint);
-  text-align: center;
-  transition: color 0.3s ease;
-  white-space: nowrap;
+  transition: color 0.4s ease;
 }
-.sf-steps__label.is-active { color: var(--gold); }
-.sf-steps__label.is-done { color: var(--forest); }
-.sf-steps__line {
-  display: block;
-  width: 48px;
+.sf-ind.is-active .sf-ind__text { color: var(--ink); font-weight: 500; }
+.sf-ind.is-done .sf-ind__text { color: var(--mid); }
+/* progress track under indicators */
+.sf-ind__track {
+  position: absolute;
+  bottom: 0;
+  left: 0; right: 0;
   height: 1px;
   background: var(--line);
-  margin-top: 18px;
-  flex-shrink: 0;
-  transition: background 0.4s ease;
 }
-.sf-steps__line.is-done { background: var(--forest); }
+.sf-ind__fill {
+  height: 100%;
+  background: var(--gold);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-/* ── Step content ── */
+/* ── Step content — slider ── */
 .sf-content {
-  min-height: 320px;
+  overflow: hidden;
+  position: relative;
 }
-
-/* Step entrance animation */
-@keyframes sfFadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+.sf-slider {
+  display: flex;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  align-items: flex-start;
 }
-.sf-step {
-  animation: sfFadeUp 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+.sf-slide {
+  min-width: 100%;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.35s ease 0.18s;
+  pointer-events: none;
+}
+.sf-slide.is-active {
+  opacity: 1;
+  pointer-events: auto;
 }
 .sf-step__title {
   font-family: var(--serif);
   font-weight: 300;
-  font-size: 24px;
-  line-height: 1.25;
+  font-style: italic;
+  font-size: clamp(24px, 3vw, 30px);
+  line-height: 1.2;
   color: var(--ink);
-  margin-bottom: 32px;
+  margin-bottom: 36px;
   text-align: center;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.01em;
 }
 
 /* ── StepField ── */
@@ -1082,13 +1095,6 @@ textarea.sf-field__input::placeholder { font-style: normal; }
 }
 
 /* ── Confirmation (Step 4) ── */
-.sf-step--confirm {
-  animation: sfConfirmIn 0.6s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
-}
-@keyframes sfConfirmIn {
-  from { opacity: 0; transform: scale(0.96) translateY(12px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
-}
 .sf-confirm {
   display: flex;
   flex-direction: column;
@@ -1265,10 +1271,9 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   .hero-meta-row--rule { display: none; }
 
   /* Contact form — mobile */
-  .sf-steps__line { width: 28px; }
-  .sf-steps__item { min-width: 60px; }
-  .sf-steps__dot { width: 32px; height: 32px; font-size: 12px; }
-  .sf-steps__label { font-size: 8px; }
+  .sf-indicators { gap: 4px; }
+  .sf-ind { padding: 4px 8px; }
+  .sf-ind__text { font-size: 8px; letter-spacing: 0.08em; }
   .sf-scheduler { grid-template-columns: 1fr; gap: 32px; }
   .sf-trust { gap: 14px; }
   .sf-trust__item { font-size: 10px; }
@@ -1288,9 +1293,9 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   .sf-nav--between .sf-btn--back { width: auto; flex-shrink: 0; }
   .sf-types { gap: 8px; }
   .sf-type { padding: 8px 16px; font-size: 12px; }
-  .sf-steps__line { width: 16px; }
-  .sf-steps__item { min-width: 48px; }
-  .sf-steps__label { font-size: 7px; letter-spacing: 0.06em; }
+  .sf-ind__sep { display: none; }
+  .sf-ind { padding: 4px 6px; gap: 5px; }
+  .sf-ind__text { font-size: 7px; letter-spacing: 0.06em; }
 }
 
 /* Print */
