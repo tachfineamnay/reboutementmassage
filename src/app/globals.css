@@ -1094,6 +1094,16 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   animation: sfSpin 0.8s linear infinite;
 }
 
+.sf-error {
+  margin-top: 18px;
+  text-align: right;
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #8A4A3D;
+}
+
 /* ── Confirmation (Step 4) ── */
 .sf-confirm {
   display: flex;

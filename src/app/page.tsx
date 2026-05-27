@@ -3,11 +3,13 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { COPY, Language } from "@/data/copy";
 
+type LandingCopy = (typeof COPY)[Language];
+
 /* ──────────────────────────────────────────────────────────
    Reveal-on-scroll hook (Framer-Motion-style fade-up)
    ────────────────────────────────────────────────────────── */
 function useReveal() {
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLElement>(null);
   const [shown, setShown] = useState(false);
   useEffect(() => {
     if (!ref.current) return;
@@ -36,13 +38,10 @@ function Reveal({
   className = "", 
   style = {}, 
   ...rest 
-}: { 
-  as?: any, 
-  delay?: number, 
-  children: React.ReactNode, 
-  className?: string, 
-  style?: React.CSSProperties,
-  [key: string]: any
+}: React.HTMLAttributes<HTMLElement> & {
+  as?: React.ElementType;
+  delay?: number;
+  children: React.ReactNode;
 }) {
   const [ref, shown] = useReveal();
   const s: React.CSSProperties = {
@@ -62,7 +61,7 @@ function Reveal({
 /* ──────────────────────────────────────────────────────────
    Header — fixed, transparent → ink/85 on scroll
    ────────────────────────────────────────────────────────── */
-function Header({ lang, setLang, t }: { lang: Language, setLang: (l: Language) => void, t: any }) {
+function Header({ lang, setLang }: { lang: Language, setLang: (l: Language) => void }) {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -111,7 +110,7 @@ function Header({ lang, setLang, t }: { lang: Language, setLang: (l: Language) =
 /* ──────────────────────────────────────────────────────────
    Section 01 — Hero
    ────────────────────────────────────────────────────────── */
-function Hero({ t, heroTreatment, layout }: { t: any, heroTreatment: string, layout: string }) {
+function Hero({ t, heroTreatment, layout }: { t: LandingCopy, heroTreatment: string, layout: string }) {
   const filter = useMemo(() => {
     if (heroTreatment === "duotone") return "grayscale(.6) sepia(.06) contrast(1.02) brightness(.96)";
     if (heroTreatment === "bw") return "grayscale(1) contrast(1.05) brightness(.94)";
@@ -204,7 +203,7 @@ function Hero({ t, heroTreatment, layout }: { t: any, heroTreatment: string, lay
 /* ──────────────────────────────────────────────────────────
    Section 02 — Problem
    ────────────────────────────────────────────────────────── */
-function Problem({ t }: { t: any }) {
+function Problem({ t }: { t: LandingCopy }) {
   return (
     <section className="problem">
       <div className="container container--narrow">
@@ -222,7 +221,7 @@ function Problem({ t }: { t: any }) {
 /* ──────────────────────────────────────────────────────────
    Section 03 — Three Practices
    ────────────────────────────────────────────────────────── */
-function Practices({ t }: { t: any }) {
+function Practices({ t }: { t: LandingCopy }) {
   const items = t.practices.items;
   return (
     <section className="practices">
@@ -278,7 +277,7 @@ function Practices({ t }: { t: any }) {
 /* ──────────────────────────────────────────────────────────
    Section 04 — Client Profiles
    ────────────────────────────────────────────────────────── */
-function Profiles({ t }: { t: any }) {
+function Profiles({ t }: { t: LandingCopy }) {
   return (
     <section className="profiles">
       <div className="profiles-grid">
@@ -291,7 +290,7 @@ function Profiles({ t }: { t: any }) {
           </Reveal>
 
           <ul className="profiles-list">
-            {t.profiles.items.map((p: any, i: number) => (
+            {t.profiles.items.map((p, i) => (
               <Reveal as="li" key={i} delay={0.15 + i * 0.08} className="profile-row">
                 <span className="profile-index">{String(i + 1).padStart(2, "0")}</span>
                 <span className="profile-rule" />
@@ -315,7 +314,7 @@ function Profiles({ t }: { t: any }) {
 /* ──────────────────────────────────────────────────────────
    Section 05 — Teams
    ────────────────────────────────────────────────────────── */
-function Teams({ t }: { t: any }) {
+function Teams({ t }: { t: LandingCopy }) {
   return (
     <section className="teams">
       <div className="container container--narrow">
@@ -336,7 +335,7 @@ function Teams({ t }: { t: any }) {
 /* ──────────────────────────────────────────────────────────
    Section 06 — How it works
    ────────────────────────────────────────────────────────── */
-function How({ t }: { t: any }) {
+function How({ t }: { t: LandingCopy }) {
   return (
     <section className="how">
       <div className="container">
@@ -346,7 +345,7 @@ function How({ t }: { t: any }) {
           </div>
         </Reveal>
         <div className="how-grid">
-          {t.how.steps.map((s: any, i: number) => (
+          {t.how.steps.map((s, i) => (
             <Reveal className="how-step" key={i} delay={i * 0.1}>
               <p className="how-word">{s.word}</p>
               <p className="how-sub">{s.sub}</p>
@@ -361,7 +360,7 @@ function How({ t }: { t: any }) {
 /* ──────────────────────────────────────────────────────────
    Section 07 — About
    ────────────────────────────────────────────────────────── */
-function About({ t }: { t: any }) {
+function About({ t }: { t: LandingCopy }) {
   return (
     <section className="about">
       <div className="about-grid">
@@ -391,7 +390,7 @@ function About({ t }: { t: any }) {
 /* ──────────────────────────────────────────────────────────
    Slot generation — next 2 days, deterministic "taken" slots
    ────────────────────────────────────────────────────────── */
-function generateSlots(lang: string) {
+function generateSlots(lang: Language) {
   const now = new Date();
   const locale = lang === "FR" ? "fr-FR" : lang === "ES" ? "es-ES" : "en-US";
   const times = ["9:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
@@ -413,32 +412,50 @@ function generateSlots(lang: string) {
 /* ──────────────────────────────────────────────────────────
    StepField — single field with real-time ✓ validation
    ────────────────────────────────────────────────────────── */
-const StepField = React.forwardRef(function StepField(
-  { label, placeholder, value, onChange, valid, multiline, autoFocus, inputType = "text" }: {
-    label: string; placeholder: string; value: string;
-    onChange: (v: string) => void; valid?: boolean;
-    multiline?: boolean; autoFocus?: boolean; inputType?: string;
-  },
-  ref: React.Ref<HTMLInputElement>
+type StepFieldProps = {
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+  valid?: boolean;
+  multiline?: boolean;
+  autoFocus?: boolean;
+  inputType?: string;
+};
+
+const StepField = React.forwardRef<HTMLInputElement, StepFieldProps>(function StepField(
+  { label, placeholder, value, onChange, valid, multiline, autoFocus, inputType = "text" },
+  ref
 ) {
   const [focused, setFocused] = useState(false);
-  const Tag: any = multiline ? "textarea" : "input";
   return (
     <label className={`sf-field ${focused ? "is-focused" : ""} ${value ? "has-value" : ""} ${valid ? "is-valid" : ""}`}>
       <span className="sf-field__label">{label}</span>
       <div className="sf-field__wrap">
-        <Tag
-          ref={ref}
-          className="sf-field__input"
-          type={multiline ? undefined : inputType}
-          placeholder={placeholder}
-          value={value}
-          onChange={(e: any) => onChange(e.target.value)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          rows={multiline ? 3 : undefined}
-          autoFocus={autoFocus}
-        />
+        {multiline ? (
+          <textarea
+            className="sf-field__input"
+            placeholder={placeholder}
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            rows={3}
+            autoFocus={autoFocus}
+          />
+        ) : (
+          <input
+            ref={ref}
+            className="sf-field__input"
+            type={inputType}
+            placeholder={placeholder}
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            autoFocus={autoFocus}
+          />
+        )}
         {valid && (
           <span className="sf-field__check" aria-label="Valid">
             <svg width="14" height="11" viewBox="0 0 14 11" fill="none">
@@ -455,14 +472,30 @@ const StepField = React.forwardRef(function StepField(
 /* ──────────────────────────────────────────────────────────
    Section 08 — Contact (Progressive Disclosure · 4 steps)
    ────────────────────────────────────────────────────────── */
-function Contact({ t, lang }: { t: any; lang: string }) {
+type ContactForm = {
+  firstName: string;
+  contact: string;
+  type: string;
+  context: string;
+  selectedDay: number;
+  selectedTime: string;
+};
+
+const initialContactForm: ContactForm = {
+  firstName: "",
+  contact: "",
+  type: "",
+  context: "",
+  selectedDay: 0,
+  selectedTime: "",
+};
+
+function Contact({ t, lang }: { t: LandingCopy; lang: Language }) {
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState({
-    firstName: "", contact: "", type: "", context: "",
-    selectedDay: 0, selectedTime: "",
-  });
+  const [form, setForm] = useState<ContactForm>(initialContactForm);
   const [validated, setValidated] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const days = useMemo(() => generateSlots(lang), [lang]);
   const firstNameRef = useRef<HTMLInputElement>(null);
@@ -472,17 +505,63 @@ function Contact({ t, lang }: { t: any; lang: string }) {
     if (step === 1) setTimeout(() => firstNameRef.current?.focus(), 350);
   }, [step]);
 
-  function updateField(key: string, value: string) {
+  function updateField(key: "firstName" | "contact", value: string) {
     setForm((f) => ({ ...f, [key]: value }));
     setValidated((v) => ({ ...v, [key]: value.trim().length >= 2 }));
+    setSubmitError(null);
   }
 
   function goNext() { setStep((s) => Math.min(s + 1, 4)); }
   function goBack() { setStep((s) => Math.max(s - 1, 1)); }
 
-  function handleSubmit() {
+  const selectedSlotStart = useMemo(() => {
+    if (!form.selectedTime || !days[form.selectedDay]) return null;
+    const date = days[form.selectedDay].date;
+    const [hours, minutes] = form.selectedTime.split(":").map(Number);
+    const start = new Date(date);
+    start.setHours(hours, minutes || 0, 0, 0);
+    return start;
+  }, [days, form.selectedDay, form.selectedTime]);
+
+  async function handleSubmit() {
+    if (!selectedSlotStart || loading) return;
+
     setLoading(true);
-    setTimeout(() => { setLoading(false); goNext(); }, 1500);
+    setSubmitError(null);
+
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const utm = Object.fromEntries(
+        Array.from(searchParams.entries()).filter(([key]) => key.toLowerCase().startsWith("utm_"))
+      );
+
+      const response = await fetch("/api/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: form.firstName.trim(),
+          contact: form.contact.trim(),
+          type: form.type,
+          context: form.context.trim(),
+          lang,
+          selectedDayLabel,
+          selectedTime: form.selectedTime,
+          selectedDateTime: selectedSlotStart.toISOString(),
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          pageUrl: window.location.href,
+          utm,
+        }),
+      });
+
+      const result = (await response.json().catch(() => null)) as { ok?: boolean } | null;
+      if (!response.ok || !result?.ok) throw new Error("Lead submission failed");
+
+      setLoading(false);
+      goNext();
+    } catch {
+      setLoading(false);
+      setSubmitError(t.contact.submitError);
+    }
   }
 
   const availableCount = days.reduce((a, d) => a + d.slots.filter((s) => !s.taken).length, 0);
@@ -493,14 +572,11 @@ function Contact({ t, lang }: { t: any; lang: string }) {
 
   /* Google Calendar link */
   const calendarLink = useMemo(() => {
-    if (!form.selectedTime || !days[form.selectedDay]) return "#";
-    const d = days[form.selectedDay].date;
-    const [h, m] = form.selectedTime.split(":").map(Number);
-    const start = new Date(d); start.setHours(h, m || 0, 0, 0);
-    const end = new Date(start); end.setMinutes(end.getMinutes() + 30);
+    if (!selectedSlotStart) return "#";
+    const end = new Date(selectedSlotStart); end.setMinutes(end.getMinutes() + 30);
     const fmt = (dt: Date) => dt.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Méthode TMS® — Consultation")}&dates=${fmt(start)}/${fmt(end)}`;
-  }, [form.selectedDay, form.selectedTime, days]);
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Méthode TMS® — Créneau de contact")}&dates=${fmt(selectedSlotStart)}/${fmt(end)}`;
+  }, [selectedSlotStart]);
 
   const arrow = (
     <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
@@ -517,8 +593,9 @@ function Contact({ t, lang }: { t: any; lang: string }) {
 
   function resetAll() {
     setStep(1);
-    setForm({ firstName: "", contact: "", type: "", context: "", selectedDay: 0, selectedTime: "" });
+    setForm(initialContactForm);
     setValidated({});
+    setSubmitError(null);
   }
 
   return (
@@ -599,7 +676,10 @@ function Contact({ t, lang }: { t: any; lang: string }) {
                   <button
                     key={tp}
                     className={`sf-type ${form.type === tp ? "is-selected" : ""}`}
-                    onClick={() => setForm((f) => ({ ...f, type: tp }))}
+                    onClick={() => {
+                      setForm((f) => ({ ...f, type: tp }));
+                      setSubmitError(null);
+                    }}
                     type="button"
                   >{tp}</button>
                 ))}
@@ -637,7 +717,10 @@ function Contact({ t, lang }: { t: any; lang: string }) {
                           key={`${di}-${slot.time}`}
                           className={`sf-slot ${slot.taken ? "sf-slot--taken" : ""} ${form.selectedDay === di && form.selectedTime === slot.time && !slot.taken ? "sf-slot--selected" : ""}`}
                           disabled={slot.taken}
-                          onClick={() => setForm((f) => ({ ...f, selectedDay: di, selectedTime: slot.time }))}
+                          onClick={() => {
+                            setForm((f) => ({ ...f, selectedDay: di, selectedTime: slot.time }));
+                            setSubmitError(null);
+                          }}
                           type="button"
                         >
                           <span className="sf-slot__time">{slot.time}</span>
@@ -667,6 +750,11 @@ function Contact({ t, lang }: { t: any; lang: string }) {
                   {loading ? <span className="sf-spinner" /> : <><span>{t.contact.step3.cta}</span>{arrow}</>}
                 </button>
               </div>
+              {submitError && (
+                <p className="sf-error" role="alert" aria-live="polite">
+                  {submitError}
+                </p>
+              )}
             </div>
 
             {/* STEP 4 — Confirmation (Peak-End) */}
@@ -696,9 +784,6 @@ function Contact({ t, lang }: { t: any; lang: string }) {
                     </svg>
                     <span>{t.contact.step4.addCalendar}</span>
                   </a>
-                  <a href={`https://${t.contact.whatsappLink}`} target="_blank" rel="noreferrer" className="sf-confirm__wa">
-                    {t.contact.whatsapp} {t.contact.whatsappLink}
-                  </a>
                 </div>
                 <button className="sf-btn sf-btn--ghost" onClick={resetAll} type="button">
                   {t.contact.step4.newRequest}
@@ -716,7 +801,7 @@ function Contact({ t, lang }: { t: any; lang: string }) {
 /* ──────────────────────────────────────────────────────────
    Footer
    ────────────────────────────────────────────────────────── */
-function Footer({ t }: { t: any }) {
+function Footer({ t }: { t: LandingCopy }) {
   return (
     <footer className="site-footer">
       <div className="footer-inner">
@@ -754,7 +839,7 @@ export default function LandingPage() {
 
   return (
     <>
-      <Header lang={lang} setLang={setLang} t={t} />
+      <Header lang={lang} setLang={setLang} />
       <main>
         <Hero t={t} heroTreatment="natural" layout="editorial" />
         <Problem t={t} />

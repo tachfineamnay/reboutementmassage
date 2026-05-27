@@ -52,7 +52,7 @@ export const COPY = {
     how: {
       label: "How it works",
       steps: [
-        { word: "Request.", sub: "WhatsApp direct or partner request, 7 days a week" },
+        { word: "Request.", sub: "Private request or partner request, 7 days a week" },
         { word: "He intervenes.", sub: "In-room, in-villa, on site or aboard. Discreet setup." },
         { word: "Comfort returns.", sub: "Your guest is supported. Your team keeps control of the experience." },
       ],
@@ -81,7 +81,7 @@ export const COPY = {
       },
       step2: {
         title: "What type of property?",
-        types: ["Hotel", "Private villa", "Concierge", "Yacht", "Other"],
+        types: ["Private client", "Hotel", "Private villa", "Concierge", "Yacht", "Team / company", "Training / workshop", "Other"],
         context: "Any additional context?",
         contextPh: "Location, dates, guest profile…",
         next: "Choose your slot",
@@ -91,19 +91,18 @@ export const COPY = {
         slotsAvailable: "slots available this week",
         taken: "Booked",
         trust: ["Confidential", "No commitment", "Personal reply within 12h"],
-        cta: "Book my slot",
+        cta: "Send private request",
       },
       step4: {
-        headline: "Your request is in good hands.",
-        callLine: "I will personally call you on",
+        headline: "Your private request has been transmitted.",
+        callLine: "Grégory will review your context and come back to you discreetly on",
         at: "at",
-        smsNote: "A confirmation has just been sent to you.",
-        addCalendar: "Add to calendar",
+        smsNote: "Your message has been received in a private setting.",
+        addCalendar: "Add this slot",
         therapistLine: "Creator of the Méthode TMS®",
         newRequest: "New request",
       },
-      whatsapp: "Or WhatsApp direct:",
-      whatsappLink: "wa.me/33665517735",
+      submitError: "Your request could not be transmitted. Please try again in a moment.",
     },
     footer: {
       lines: [
@@ -167,7 +166,7 @@ export const COPY = {
     how: {
       label: "Comment ça marche",
       steps: [
-        { word: "Demande.", sub: "WhatsApp direct ou demande partenaire, 7 jours sur 7" },
+        { word: "Demande.", sub: "Demande privée ou demande partenaire, 7 jours sur 7" },
         { word: "Intervention.", sub: "En chambre, en villa, sur site ou à bord. Installation discrète." },
         { word: "Confort retrouvé.", sub: "Le client est accompagné. Votre équipe garde la maîtrise de l’expérience." },
       ],
@@ -196,7 +195,7 @@ export const COPY = {
       },
       step2: {
         title: "Quel type d'établissement ?",
-        types: ["Hôtel", "Villa privée", "Conciergerie", "Yacht", "Autre"],
+        types: ["Client privé", "Hôtel", "Villa privée", "Conciergerie", "Yacht", "Équipe / entreprise", "Formation / workshop", "Autre"],
         context: "Contexte complémentaire ?",
         contextPh: "Lieu, dates, profil client…",
         next: "Choisir votre créneau",
@@ -206,19 +205,18 @@ export const COPY = {
         slotsAvailable: "créneaux disponibles cette semaine",
         taken: "Réservé",
         trust: ["Confidentiel", "Sans engagement", "Réponse personnelle sous 12h"],
-        cta: "Réserver mon créneau",
+        cta: "Transmettre ma demande",
       },
       step4: {
-        headline: "Votre demande est entre de bonnes mains.",
-        callLine: "Je vous appellerai personnellement le",
+        headline: "Votre demande privée a été transmise.",
+        callLine: "Grégory prendra connaissance du contexte et reviendra vers vous discrètement le",
         at: "à",
-        smsNote: "Une confirmation vient de vous être envoyée.",
-        addCalendar: "Ajouter au calendrier",
+        smsNote: "Votre message a été reçu dans un cadre privé.",
+        addCalendar: "Ajouter ce créneau",
         therapistLine: "Créateur de la Méthode TMS®",
         newRequest: "Nouvelle demande",
       },
-      whatsapp: "Ou WhatsApp direct :",
-      whatsappLink: "wa.me/33665517735",
+      submitError: "Votre demande n’a pas pu être transmise. Merci de réessayer dans un instant.",
     },
     footer: {
       lines: [
@@ -282,7 +280,7 @@ export const COPY = {
     how: {
       label: "Cómo funciona",
       steps: [
-        { word: "Solicitud.", sub: "WhatsApp directo o solicitud de partner, 7 días a la semana" },
+        { word: "Solicitud.", sub: "Solicitud privada o solicitud de partner, 7 días a la semana" },
         { word: "Intervención.", sub: "En habitación, villa, sitio o a bordo. Instalación discreta." },
         { word: "Confort recuperado.", sub: "El huésped recibe apoyo. Su equipo mantiene el control de la experiencia." },
       ],
@@ -311,7 +309,7 @@ export const COPY = {
       },
       step2: {
         title: "¿Qué tipo de establecimiento?",
-        types: ["Hotel", "Villa privada", "Conserjería", "Yate", "Otro"],
+        types: ["Cliente privado", "Hotel", "Villa privada", "Conserjería", "Yate", "Equipo / empresa", "Formación / workshop", "Otro"],
         context: "¿Contexto adicional?",
         contextPh: "Lugar, fechas, perfil del huésped…",
         next: "Elegir su horario",
@@ -321,19 +319,18 @@ export const COPY = {
         slotsAvailable: "horarios disponibles esta semana",
         taken: "Reservado",
         trust: ["Confidencial", "Sin compromiso", "Respuesta personal en 12h"],
-        cta: "Reservar mi horario",
+        cta: "Enviar solicitud privada",
       },
       step4: {
-        headline: "Su solicitud está en buenas manos.",
-        callLine: "Le llamaré personalmente el",
+        headline: "Su solicitud privada ha sido transmitida.",
+        callLine: "Grégory revisará el contexto y volverá a contactarle discretamente el",
         at: "a las",
-        smsNote: "Una confirmación acaba de serle enviada.",
-        addCalendar: "Añadir al calendario",
+        smsNote: "Su mensaje ha sido recibido en un marco privado.",
+        addCalendar: "Añadir este horario",
         therapistLine: "Creador del Método TMS®",
         newRequest: "Nueva solicitud",
       },
-      whatsapp: "O WhatsApp directo:",
-      whatsappLink: "wa.me/33665517735",
+      submitError: "Su solicitud no pudo ser transmitida. Inténtelo de nuevo en un momento.",
     },
     footer: {
       lines: [
