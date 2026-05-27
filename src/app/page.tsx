@@ -389,115 +389,334 @@ function About({ t }: { t: any }) {
 }
 
 /* ──────────────────────────────────────────────────────────
-   Section 08 — Contact
+   Slot generation — next 2 days, deterministic "taken" slots
    ────────────────────────────────────────────────────────── */
-function Contact({ t }: { t: any }) {
-  const [form, setForm] = useState({ establishment: "", contact: "", message: "" });
-  const [sent, setSent] = useState(false);
-  const [focused, setFocused] = useState("");
+function generateSlots(lang: string) {
+  const now = new Date();
+  const locale = lang === "FR" ? "fr-FR" : lang === "ES" ? "es-ES" : "en-US";
+  const times = ["9:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
 
-  function update(k: string, v: string) { setForm((f) => ({ ...f, [k]: v })); }
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!form.establishment.trim() || !form.contact.trim()) return;
-    setSent(true);
+  return [1, 2].map((offset) => {
+    const date = new Date(now);
+    date.setDate(date.getDate() + offset);
+    const dayHash = date.getDate() % 7;
+    const takenSet = new Set([(dayHash + 1) % times.length, (dayHash + 4) % times.length]);
+    const label = new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long" }).format(date);
+    return {
+      date,
+      label: label.charAt(0).toUpperCase() + label.slice(1),
+      slots: times.map((time, i) => ({ time, taken: takenSet.has(i) })),
+    };
+  });
+}
+
+/* ──────────────────────────────────────────────────────────
+   StepField — single field with real-time ✓ validation
+   ────────────────────────────────────────────────────────── */
+const StepField = React.forwardRef(function StepField(
+  { label, placeholder, value, onChange, valid, multiline, autoFocus, inputType = "text" }: {
+    label: string; placeholder: string; value: string;
+    onChange: (v: string) => void; valid?: boolean;
+    multiline?: boolean; autoFocus?: boolean; inputType?: string;
+  },
+  ref: React.Ref<HTMLInputElement>
+) {
+  const [focused, setFocused] = useState(false);
+  const Tag: any = multiline ? "textarea" : "input";
+  return (
+    <label className={`sf-field ${focused ? "is-focused" : ""} ${value ? "has-value" : ""} ${valid ? "is-valid" : ""}`}>
+      <span className="sf-field__label">{label}</span>
+      <div className="sf-field__wrap">
+        <Tag
+          ref={ref}
+          className="sf-field__input"
+          type={multiline ? undefined : inputType}
+          placeholder={placeholder}
+          value={value}
+          onChange={(e: any) => onChange(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          rows={multiline ? 3 : undefined}
+          autoFocus={autoFocus}
+        />
+        {valid && (
+          <span className="sf-field__check" aria-label="Valid">
+            <svg width="14" height="11" viewBox="0 0 14 11" fill="none">
+              <polyline points="1,5.5 5,9.5 13,1" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </span>
+        )}
+      </div>
+      <span className="sf-field__rule" />
+    </label>
+  );
+});
+
+/* ──────────────────────────────────────────────────────────
+   Section 08 — Contact (Progressive Disclosure · 4 steps)
+   ────────────────────────────────────────────────────────── */
+function Contact({ t, lang }: { t: any; lang: string }) {
+  const [step, setStep] = useState(1);
+  const [form, setForm] = useState({
+    firstName: "", contact: "", type: "", context: "",
+    selectedDay: 0, selectedTime: "",
+  });
+  const [validated, setValidated] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(false);
+
+  const days = useMemo(() => generateSlots(lang), [lang]);
+  const firstNameRef = useRef<HTMLInputElement>(null);
+
+  /* auto-focus first field on step 1 */
+  useEffect(() => {
+    if (step === 1) setTimeout(() => firstNameRef.current?.focus(), 350);
+  }, [step]);
+
+  function updateField(key: string, value: string) {
+    setForm((f) => ({ ...f, [key]: value }));
+    setValidated((v) => ({ ...v, [key]: value.trim().length >= 2 }));
+  }
+
+  function goNext() { setStep((s) => Math.min(s + 1, 4)); }
+  function goBack() { setStep((s) => Math.max(s - 1, 1)); }
+
+  function handleSubmit() {
+    setLoading(true);
+    setTimeout(() => { setLoading(false); goNext(); }, 1500);
+  }
+
+  const availableCount = days.reduce((a, d) => a + d.slots.filter((s) => !s.taken).length, 0);
+  const canProceed1 = form.firstName.trim().length >= 2 && form.contact.trim().length >= 2;
+  const canProceed2 = form.type !== "";
+  const canProceed3 = form.selectedTime !== "";
+  const selectedDayLabel = form.selectedTime ? days[form.selectedDay]?.label : "";
+
+  /* Google Calendar link */
+  const calendarLink = useMemo(() => {
+    if (!form.selectedTime || !days[form.selectedDay]) return "#";
+    const d = days[form.selectedDay].date;
+    const [h, m] = form.selectedTime.split(":").map(Number);
+    const start = new Date(d); start.setHours(h, m || 0, 0, 0);
+    const end = new Date(start); end.setMinutes(end.getMinutes() + 30);
+    const fmt = (dt: Date) => dt.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Méthode TMS® — Consultation")}&dates=${fmt(start)}/${fmt(end)}`;
+  }, [form.selectedDay, form.selectedTime, days]);
+
+  const arrow = (
+    <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
+      <line x1="0" y1="5" x2="12" y2="5" stroke="currentColor" strokeWidth="0.7" />
+      <polyline points="8,1 12,5 8,9" fill="none" stroke="currentColor" strokeWidth="0.7" />
+    </svg>
+  );
+
+  const checkIcon = (
+    <svg width="12" height="9" viewBox="0 0 12 9" fill="none" aria-hidden="true">
+      <polyline points="1,4.5 4.5,8 11,1" stroke="currentColor" strokeWidth="1.2" fill="none" />
+    </svg>
+  );
+
+  function resetAll() {
+    setStep(1);
+    setForm({ firstName: "", contact: "", type: "", context: "", selectedDay: 0, selectedTime: "" });
+    setValidated({});
   }
 
   return (
     <section className="contact" id="contact">
       <div className="container container--form">
+        {/* Header */}
         <div className="contact-head">
-          <Reveal>
-            <span className="eyebrow eyebrow--gold">{t.contact.label}</span>
-          </Reveal>
-          <Reveal delay={0.1}>
-            <h2 className="contact-headline">{t.contact.headline}</h2>
-          </Reveal>
-          <Reveal delay={0.2}>
-            <p className="contact-sub">{t.contact.sub}</p>
-          </Reveal>
+          <Reveal><span className="eyebrow eyebrow--gold">{t.contact.label}</span></Reveal>
+          <Reveal delay={0.1}><h2 className="contact-headline">{t.contact.headline}</h2></Reveal>
+          <Reveal delay={0.2}><p className="contact-sub">{t.contact.sub}</p></Reveal>
         </div>
 
-        {!sent ? (
-          <Reveal as="form" className="contact-form" onSubmit={submit} delay={0.3}>
-            <Field
-              label={t.contact.fields.establishment}
-              placeholder={t.contact.fields.establishmentPh}
-              value={form.establishment}
-              onChange={(v: string) => update("establishment", v)}
-              onFocus={() => setFocused("establishment")}
-              onBlur={() => setFocused("")}
-              focused={focused === "establishment"}
-              required
-            />
-            <Field
-              label={t.contact.fields.contact}
-              placeholder={t.contact.fields.contactPh}
-              value={form.contact}
-              onChange={(v: string) => update("contact", v)}
-              onFocus={() => setFocused("contact")}
-              onBlur={() => setFocused("")}
-              focused={focused === "contact"}
-              required
-            />
-            <Field
-              label={t.contact.fields.message}
-              placeholder={t.contact.fields.messagePh}
-              value={form.message}
-              onChange={(v: string) => update("message", v)}
-              onFocus={() => setFocused("message")}
-              onBlur={() => setFocused("")}
-              focused={focused === "message"}
-              multiline
-            />
+        {/* Progress bar */}
+        <Reveal delay={0.3}>
+          <div className="sf-progress">
+            <div className="sf-progress__fill" style={{ width: `${step * 25}%` }} />
+          </div>
+        </Reveal>
 
-            <div className="form-foot">
-              <button className="btn-primary" type="submit">
-                <span>{t.contact.submit}</span>
-                <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
-                  <line x1="0" y1="5" x2="12" y2="5" stroke="currentColor" strokeWidth="0.7" />
-                  <polyline points="8,1 12,5 8,9" fill="none" stroke="currentColor" strokeWidth="0.7" />
-                </svg>
-              </button>
-              <p className="form-whatsapp">
-                {t.contact.whatsapp}{" "}
-                <a href="https://wa.me/33663443284" target="_blank" rel="noreferrer">
-                  {t.contact.whatsappLink}
-                </a>
-              </p>
+        {/* Step indicators */}
+        <Reveal delay={0.35}>
+          <div className="sf-steps">
+            {(["I", "II", "III", "IV"] as const).map((numeral, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <span className={`sf-steps__line ${step > i ? "is-done" : ""}`} />}
+                <div className="sf-steps__item">
+                  <button
+                    className={`sf-steps__dot ${step === i + 1 ? "is-active" : ""} ${step > i + 1 ? "is-done" : ""}`}
+                    onClick={() => { if (step > i + 1) setStep(i + 1); }}
+                    disabled={step <= i}
+                    aria-label={`Step ${i + 1}`}
+                  >
+                    {step > i + 1 ? checkIcon : numeral}
+                  </button>
+                  <span className={`sf-steps__label ${step === i + 1 ? "is-active" : ""} ${step > i + 1 ? "is-done" : ""}`}>
+                    {t.contact.stepLabels[i]}
+                  </span>
+                </div>
+              </React.Fragment>
+            ))}
+          </div>
+        </Reveal>
+
+        {/* ─── Step content ─── */}
+        <div className="sf-content">
+
+          {/* STEP 1 — Identity */}
+          {step === 1 && (
+            <div className="sf-step" key="s1">
+              <p className="sf-step__title">{t.contact.step1.title}</p>
+              <div className="sf-fields">
+                <StepField
+                  ref={firstNameRef}
+                  label={t.contact.step1.firstName}
+                  placeholder={t.contact.step1.firstNamePh}
+                  value={form.firstName}
+                  onChange={(v) => updateField("firstName", v)}
+                  valid={validated.firstName}
+                />
+                <StepField
+                  label={t.contact.step1.contact}
+                  placeholder={t.contact.step1.contactPh}
+                  value={form.contact}
+                  onChange={(v) => updateField("contact", v)}
+                  valid={validated.contact}
+                />
+              </div>
+              <div className="sf-nav">
+                <button className="sf-btn" onClick={goNext} disabled={!canProceed1} type="button">
+                  <span>{t.contact.step1.next}</span>{arrow}
+                </button>
+              </div>
             </div>
-          </Reveal>
-        ) : (
-          <Reveal className="contact-sent">
-            <span className="eyebrow eyebrow--gold">·  ·  ·</span>
-            <p className="sent-msg">{t.contact.sent}</p>
-            <button className="link-btn" onClick={() => { setSent(false); setForm({ establishment: "", contact: "", message: "" }); }}>
-              ←
-            </button>
-          </Reveal>
-        )}
+          )}
+
+          {/* STEP 2 — Need */}
+          {step === 2 && (
+            <div className="sf-step" key="s2">
+              <p className="sf-step__title">{t.contact.step2.title}</p>
+              <div className="sf-types">
+                {t.contact.step2.types.map((tp: string) => (
+                  <button
+                    key={tp}
+                    className={`sf-type ${form.type === tp ? "is-selected" : ""}`}
+                    onClick={() => setForm((f) => ({ ...f, type: tp }))}
+                    type="button"
+                  >{tp}</button>
+                ))}
+              </div>
+              <div className="sf-fields">
+                <StepField
+                  label={t.contact.step2.context}
+                  placeholder={t.contact.step2.contextPh}
+                  value={form.context}
+                  onChange={(v) => setForm((f) => ({ ...f, context: v }))}
+                  multiline
+                />
+              </div>
+              <div className="sf-nav sf-nav--between">
+                <button className="sf-btn sf-btn--back" onClick={goBack} type="button">←</button>
+                <button className="sf-btn" onClick={goNext} disabled={!canProceed2} type="button">
+                  <span>{t.contact.step2.next}</span>{arrow}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3 — Callback Scheduler */}
+          {step === 3 && (
+            <div className="sf-step" key="s3">
+              <p className="sf-step__title">{t.contact.step3.title}</p>
+              <p className="sf-step__avail">
+                <span className="sf-step__avail-n">{availableCount}</span>{" "}{t.contact.step3.slotsAvailable}
+              </p>
+              <div className="sf-scheduler">
+                {days.map((day, di) => (
+                  <div className="sf-day" key={di}>
+                    <p className="sf-day__label">{day.label}</p>
+                    <div className="sf-day__grid">
+                      {day.slots.map((slot) => (
+                        <button
+                          key={`${di}-${slot.time}`}
+                          className={`sf-slot ${slot.taken ? "sf-slot--taken" : ""} ${form.selectedDay === di && form.selectedTime === slot.time && !slot.taken ? "sf-slot--selected" : ""}`}
+                          disabled={slot.taken}
+                          onClick={() => setForm((f) => ({ ...f, selectedDay: di, selectedTime: slot.time }))}
+                          type="button"
+                        >
+                          <span className="sf-slot__time">{slot.time}</span>
+                          {slot.taken && <span className="sf-slot__tag">{t.contact.step3.taken}</span>}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Trust signals */}
+              <div className="sf-trust">
+                {t.contact.step3.trust.map((sig: string, i: number) => (
+                  <span key={i} className="sf-trust__item">{checkIcon}{sig}</span>
+                ))}
+              </div>
+
+              <div className="sf-nav sf-nav--between">
+                <button className="sf-btn sf-btn--back" onClick={goBack} type="button">←</button>
+                <button
+                  className={`sf-btn sf-btn--cta ${loading ? "is-loading" : ""}`}
+                  onClick={handleSubmit}
+                  disabled={!canProceed3 || loading}
+                  type="button"
+                >
+                  {loading ? <span className="sf-spinner" /> : <><span>{t.contact.step3.cta}</span>{arrow}</>}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 4 — Confirmation (Peak-End) */}
+          {step === 4 && (
+            <div className="sf-step sf-step--confirm" key="s4">
+              <div className="sf-confirm">
+                <div className="sf-confirm__photo">
+                  <img src="/portrait.jpg" alt="Grégory Tordjman" />
+                </div>
+                <h3 className="sf-confirm__headline">{t.contact.step4.headline}</h3>
+                <p className="sf-confirm__call">
+                  {t.contact.step4.callLine}{" "}
+                  <strong>{selectedDayLabel}</strong>{" "}
+                  {t.contact.step4.at}{" "}
+                  <strong>{form.selectedTime}</strong>.
+                </p>
+                <p className="sf-confirm__therapist">
+                  Grégory Tordjman — {t.contact.step4.therapistLine}
+                </p>
+                <p className="sf-confirm__sms">{t.contact.step4.smsNote}</p>
+                <div className="sf-confirm__actions">
+                  <a href={calendarLink} target="_blank" rel="noreferrer" className="sf-btn sf-btn--calendar">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                      <rect x="1" y="3" width="14" height="12" rx="1.5" stroke="currentColor" strokeWidth="1"/>
+                      <line x1="1" y1="7" x2="15" y2="7" stroke="currentColor" strokeWidth="0.7"/>
+                      <line x1="5" y1="1" x2="5" y2="5" stroke="currentColor" strokeWidth="1"/>
+                      <line x1="11" y1="1" x2="11" y2="5" stroke="currentColor" strokeWidth="1"/>
+                    </svg>
+                    <span>{t.contact.step4.addCalendar}</span>
+                  </a>
+                  <a href={`https://${t.contact.whatsappLink}`} target="_blank" rel="noreferrer" className="sf-confirm__wa">
+                    {t.contact.whatsapp} {t.contact.whatsappLink}
+                  </a>
+                </div>
+                <button className="sf-btn sf-btn--ghost" onClick={resetAll} type="button">
+                  {t.contact.step4.newRequest}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </section>
-  );
-}
-
-function Field({ label, placeholder, value, onChange, onFocus, onBlur, focused, multiline, required }: any) {
-  const Input = multiline ? "textarea" : "input";
-  return (
-    <label className={"field " + (focused ? "is-focused " : "") + (value ? "has-value " : "")}>
-      <span className="field-label eyebrow eyebrow--gold">{label}{required && <span className="req" aria-hidden="true"> *</span>}</span>
-      <Input
-        className="field-input"
-        type="text"
-        placeholder={placeholder}
-        value={value}
-        onChange={(e: any) => onChange(e.target.value)}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        rows={multiline ? 3 : undefined}
-      />
-      <span className="field-rule" />
-    </label>
   );
 }
 
@@ -551,7 +770,7 @@ export default function LandingPage() {
         <Teams t={t} />
         <How t={t} />
         <About t={t} />
-        <Contact t={t} />
+        <Contact t={t} lang={lang} />
       </main>
       <Footer t={t} />
     </>
