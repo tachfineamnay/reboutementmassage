@@ -1,9 +1,12 @@
 export const COPY = {
   EN: {
-    nav: { contact: "Contact" },
+    nav: { contact: "Contact", cta: "Book a consultation" },
     hero: {
       eyebrow: "Méthode TMS® · Luxury hospitality · International",
       headline: ["When the body stops.", "The experience must continue."],
+      sub: "Private manual therapy for premier hotels, villas & yachts — discreet, on-site, on your schedule.",
+      cta: "Request a private consultation",
+      ctaSub: "Response within 12h · No commitment",
       scroll: "Discover",
     },
     imageAlts: {
@@ -28,6 +31,8 @@ export const COPY = {
     practices: {
       label: "The method",
       title: "One expert practitioner. Three complementary disciplines.",
+      sub: "Each guest receives a tailored approach — never a generic protocol.",
+      cta: "Discover how it works for your property",
       items: [
         {
           tag: "01",
@@ -52,9 +57,11 @@ export const COPY = {
     profiles: {
       label: "For your guests",
       title: "When a premium stay requires a precise response.",
+      sub: "Recognise your guests' situation? Let's talk about the right response.",
+      cta: "Discuss your guests' needs",
       items: [
         { italic: "After a long-haul flight.", note: "Stiff neck, heavy legs, compressed back. A discreet in-room or in-villa intervention." },
-        { italic: "During a private villa stay.", note: "Back, shoulder or hip tension handled without disrupting the guest’s schedule." },
+        { italic: "During a private villa stay.", note: "Back, shoulder or hip tension handled without disrupting the guest's schedule." },
         { italic: "Aboard or after a day at sea.", note: "Lower-back tension, neck stiffness, physical fatigue — supported on site or aboard when needed." },
         { italic: "For high-demand guests.", note: "Executives, athletes, families, VIPs: tailored manual support with discretion." },
         { italic: "For hospitality partners.", note: "A premium complementary service that protects comfort, satisfaction and the memory of the stay." },
@@ -63,6 +70,7 @@ export const COPY = {
     teams: {
       headline: "For the teams behind the experience.",
       body: "When the season demands more, the body must follow. Grégory supports spa practitioners, villa staff, operations teams and managers through targeted on-site sessions or bespoke recovery workshops.",
+      cta: "Request a team session or workshop",
     },
     how: {
       label: "How it works",
@@ -80,6 +88,7 @@ export const COPY = {
         "9,000+ bodies supported · 230+ therapists trained · 465 workshops delivered.",
         "Available internationally on request · Aboard.",
       ],
+      cta: "Work with Grégory",
     },
     contact: {
       label: "Private request",
@@ -129,14 +138,17 @@ export const COPY = {
     },
   },
   FR: {
-    nav: { contact: "Contact" },
+    nav: { contact: "Contact", cta: "Réserver une consultation" },
     hero: {
       eyebrow: "Méthode TMS® · Hospitality de luxe · International",
-      headline: ["Quand le corps bloque.", "L’expérience doit continuer."],
+      headline: ["Quand le corps bloque.", "L'expérience doit continuer."],
+      sub: "Thérapie manuelle privée pour hôtels d'exception, villas & yachts — discrète, sur place, à votre rythme.",
+      cta: "Demander une consultation privée",
+      ctaSub: "Réponse sous 12h · Sans engagement",
       scroll: "Découvrir",
     },
     imageAlts: {
-      hero: "Grégory Tordjman lors d’une intervention privée en thérapie manuelle dans un cadre premium",
+      hero: "Grégory Tordjman lors d'une intervention privée en thérapie manuelle dans un cadre premium",
       practice: "Geste de thérapie manuelle pour un soulagement corporel ciblé",
       profiles: "Séance privée de thérapie manuelle pour clients hospitality",
       portrait: "Portrait de Grégory Tordjman, créateur de la Méthode TMS®",
@@ -157,6 +169,8 @@ export const COPY = {
     practices: {
       label: "La méthode",
       title: "Un praticien expert. Trois disciplines complémentaires.",
+      sub: "Chaque client reçoit une approche sur mesure — jamais un protocole générique.",
+      cta: "Découvrir comment ça s'intègre à votre établissement",
       items: [
         {
           tag: "01",
@@ -174,16 +188,18 @@ export const COPY = {
           tag: "03",
           label: "Lecture globale du corps",
           title: "Thérapie manuelle",
-          body: "Posture, fascias, mobilité et compensations. L’objectif : aider le corps à retrouver confort, équilibre et liberté de mouvement.",
+          body: "Posture, fascias, mobilité et compensations. L'objectif : aider le corps à retrouver confort, équilibre et liberté de mouvement.",
         },
       ],
     },
     profiles: {
       label: "Pour vos clients",
       title: "Quand un séjour premium demande une réponse précise.",
+      sub: "Vous reconnaissez la situation de vos clients ? Parlons de la bonne réponse.",
+      cta: "Échangeons sur les besoins de vos clients",
       items: [
         { italic: "Après un long vol.", note: "Nuque raide, jambes lourdes, dos comprimé. Intervention discrète en chambre ou en villa." },
-        { italic: "Pendant un séjour en villa privée.", note: "Tensions du dos, des épaules ou du bassin prises en charge sans perturber l’agenda du client." },
+        { italic: "Pendant un séjour en villa privée.", note: "Tensions du dos, des épaules ou du bassin prises en charge sans perturber l'agenda du client." },
         { italic: "À bord ou après une journée en mer.", note: "Lombaires, nuque, fatigue corporelle : intervention possible sur site ou à bord selon le besoin." },
         { italic: "Pour les clients exigeants.", note: "Dirigeants, sportifs, familles, VIP : accompagnement manuel sur mesure, avec discrétion." },
         { italic: "Pour les partenaires hospitality.", note: "Un service premium complémentaire pour préserver le confort, la satisfaction et le souvenir du séjour." },
@@ -192,13 +208,14 @@ export const COPY = {
     teams: {
       headline: "Pour les équipes derrière l'expérience.",
       body: "Quand la saison exige plus, le corps doit suivre. Grégory accompagne praticiens spa, équipes villa, opérations et managers avec des séances ciblées sur site ou des ateliers de récupération sur mesure.",
+      cta: "Organiser une session ou un workshop",
     },
     how: {
       label: "Comment ça marche",
       steps: [
         { word: "Demande.", sub: "Demande privée ou demande partenaire, 7 jours sur 7" },
         { word: "Intervention.", sub: "En chambre, en villa, sur site ou à bord. Installation discrète." },
-        { word: "Confort retrouvé.", sub: "Le client est accompagné. Votre équipe garde la maîtrise de l’expérience." },
+        { word: "Confort retrouvé.", sub: "Le client est accompagné. Votre équipe garde la maîtrise de l'expérience." },
       ],
     },
     about: {
@@ -207,8 +224,9 @@ export const COPY = {
       lines: [
         "Créateur de la Méthode TMS® — Technique Manuelle de Soulagement.",
         "9 000+ corps accompagnés · 230+ thérapeutes formés · 465 workshops animés.",
-        "Disponible à l’international sur demande · À bord.",
+        "Disponible à l'international sur demande · À bord.",
       ],
+      cta: "Collaborer avec Grégory",
     },
     contact: {
       label: "Demande privée",
@@ -246,7 +264,7 @@ export const COPY = {
         therapistLine: "Créateur de la Méthode TMS®",
         newRequest: "Nouvelle demande",
       },
-      submitError: "Votre demande n’a pas pu être transmise. Merci de réessayer dans un instant.",
+      submitError: "Votre demande n'a pas pu être transmise. Merci de réessayer dans un instant.",
     },
     footer: {
       lines: [
@@ -258,10 +276,13 @@ export const COPY = {
     },
   },
   ES: {
-    nav: { contact: "Contacto" },
+    nav: { contact: "Contacto", cta: "Reservar una consulta" },
     hero: {
       eyebrow: "Método TMS® · Hospitality de lujo · Internacional",
       headline: ["Cuando el cuerpo se bloquea.", "La experiencia debe continuar."],
+      sub: "Terapia manual privada para hoteles de lujo, villas y yates — discreta, en sitio, a su ritmo.",
+      cta: "Solicitar una consulta privada",
+      ctaSub: "Respuesta en 12h · Sin compromiso",
       scroll: "Descubrir",
     },
     imageAlts: {
@@ -286,6 +307,8 @@ export const COPY = {
     practices: {
       label: "El método",
       title: "Un profesional experto. Tres disciplinas complementarias.",
+      sub: "Cada huésped recibe un enfoque a medida — nunca un protocolo genérico.",
+      cta: "Descubra cómo se integra en su establecimiento",
       items: [
         {
           tag: "01",
@@ -310,6 +333,8 @@ export const COPY = {
     profiles: {
       label: "Para sus huéspedes",
       title: "Cuando una estancia premium requiere una respuesta precisa.",
+      sub: "¿Reconoce la situación de sus huéspedes? Hablemos de la respuesta adecuada.",
+      cta: "Hablemos de las necesidades de sus huéspedes",
       items: [
         { italic: "Después de un vuelo largo.", note: "Cuello rígido, piernas pesadas, espalda comprimida. Intervención discreta en habitación o villa." },
         { italic: "Durante una estancia en villa privada.", note: "Tensiones de espalda, hombros o cadera atendidas sin interrumpir la agenda del huésped." },
@@ -321,6 +346,7 @@ export const COPY = {
     teams: {
       headline: "Para los equipos detrás de la experiencia.",
       body: "Cuando la temporada exige más, el cuerpo debe seguir. Grégory acompaña a profesionales de spa, equipos de villa, operaciones y managers con sesiones específicas en sitio o talleres de recuperación a medida.",
+      cta: "Organizar una sesión o taller",
     },
     how: {
       label: "Cómo funciona",
@@ -338,6 +364,7 @@ export const COPY = {
         "9.000+ cuerpos acompañados · 230+ terapeutas formados · 465 workshops realizados.",
         "Disponible internacionalmente bajo solicitud · A bordo.",
       ],
+      cta: "Trabajar con Grégory",
     },
     contact: {
       label: "Solicitud privada",

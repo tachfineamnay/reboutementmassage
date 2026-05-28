@@ -143,21 +143,30 @@ function Header({ lang }: { lang: Language }) {
           </span>
         </a>
 
-        <nav className="lang-switch" aria-label="Language">
-          {(["EN", "FR", "ES"] as Language[]).map((code, i) => (
-            <React.Fragment key={code}>
-              {i > 0 && <span className="lang-sep" aria-hidden="true">·</span>}
-              <a
-                href={LANGUAGE_ROUTES[code]}
-                className={"lang-btn " + (lang === code ? "is-active" : "")}
-                aria-current={lang === code ? "page" : undefined}
-                hrefLang={LANGUAGE_ROUTES[code].slice(1)}
-              >
-                {code}
-              </a>
-            </React.Fragment>
-          ))}
-        </nav>
+        <div className="header-right">
+          <nav className="lang-switch" aria-label="Language">
+            {(["EN", "FR", "ES"] as Language[]).map((code, i) => (
+              <React.Fragment key={code}>
+                {i > 0 && <span className="lang-sep" aria-hidden="true">·</span>}
+                <a
+                  href={LANGUAGE_ROUTES[code]}
+                  className={"lang-btn " + (lang === code ? "is-active" : "")}
+                  aria-current={lang === code ? "page" : undefined}
+                  hrefLang={LANGUAGE_ROUTES[code].slice(1)}
+                >
+                  {code}
+                </a>
+              </React.Fragment>
+            ))}
+          </nav>
+          <a href="#contact" className="header-cta" id="header-cta">
+            {COPY[lang].nav.cta}
+            <svg width="12" height="9" viewBox="0 0 14 10" fill="none" aria-hidden="true">
+              <line x1="0" y1="5" x2="12" y2="5" stroke="currentColor" strokeWidth="0.7" />
+              <polyline points="8,1 12,5 8,9" fill="none" stroke="currentColor" strokeWidth="0.7" />
+            </svg>
+          </a>
+        </div>
       </div>
     </header>
   );
@@ -188,7 +197,22 @@ function Hero({ t, heroTreatment, layout }: { t: LandingCopy, heroTreatment: str
                 <span className="hh-line hh-italic">{t.hero.headline[1]}</span>
               </h1>
             </Reveal>
-            <Reveal delay={0.4}>
+            <Reveal delay={0.35}>
+              <p className="hero-sub">{t.hero.sub}</p>
+            </Reveal>
+            <Reveal delay={0.45}>
+              <div className="hero-cta-group">
+                <a href="#contact" className="btn-primary" id="hero-cta">
+                  <span>{t.hero.cta}</span>
+                  <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
+                    <line x1="0" y1="5" x2="12" y2="5" stroke="currentColor" strokeWidth="0.7" />
+                    <polyline points="8,1 12,5 8,9" fill="none" stroke="currentColor" strokeWidth="0.7" />
+                  </svg>
+                </a>
+                <span className="hero-cta-note">{t.hero.ctaSub}</span>
+              </div>
+            </Reveal>
+            <Reveal delay={0.55}>
               <div className="hero-cream-meta">
                 <span className="rule-thin" />
                 <span className="eyebrow eyebrow--faint">International · Aboard</span>
@@ -245,6 +269,21 @@ function Hero({ t, heroTreatment, layout }: { t: LandingCopy, heroTreatment: str
               <span className="hh-line">{t.hero.headline[0]}</span>
               <span className="hh-line hh-italic">{t.hero.headline[1]}</span>
             </h1>
+          </Reveal>
+          <Reveal delay={0.35}>
+            <p className="hero-sub hero-sub--light">{t.hero.sub}</p>
+          </Reveal>
+          <Reveal delay={0.45}>
+            <div className="hero-cta-group">
+              <a href="#contact" className="btn-primary" id="hero-cta-editorial">
+                <span>{t.hero.cta}</span>
+                <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
+                  <line x1="0" y1="5" x2="12" y2="5" stroke="currentColor" strokeWidth="0.7" />
+                  <polyline points="8,1 12,5 8,9" fill="none" stroke="currentColor" strokeWidth="0.7" />
+                </svg>
+              </a>
+              <span className="hero-cta-note hero-cta-note--light">{t.hero.ctaSub}</span>
+            </div>
           </Reveal>
         </div>
 
@@ -341,6 +380,9 @@ function Practices({ t }: { t: LandingCopy }) {
           <Reveal delay={0.1}>
             <h2 className="section-title">{t.practices.title}</h2>
           </Reveal>
+          <Reveal delay={0.15}>
+            <p className="section-sub">{t.practices.sub}</p>
+          </Reveal>
         </div>
 
         <div className="practices-grid">
@@ -383,6 +425,18 @@ function Practices({ t }: { t: LandingCopy }) {
             </Reveal>
           </div>
         </div>
+
+        <Reveal delay={0.25}>
+          <div className="section-cta-row">
+            <a href="#contact" className="btn-inline" id="practices-cta">
+              <span>{t.practices.cta}</span>
+              <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
+                <line x1="0" y1="5" x2="12" y2="5" stroke="currentColor" strokeWidth="0.7" />
+                <polyline points="8,1 12,5 8,9" fill="none" stroke="currentColor" strokeWidth="0.7" />
+              </svg>
+            </a>
+          </div>
+        </Reveal>
       </div>
     </section>
   );
@@ -402,6 +456,9 @@ function Profiles({ t }: { t: LandingCopy }) {
           <Reveal delay={0.1}>
             <h2 className="section-title section-title--cream">{t.profiles.title}</h2>
           </Reveal>
+          <Reveal delay={0.15}>
+            <p className="section-sub section-sub--light">{t.profiles.sub}</p>
+          </Reveal>
 
           <ul className="profiles-list">
             {t.profiles.items.map((p, i) => (
@@ -415,6 +472,18 @@ function Profiles({ t }: { t: LandingCopy }) {
               </Reveal>
             ))}
           </ul>
+
+          <Reveal delay={0.5}>
+            <div className="section-cta-row section-cta-row--light">
+              <a href="#contact" className="btn-inline btn-inline--light" id="profiles-cta">
+                <span>{t.profiles.cta}</span>
+                <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
+                  <line x1="0" y1="5" x2="12" y2="5" stroke="currentColor" strokeWidth="0.7" />
+                  <polyline points="8,1 12,5 8,9" fill="none" stroke="currentColor" strokeWidth="0.7" />
+                </svg>
+              </a>
+            </div>
+          </Reveal>
         </div>
 
         <Reveal className="profiles-photo" delay={0.1}>
@@ -446,6 +515,17 @@ function Teams({ t }: { t: LandingCopy }) {
         </Reveal>
         <Reveal delay={0.2}>
           <p className="teams-body">{t.teams.body}</p>
+        </Reveal>
+        <Reveal delay={0.3}>
+          <div className="section-cta-row" style={{ marginTop: '36px' }}>
+            <a href="#contact" className="btn-primary btn-primary--sm" id="teams-cta">
+              <span>{t.teams.cta}</span>
+              <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
+                <line x1="0" y1="5" x2="12" y2="5" stroke="currentColor" strokeWidth="0.7" />
+                <polyline points="8,1 12,5 8,9" fill="none" stroke="currentColor" strokeWidth="0.7" />
+              </svg>
+            </a>
+          </div>
         </Reveal>
       </div>
     </section>
@@ -507,6 +587,17 @@ function About({ t }: { t: LandingCopy }) {
               </Reveal>
             ))}
           </ul>
+          <Reveal delay={0.5}>
+            <div className="about-cta-wrap">
+              <a href="#contact" className="btn-primary" id="about-cta">
+                <span>{t.about.cta}</span>
+                <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
+                  <line x1="0" y1="5" x2="12" y2="5" stroke="currentColor" strokeWidth="0.7" />
+                  <polyline points="8,1 12,5 8,9" fill="none" stroke="currentColor" strokeWidth="0.7" />
+                </svg>
+              </a>
+            </div>
+          </Reveal>
         </div>
       </div>
     </section>

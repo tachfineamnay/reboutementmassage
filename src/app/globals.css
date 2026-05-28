@@ -294,6 +294,172 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .lang-btn.is-active { color: var(--gold); }
 .lang-sep { color: rgba(184,172,156,0.5); font-size: 10px; }
 
+/* ─────────── Header right group ─────────── */
+.header-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 24px;
+}
+
+/* Header CTA */
+.header-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 22px;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--cream);
+  background: var(--forest);
+  border: 1px solid rgba(250,248,243,0.12);
+  border-radius: 2px;
+  transition: background .3s ease, transform .2s ease, opacity .3s ease, border-color .3s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.header-cta:hover {
+  background: #25593f;
+  transform: scale(1.02);
+}
+.header-cta:active { transform: scale(0.97); }
+.header-cta svg { transition: transform .3s ease; }
+.header-cta:hover svg { transform: translateX(3px); }
+
+/* Cream layout header CTA overrides */
+html[data-layout="cream"] .header-cta {
+  color: var(--cream);
+  background: var(--forest);
+  border-color: rgba(30,77,58,0.25);
+}
+
+/* ─────────── Hero CTA Group ─────────── */
+.hero-sub {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--mid);
+  max-width: 520px;
+  margin-top: 20px;
+  text-wrap: pretty;
+}
+.hero-sub--light {
+  color: rgba(250,248,243,0.72);
+}
+
+.hero-cta-group {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.hero-cta-note {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+}
+.hero-cta-note--light {
+  color: rgba(250,248,243,0.5);
+}
+
+/* ─────────── Primary CTA Button ─────────── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 32px;
+  background: var(--forest);
+  color: var(--cream);
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  border: 0;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.3s ease, box-shadow 0.3s ease;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+.btn-primary:hover {
+  transform: scale(1.03);
+  background: #25593f;
+  box-shadow: 0 6px 28px rgba(0,0,0,0.18);
+}
+.btn-primary:active { transform: scale(0.97); }
+.btn-primary svg { transition: transform .3s ease; }
+.btn-primary:hover svg { transform: translateX(3px); }
+.btn-primary--sm {
+  padding: 13px 26px;
+  font-size: 10px;
+}
+
+/* ─────────── Section Subtitle ─────────── */
+.section-sub {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--mid);
+  margin-top: 10px;
+  max-width: 520px;
+  text-wrap: pretty;
+}
+.section-sub--light {
+  color: rgba(250,248,243,0.58);
+}
+
+/* ─────────── Inline CTA (text-style link with arrow) ─────────── */
+.section-cta-row {
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 0.5px solid var(--line);
+}
+.section-cta-row--light {
+  border-top-color: rgba(201,169,90,0.16);
+}
+
+.btn-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--forest);
+  text-decoration: none;
+  transition: color .25s ease, gap .3s ease;
+  padding: 6px 0;
+}
+.btn-inline:hover {
+  color: var(--ink);
+  gap: 16px;
+}
+.btn-inline svg { transition: transform .3s ease; }
+.btn-inline:hover svg { transform: translateX(4px); }
+.btn-inline--light {
+  color: var(--gold);
+}
+.btn-inline--light:hover {
+  color: var(--cream);
+}
+
+/* ─────────── About CTA wrapper ─────────── */
+.about-cta-wrap {
+  margin-top: 32px;
+}
+
 /* ─────────── Hero ─────────── */
 .hero {
   position: relative;
@@ -1354,20 +1520,27 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   .brand-logo { width: 40px; height: 40px; }
   .footer-mark { width: 44px; height: 44px; }
   .header-inner { position: relative; }
-  .lang-switch { gap: 6px; }
   .header-inner .lang-switch {
-    position: absolute;
-    top: 50%;
-    left: 82px;
-    right: auto;
-    transform: translateY(-50%);
-    white-space: nowrap;
+    display: none;
   }
   .lang-btn {
     font-size: 10px;
     letter-spacing: 0.12em;
     padding: 6px 1px;
   }
+
+  /* Header CTA — compact on mobile */
+  .header-cta { padding: 7px 14px; font-size: 9px; letter-spacing: 0.12em; }
+  .header-right { gap: 16px; }
+
+  /* Hero CTA — stack */
+  .hero-cta-group { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .hero-sub { font-size: 14px; margin-top: 16px; }
+
+  /* Section CTAs */
+  .section-cta-row { margin-top: 28px; padding-top: 20px; }
+  .btn-inline { font-size: 11px; }
+  .section-sub { font-size: 14px; }
 
   .hero { min-height: 100vh; padding-bottom: 100px; }
   .hero-grid { grid-template-columns: 1fr; gap: 24px; }
@@ -1439,6 +1612,10 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   .sf-ind__sep { display: none; }
   .sf-ind { padding: 4px 6px; gap: 5px; }
   .sf-ind__text { font-size: 7px; letter-spacing: 0.06em; }
+
+  /* CTA full-width on very small screens */
+  .btn-primary { width: 100%; justify-content: center; }
+  .hero-cta-note { text-align: center; width: 100%; }
 }
 
 /* Print */
