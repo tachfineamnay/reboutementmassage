@@ -787,9 +787,14 @@ function Contact({ t, lang }: { t: LandingCopy; lang: Language }) {
 
   const days = useMemo(() => generateSlots(lang), [lang]);
   const firstNameRef = useRef<HTMLInputElement>(null);
+  const isFirstRender = useRef(true);
 
   /* auto-focus first field on step 1 */
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     if (step === 1) setTimeout(() => firstNameRef.current?.focus(), 350);
   }, [step]);
 
