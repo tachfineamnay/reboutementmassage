@@ -277,9 +277,17 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   justify-content: center;
   border-radius: 50%;
   border: 1px solid rgba(250,248,243,0.3);
-  background: rgba(250,248,243,0.92);
+  background: rgba(250,248,243,0.95);
   box-shadow: 0 10px 28px rgba(0,0,0,0.16);
+  overflow: hidden;
   transition: border-color .35s ease, opacity .25s ease, transform .3s ease;
+}
+.brand-logo__img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  display: block;
+  border-radius: 50%;
 }
 /* When scrolled: keep white logo on semi-dark backdrop */
 .brand:hover .brand-logo { opacity: 0.85; transform: scale(1.04); }
@@ -1719,6 +1727,15 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   transition: opacity .25s ease;
 }
 .footer-logo:hover { opacity: 1; }
+.footer-mark__img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  display: block;
+  border-radius: 50%;
+  transition: transform .4s cubic-bezier(.25,.1,.25,1);
+}
+.footer-mark:hover .footer-mark__img { transform: scale(1.06) rotate(6deg); }
 .footer-lines { display: flex; flex-direction: column; gap: 2px; }
 .footer-name {
   font-family: var(--serif); font-style: italic; font-weight: 300;

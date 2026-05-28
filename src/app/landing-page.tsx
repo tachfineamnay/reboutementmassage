@@ -139,7 +139,14 @@ function Header({ lang }: { lang: Language }) {
       <div className="header-inner">
         <a href="#top" className="brand" aria-label="Thérapie Manuelle by Grégory Tordjman — home">
           <span className="brand-logo">
-            <HandLogo size={32} color="var(--ink)" />
+            <Image
+              src="/logo-icon.png"
+              alt="Logo Thérapie Manuelle — Méthode TMS® by Grégory Tordjman"
+              width={40}
+              height={40}
+              className="brand-logo__img"
+              priority
+            />
           </span>
         </a>
 
@@ -1115,7 +1122,13 @@ function Footer({ t }: { t: LandingCopy }) {
     <footer className="site-footer">
       <div className="footer-inner">
         <div className="footer-mark">
-          <HandLogo size={34} color="var(--ink)" />
+          <Image
+            src="/logo-icon.png"
+            alt="Logo Thérapie Manuelle — Méthode TMS® by Grégory Tordjman"
+            width={44}
+            height={44}
+            className="footer-mark__img"
+          />
         </div>
         <div className="footer-lines">
           {t.footer.lines.map((l: string, i: number) => (
