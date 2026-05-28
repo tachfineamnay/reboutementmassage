@@ -2,9 +2,9 @@ export const COPY = {
   EN: {
     nav: { contact: "Contact", cta: "Book a consultation" },
     hero: {
-      eyebrow: "Méthode TMS® · Luxury hospitality · International",
+      eyebrow: "Méthode TMS® · Private manual therapy · International",
       headline: ["When the body stops.", "The experience must continue."],
-      sub: "Private manual therapy for premier hotels, villas & yachts — discreet, on-site, on your schedule.",
+      sub: "Private manual therapy for hotels, villas, yachts and private guests — Grégory comes to you, on your schedule.",
       cta: "Request a private consultation",
       ctaSub: "Response within 12h · No commitment",
       scroll: "Discover",
@@ -18,8 +18,8 @@ export const COPY = {
       portrait: "Portrait of Grégory Tordjman, creator of the Méthode TMS®",
     },
     problem: [
-      "In luxury hospitality, physical comfort is inseparable from the guest experience.",
-      "Grégory Tordjman delivers discreet, on-site manual relief therapy for private guests, premier hotels, villas, conciergeries and yachts — wherever your standards demand it.",
+      "When the body locks up, everything else stops — whether you're traveling, on a yacht, or simply worn down.",
+      "Grégory Tordjman created the Méthode TMS® — a manual relief technique built from 10+ years of hands-on practice — and brings it directly to you: hotels, villas, yachts, and private clients.",
     ],
     trustBar: {
       stats: [
@@ -34,13 +34,13 @@ export const COPY = {
       label: "The method",
       title: "One expert practitioner. Three complementary disciplines.",
       sub: "Each guest receives a tailored approach — never a generic protocol.",
-      cta: "Discover how it works for your property",
+      cta: "See how the Méthode TMS® adapts to your situation",
       items: [
         {
           tag: "01",
           label: "Traditional French bodywork",
           title: "Reboutement",
-          body: "A precise hands-on approach for back discomfort, joint restrictions and deep physical tension — applied without force and adapted to each guest.",
+          body: "Grégory's reboutement: a precise manual reading of the body to release deep blockages, restore joint mobility and dissolve tension — without force, adapted to each person.",
         },
         {
           tag: "02",
@@ -58,15 +58,15 @@ export const COPY = {
     },
     profiles: {
       label: "For your guests",
-      title: "When a premium stay requires a precise response.",
+      title: "When the body sends a signal — Grégory responds.",
       sub: "Recognise your guests' situation? Let's talk about the right response.",
       cta: "Discuss your guests' needs",
       items: [
         { italic: "After a long-haul flight.", note: "Stiff neck, heavy legs, compressed back. A discreet in-room or in-villa intervention." },
         { italic: "During a private villa stay.", note: "Back, shoulder or hip tension handled without disrupting the guest's schedule." },
         { italic: "Aboard or after a day at sea.", note: "Lower-back tension, neck stiffness, physical fatigue — supported on site or aboard when needed." },
-        { italic: "For high-demand guests.", note: "Executives, athletes, families, VIPs: tailored manual support with discretion." },
-        { italic: "For hospitality partners.", note: "A premium complementary service that protects comfort, satisfaction and the memory of the stay." },
+        { italic: "For high-demand guests.", note: "Executives, athletes, families: targeted manual support, discreet and calibrated for bodies that can't afford to stop." },
+        { italic: "For hospitality partners.", note: "An integrated manual therapy service — so your guests' physical comfort is as memorable as everything else you offer." },
       ],
     },
     environments: {
@@ -76,37 +76,37 @@ export const COPY = {
     },
     teams: {
       headline: "For the teams behind the experience.",
-      body: "When the season demands more, the body must follow. Grégory supports spa practitioners, villa staff, operations teams and managers through targeted on-site sessions or bespoke recovery workshops.",
-      cta: "Request a team session or workshop",
+      body: "When the season demands more, the body has to hold. Grégory supports spa practitioners, field teams and managers — with targeted on-site sessions or workshops built around the Méthode TMS®: practical tools for bodies that work hard.",
+      cta: "Request a team session or a Méthode TMS® workshop",
     },
     how: {
       label: "How it works",
       steps: [
         { word: "Request.", sub: "Private request or partner request, 7 days a week" },
-        { word: "He intervenes.", sub: "In-room, in-villa, on site or aboard. Discreet setup." },
-        { word: "Comfort returns.", sub: "Your guest is supported. Your team keeps control of the experience." },
+        { word: "He intervenes.", sub: "Grégory comes to you — in-room, in-villa, on site or aboard. No logistics on your end." },
+        { word: "Relief.", sub: "The body is taken care of. Your team keeps control of the experience." },
       ],
     },
     about: {
       label: "Expertise",
       name: "Grégory Tordjman",
       lines: [
-        "Creator of the Méthode TMS® — Technique Manuelle de Soulagement.",
+        "Creator of the Méthode TMS® — a manual relief technique developed over 10+ years of intensive practice.",
         "9,000+ bodies supported · 230+ therapists trained · 465 workshops delivered.",
         "Available internationally on request · Aboard.",
       ],
       cta: "Work with Grégory",
     },
     brandSignature: {
-      eyebrow: "Méthode TMS® — Since 2014",
-      headline: "Manual therapy as a standard of care.",
-      sub: "Where precision meets discretion. One practitioner. One method. An uncompromising commitment to the body.",
+      eyebrow: "Méthode TMS® · Since 2014",
+      headline: "One practitioner. One method. Lasting relief.",
+      sub: "The Méthode TMS® is not a generic protocol. It's a precise reading of each body — and a hands-on response designed by Grégory himself.",
       cta: "Request a private consultation",
     },
     contact: {
       label: "Private request",
       headline: "Schedule a personal consultation.",
-      sub: "Choose when we call you. No commitment.",
+      sub: "Pick your slot. Grégory calls you back personally.",
       stepLabels: ["Who you are", "Your need", "Your slot", "Confirmed"],
       step1: {
         title: "How should we address you?",
@@ -134,7 +134,7 @@ export const COPY = {
         headline: "Your private request has been transmitted.",
         callLine: "Grégory will review your context and come back to you discreetly on",
         at: "at",
-        smsNote: "Your message has been received in a private setting.",
+        smsNote: "Your request goes directly to Grégory. Personal reply within 12h.",
         addCalendar: "Add this slot",
         therapistLine: "Creator of the Méthode TMS®",
         newRequest: "New request",
@@ -153,9 +153,9 @@ export const COPY = {
   FR: {
     nav: { contact: "Contact", cta: "Réserver une consultation" },
     hero: {
-      eyebrow: "Méthode TMS® · Hospitality de luxe · International",
+      eyebrow: "Méthode TMS® · Thérapie manuelle de précision · International",
       headline: ["Quand le corps bloque.", "L'expérience doit continuer."],
-      sub: "Thérapie manuelle privée pour hôtels d'exception, villas & yachts — discrète, sur place, à votre rythme.",
+      sub: "Thérapie manuelle privée pour hôtels, villas, yachts et particuliers exigeants — Grégory intervient sur place, à votre rythme.",
       cta: "Demander une consultation privée",
       ctaSub: "Réponse sous 12h · Sans engagement",
       scroll: "Découvrir",
@@ -169,8 +169,8 @@ export const COPY = {
       portrait: "Portrait de Grégory Tordjman, créateur de la Méthode TMS®",
     },
     problem: [
-      "Dans l'hospitality de luxe, le confort corporel est indissociable de l'expérience client.",
-      "Grégory Tordjman intervient avec la Méthode TMS® auprès des clients privés, hôtels d'exception, villas, conciergeries et yachts — partout où vos standards l'exigent.",
+      "Un corps qui bloque, c'est une expérience qui s'arrête — que vous soyez en déplacement, en séjour ou simplement épuisé.",
+      "Grégory Tordjman intervient avec la Méthode TMS® — une technique manuelle de soulagement qu'il a lui-même développée — auprès des particuliers, hôtels, villas, conciergeries et yachts. Sur place. Sans délai.",
     ],
     trustBar: {
       stats: [
@@ -185,13 +185,13 @@ export const COPY = {
       label: "La méthode",
       title: "Un praticien expert. Trois disciplines complémentaires.",
       sub: "Chaque client reçoit une approche sur mesure — jamais un protocole générique.",
-      cta: "Découvrir comment ça s'intègre à votre établissement",
+      cta: "Voir comment la Méthode TMS® s'adapte à votre situation",
       items: [
         {
           tag: "01",
           label: "Travail manuel traditionnel",
           title: "Reboutement",
-          body: "Une approche précise pour les tensions du dos, les restrictions articulaires et les blocages profonds — sans rapport de force, adaptée à chaque corps.",
+          body: "Le reboutement selon Grégory : une lecture manuelle du corps pour libérer les blocages profonds, rétablir la mobilité articulaire et dissoudre les tensions — sans forcer, en respectant chaque corps.",
         },
         {
           tag: "02",
@@ -209,15 +209,15 @@ export const COPY = {
     },
     profiles: {
       label: "Pour vos clients",
-      title: "Quand un séjour premium demande une réponse précise.",
+      title: "Quand le corps envoie un signal — Grégory répond.",
       sub: "Vous reconnaissez la situation de vos clients ? Parlons de la bonne réponse.",
       cta: "Échangeons sur les besoins de vos clients",
       items: [
         { italic: "Après un long vol.", note: "Nuque raide, jambes lourdes, dos comprimé. Intervention discrète en chambre ou en villa." },
         { italic: "Pendant un séjour en villa privée.", note: "Tensions du dos, des épaules ou du bassin prises en charge sans perturber l'agenda du client." },
         { italic: "À bord ou après une journée en mer.", note: "Lombaires, nuque, fatigue corporelle : intervention possible sur site ou à bord selon le besoin." },
-        { italic: "Pour les clients exigeants.", note: "Dirigeants, sportifs, familles, VIP : accompagnement manuel sur mesure, avec discrétion." },
-        { italic: "Pour les partenaires hospitality.", note: "Un service premium complémentaire pour préserver le confort, la satisfaction et le souvenir du séjour." },
+        { italic: "Pour les clients exigeants.", note: "Dirigeants, sportifs, familles : un accompagnement manuel ciblé, discret, calibré pour des corps qui ne s'arrêtent pas." },
+        { italic: "Pour les partenaires hospitality.", note: "Un service de thérapie manuelle intégré à votre offre — pour que le confort de vos clients soit aussi mémorable que le reste de leur séjour." },
       ],
     },
     environments: {
@@ -227,37 +227,37 @@ export const COPY = {
     },
     teams: {
       headline: "Pour les équipes derrière l'expérience.",
-      body: "Quand la saison exige plus, le corps doit suivre. Grégory accompagne praticiens spa, équipes villa, opérations et managers avec des séances ciblées sur site ou des ateliers de récupération sur mesure.",
-      cta: "Organiser une session ou un workshop",
+      body: "Quand la saison exige plus, le corps doit tenir. Grégory accompagne praticiens spa, équipes terrain et managers — avec des séances ciblées sur site ou des ateliers basés sur la Méthode TMS® : des outils concrets pour des corps qui travaillent.",
+      cta: "Organiser une session ou un atelier Méthode TMS®",
     },
     how: {
       label: "Comment ça marche",
       steps: [
         { word: "Demande.", sub: "Demande privée ou demande partenaire, 7 jours sur 7" },
-        { word: "Intervention.", sub: "En chambre, en villa, sur site ou à bord. Installation discrète." },
-        { word: "Confort retrouvé.", sub: "Le client est accompagné. Votre équipe garde la maîtrise de l'expérience." },
+        { word: "Intervention.", sub: "Grégory se déplace — en chambre, en villa, sur site ou à bord. Aucune logistique à gérer de votre côté." },
+        { word: "Soulagement.", sub: "Le corps est pris en charge. Votre équipe garde la maîtrise de l'expérience." },
       ],
     },
     about: {
       label: "Expertise",
       name: "Grégory Tordjman",
       lines: [
-        "Créateur de la Méthode TMS® — Technique Manuelle de Soulagement.",
+        "Créateur de la Méthode TMS® — une technique manuelle de soulagement développée après 10+ ans de pratique intensive.",
         "9 000+ corps accompagnés · 230+ thérapeutes formés · 465 workshops animés.",
         "Disponible à l'international sur demande · À bord.",
       ],
-      cta: "Collaborer avec Grégory",
+      cta: "Travailler avec Grégory",
     },
     brandSignature: {
-      eyebrow: "Méthode TMS® — Depuis 2014",
-      headline: "La thérapie manuelle comme standard de soin.",
-      sub: "Là où la précision rencontre la discrétion. Un praticien. Une méthode. Un engagement sans compromis envers le corps.",
+      eyebrow: "Méthode TMS® · Depuis 2014",
+      headline: "Un praticien. Une méthode. Un soulagement durable.",
+      sub: "La Méthode TMS® n'est pas un protocole générique. C'est une lecture précise de chaque corps — et une réponse manuelle adaptée, appliquée par Grégory lui-même.",
       cta: "Demander une consultation privée",
     },
     contact: {
       label: "Demande privée",
       headline: "Planifiez une consultation personnelle.",
-      sub: "Choisissez quand nous vous appelons. Sans engagement.",
+      sub: "Choisissez votre créneau. Grégory vous rappelle personnellement.",
       stepLabels: ["Qui êtes-vous", "Votre besoin", "Votre créneau", "Confirmé"],
       step1: {
         title: "Comment vous appeler ?",
@@ -285,7 +285,7 @@ export const COPY = {
         headline: "Votre demande privée a été transmise.",
         callLine: "Grégory prendra connaissance du contexte et reviendra vers vous discrètement le",
         at: "à",
-        smsNote: "Votre message a été reçu dans un cadre privé.",
+        smsNote: "Votre demande est transmise directement à Grégory. Réponse personnelle sous 12h.",
         addCalendar: "Ajouter ce créneau",
         therapistLine: "Créateur de la Méthode TMS®",
         newRequest: "Nouvelle demande",
@@ -304,9 +304,9 @@ export const COPY = {
   ES: {
     nav: { contact: "Contacto", cta: "Reservar una consulta" },
     hero: {
-      eyebrow: "Método TMS® · Hospitality de lujo · Internacional",
+      eyebrow: "Método TMS® · Terapia manual privada · Internacional",
       headline: ["Cuando el cuerpo se bloquea.", "La experiencia debe continuar."],
-      sub: "Terapia manual privada para hoteles de lujo, villas y yates — discreta, en sitio, a su ritmo.",
+      sub: "Terapia manual privada para hoteles, villas, yates y clientes particulares — Grégory se desplaza a donde usted esté, a su ritmo.",
       cta: "Solicitar una consulta privada",
       ctaSub: "Respuesta en 12h · Sin compromiso",
       scroll: "Descubrir",
@@ -320,8 +320,8 @@ export const COPY = {
       portrait: "Retrato de Grégory Tordjman, creador del Método TMS®",
     },
     problem: [
-      "En el hospitality de lujo, el confort corporal es inseparable de la experiencia del huésped.",
-      "Grégory Tordjman interviene con el Método TMS® para clientes privados, hoteles de prestigio, villas, conserjerías y yates — allí donde sus estándares lo exigen.",
+      "Cuando el cuerpo se bloquea, todo lo demás se detiene — ya sea en un viaje, a bordo de un yate, o simplemente agotado.",
+      "Grégory Tordjman creó el Método TMS® — una técnica manual de alivio desarrollada a lo largo de más de 10 años de práctica — y la aplica directamente donde usted está: hoteles, villas, yates y clientes privados.",
     ],
     trustBar: {
       stats: [
@@ -336,13 +336,13 @@ export const COPY = {
       label: "El método",
       title: "Un profesional experto. Tres disciplinas complementarias.",
       sub: "Cada huésped recibe un enfoque a medida — nunca un protocolo genérico.",
-      cta: "Descubra cómo se integra en su establecimiento",
+      cta: "Vea cómo el Método TMS® se adapta a su situación",
       items: [
         {
           tag: "01",
           label: "Trabajo manual tradicional",
           title: "Reboutement",
-          body: "Un enfoque manual preciso para molestias de espalda, restricciones articulares y tensiones profundas — sin fuerza excesiva y adaptado a cada cuerpo.",
+          body: "El reboutement según Grégory: una lectura manual precisa del cuerpo para liberar bloqueos profundos, restaurar la movilidad articular y disolver tensiones — sin forzar, adaptado a cada persona.",
         },
         {
           tag: "02",
@@ -360,15 +360,15 @@ export const COPY = {
     },
     profiles: {
       label: "Para sus huéspedes",
-      title: "Cuando una estancia premium requiere una respuesta precisa.",
+      title: "Cuando el cuerpo da una señal — Grégory responde.",
       sub: "¿Reconoce la situación de sus huéspedes? Hablemos de la respuesta adecuada.",
       cta: "Hablemos de las necesidades de sus huéspedes",
       items: [
         { italic: "Después de un vuelo largo.", note: "Cuello rígido, piernas pesadas, espalda comprimida. Intervención discreta en habitación o villa." },
         { italic: "Durante una estancia en villa privada.", note: "Tensiones de espalda, hombros o cadera atendidas sin interrumpir la agenda del huésped." },
         { italic: "A bordo o después de un día en el mar.", note: "Lumbares, cuello, fatiga corporal: intervención posible en el lugar o a bordo según la necesidad." },
-        { italic: "Para huéspedes exigentes.", note: "Directivos, deportistas, familias, VIP: acompañamiento manual a medida, con discreción." },
-        { italic: "Para partners hospitality.", note: "Un servicio premium complementario para preservar el confort, la satisfacción y el recuerdo de la estancia." },
+        { italic: "Para huéspedes exigentes.", note: "Directivos, deportistas, familias: acompañamiento manual preciso, discreto, calibrado para cuerpos que no pueden detenerse." },
+        { italic: "Para partners hospitality.", note: "Un servicio de terapia manual integrado en su oferta — para que el confort físico de sus huéspedes sea tan memorable como el resto de su experiencia." },
       ],
     },
     environments: {
@@ -378,37 +378,37 @@ export const COPY = {
     },
     teams: {
       headline: "Para los equipos detrás de la experiencia.",
-      body: "Cuando la temporada exige más, el cuerpo debe seguir. Grégory acompaña a profesionales de spa, equipos de villa, operaciones y managers con sesiones específicas en sitio o talleres de recuperación a medida.",
-      cta: "Organizar una sesión o taller",
+      body: "Cuando la temporada exige más, el cuerpo tiene que aguantar. Grégory acompaña a profesionales de spa, equipos de campo y managers — con sesiones en sitio o talleres basados en el Método TMS®: herramientas concretas para cuerpos que trabajan duro.",
+      cta: "Organizar una sesión o un taller Método TMS®",
     },
     how: {
       label: "Cómo funciona",
       steps: [
         { word: "Solicitud.", sub: "Solicitud privada o solicitud de partner, 7 días a la semana" },
-        { word: "Intervención.", sub: "En habitación, villa, sitio o a bordo. Instalación discreta." },
-        { word: "Confort recuperado.", sub: "El huésped recibe apoyo. Su equipo mantiene el control de la experiencia." },
+        { word: "Intervención.", sub: "Grégory se desplaza — en habitación, villa, sitio o a bordo. Sin gestión logística de su parte." },
+        { word: "Alivio.", sub: "El cuerpo recibe atención. Su equipo mantiene el control de la experiencia." },
       ],
     },
     about: {
-      label: "Expertise",
+      label: "Trayectoria",
       name: "Grégory Tordjman",
       lines: [
-        "Creador del Método TMS® — Técnica Manual de Alivio.",
+        "Creador del Método TMS® — una técnica manual de alivio desarrollada a lo largo de más de 10 años de práctica intensiva.",
         "9.000+ cuerpos acompañados · 230+ terapeutas formados · 465 workshops realizados.",
         "Disponible internacionalmente bajo solicitud · A bordo.",
       ],
       cta: "Trabajar con Grégory",
     },
     brandSignature: {
-      eyebrow: "Método TMS® — Desde 2014",
-      headline: "La terapia manual como estándar de cuidado.",
-      sub: "Donde la precisión se encuentra con la discreción. Un profesional. Un método. Un compromiso sin concesiones con el cuerpo.",
+      eyebrow: "Método TMS® · Desde 2014",
+      headline: "Un profesional. Un método. Un alivio duradero.",
+      sub: "El Método TMS® no es un protocolo genérico. Es una lectura precisa de cada cuerpo — y una respuesta manual diseñada por el propio Grégory.",
       cta: "Solicitar una consulta privada",
     },
     contact: {
       label: "Solicitud privada",
       headline: "Programe una consulta personal.",
-      sub: "Elija cuándo le llamamos. Sin compromiso.",
+      sub: "Elija su horario. Grégory le llama personalmente.",
       stepLabels: ["Quién es usted", "Su necesidad", "Su horario", "Confirmado"],
       step1: {
         title: "¿Cómo debemos dirigirnos a usted?",
@@ -436,7 +436,7 @@ export const COPY = {
         headline: "Su solicitud privada ha sido transmitida.",
         callLine: "Grégory revisará el contexto y volverá a contactarle discretamente el",
         at: "a las",
-        smsNote: "Su mensaje ha sido recibido en un marco privado.",
+        smsNote: "Su solicitud llega directamente a Grégory. Respuesta personal en 12h.",
         addCalendar: "Añadir este horario",
         therapistLine: "Creador del Método TMS®",
         newRequest: "Nueva solicitud",
