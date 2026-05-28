@@ -97,6 +97,12 @@ export const COPY = {
       ],
       cta: "Work with Grégory",
     },
+    brandSignature: {
+      eyebrow: "Méthode TMS® — Since 2014",
+      headline: "Manual therapy as a standard of care.",
+      sub: "Where precision meets discretion. One practitioner. One method. An uncompromising commitment to the body.",
+      cta: "Request a private consultation",
+    },
     contact: {
       label: "Private request",
       headline: "Schedule a personal consultation.",
@@ -242,6 +248,12 @@ export const COPY = {
       ],
       cta: "Collaborer avec Grégory",
     },
+    brandSignature: {
+      eyebrow: "Méthode TMS® — Depuis 2014",
+      headline: "La thérapie manuelle comme standard de soin.",
+      sub: "Là où la précision rencontre la discrétion. Un praticien. Une méthode. Un engagement sans compromis envers le corps.",
+      cta: "Demander une consultation privée",
+    },
     contact: {
       label: "Demande privée",
       headline: "Planifiez une consultation personnelle.",
@@ -386,6 +398,12 @@ export const COPY = {
         "Disponible internacionalmente bajo solicitud · A bordo.",
       ],
       cta: "Trabajar con Grégory",
+    },
+    brandSignature: {
+      eyebrow: "Método TMS® — Desde 2014",
+      headline: "La terapia manual como estándar de cuidado.",
+      sub: "Donde la precisión se encuentra con la discreción. Un profesional. Un método. Un compromiso sin concesiones con el cuerpo.",
+      cta: "Solicitar una consulta privada",
     },
     contact: {
       label: "Solicitud privada",

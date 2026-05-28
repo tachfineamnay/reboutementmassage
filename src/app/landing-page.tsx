@@ -634,8 +634,59 @@ function About({ t }: { t: LandingCopy }) {
 }
 
 /* ──────────────────────────────────────────────────────────
-   Slot generation — next 2 days, deterministic "taken" slots
+   Section 07b — Brand Signature
+   Full logo as editorial anchor before the contact CTA.
    ────────────────────────────────────────────────────────── */
+function BrandSignature({ t }: { t: LandingCopy }) {
+  return (
+    <section className="brand-sig" id="brand-signature">
+      <div className="brand-sig__bg" aria-hidden="true" />
+      <div className="container">
+        <Reveal className="brand-sig__inner">
+          {/* Real full logo — the complete circular badge */}
+          <div className="brand-sig__logo-wrap">
+            <div className="brand-sig__logo-ring" aria-hidden="true" />
+            <Image
+              src="/logo.png"
+              alt="Thérapie Manuelle Reboutement & Massage by Grégory Tordjman — Logo officiel Méthode TMS®"
+              width={260}
+              height={260}
+              className="brand-sig__logo-img"
+              priority={false}
+            />
+          </div>
+
+          {/* Copy block */}
+          <div className="brand-sig__copy">
+            <Reveal delay={0.1}>
+              <span className="eyebrow eyebrow--gold brand-sig__eyebrow">{t.brandSignature.eyebrow}</span>
+            </Reveal>
+            <Reveal delay={0.2}>
+              <h2 className="brand-sig__headline">{t.brandSignature.headline}</h2>
+            </Reveal>
+            <Reveal delay={0.3}>
+              <p className="brand-sig__sub">{t.brandSignature.sub}</p>
+            </Reveal>
+            <Reveal delay={0.4}>
+              <div className="brand-sig__cta-row">
+                <a href="#contact" className="btn-primary" id="brand-sig-cta">
+                  <span>{t.brandSignature.cta}</span>
+                  <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
+                    <line x1="0" y1="5" x2="12" y2="5" stroke="currentColor" strokeWidth="0.7" />
+                    <polyline points="8,1 12,5 8,9" fill="none" stroke="currentColor" strokeWidth="0.7" />
+                  </svg>
+                </a>
+                <span className="brand-sig__note">+33 6 65 51 77 35</span>
+              </div>
+            </Reveal>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+
 function generateSlots(lang: Language) {
   const now = new Date();
   const locale = lang === "FR" ? "fr-FR" : lang === "ES" ? "es-ES" : "en-US";
@@ -1103,6 +1154,7 @@ export default function LandingPage({ initialLang }: { initialLang: Language }) 
         <Teams t={t} />
         <How t={t} />
         <About t={t} />
+        <BrandSignature t={t} />
         <Contact t={t} lang={lang} />
       </main>
       <Footer t={t} />
