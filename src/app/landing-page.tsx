@@ -192,7 +192,7 @@ function Hero({ t, heroTreatment, layout }: { t: LandingCopy, heroTreatment: str
   /* ── Layout B: Cream — type-led, portrait inset ── */
   if (layout === "cream") {
     return (
-      <section className="hero hero--cream" id="top">
+    <section className="hero hero--cream" id="top">
         <div className="hero-cream-grid">
           <div className="hero-cream-text">
             <Reveal delay={0.05}>
@@ -204,10 +204,7 @@ function Hero({ t, heroTreatment, layout }: { t: LandingCopy, heroTreatment: str
                 <span className="hh-line hh-italic">{t.hero.headline[1]}</span>
               </h1>
             </Reveal>
-            <Reveal delay={0.35}>
-              <p className="hero-sub">{t.hero.sub}</p>
-            </Reveal>
-            <Reveal delay={0.45}>
+            <Reveal delay={0.4}>
               <div className="hero-cta-group">
                 <a href="#contact" className="btn-primary" id="hero-cta">
                   <span>{t.hero.cta}</span>
@@ -217,12 +214,6 @@ function Hero({ t, heroTreatment, layout }: { t: LandingCopy, heroTreatment: str
                   </svg>
                 </a>
                 <span className="hero-cta-note">{t.hero.ctaSub}</span>
-              </div>
-            </Reveal>
-            <Reveal delay={0.55}>
-              <div className="hero-cream-meta">
-                <span className="rule-thin" />
-                <span className="eyebrow eyebrow--faint">{t.hero.metaLocation}</span>
               </div>
             </Reveal>
           </div>
@@ -241,7 +232,6 @@ function Hero({ t, heroTreatment, layout }: { t: LandingCopy, heroTreatment: str
         </div>
 
         <div className="hero-scroll hero-scroll--ink" aria-hidden="true">
-          <span className="hs-label">{t.hero.scroll}</span>
           <svg width="10" height="36" viewBox="0 0 10 36" fill="none">
             <line x1="5" y1="0" x2="5" y2="26" stroke="currentColor" strokeWidth="0.6" />
             <polyline points="1.5,22 5,30 8.5,22" fill="none" stroke="currentColor" strokeWidth="0.6" />
@@ -277,10 +267,7 @@ function Hero({ t, heroTreatment, layout }: { t: LandingCopy, heroTreatment: str
               <span className="hh-line hh-italic">{t.hero.headline[1]}</span>
             </h1>
           </Reveal>
-          <Reveal delay={0.35}>
-            <p className="hero-sub hero-sub--light">{t.hero.sub}</p>
-          </Reveal>
-          <Reveal delay={0.45}>
+          <Reveal delay={0.4}>
             <div className="hero-cta-group">
               <a href="#contact" className="btn-primary" id="hero-cta-editorial">
                 <span>{t.hero.cta}</span>
@@ -297,16 +284,13 @@ function Hero({ t, heroTreatment, layout }: { t: LandingCopy, heroTreatment: str
         <Reveal delay={0.5} className="hero-meta">
           <div className="hero-meta-row">
             <span className="eyebrow eyebrow--faint">{t.hero.metaLocation}</span>
-          </div>
-          <div className="hero-meta-row hero-meta-row--rule">
-            <span className="rule-thin" />
-            <span className="eyebrow eyebrow--faint">{t.hero.metaSince}  ·  MMXXVI</span>
+            <span className="hero-meta-dot" aria-hidden="true">·</span>
+            <span className="eyebrow eyebrow--faint">{t.hero.metaSince}</span>
           </div>
         </Reveal>
       </div>
 
       <div className="hero-scroll" aria-hidden="true">
-        <span className="hs-label">{t.hero.scroll}</span>
         <svg width="10" height="36" viewBox="0 0 10 36" fill="none">
           <line x1="5" y1="0" x2="5" y2="26" stroke="currentColor" strokeWidth="0.6" />
           <polyline points="1.5,22 5,30 8.5,22" fill="none" stroke="currentColor" strokeWidth="0.6" />
