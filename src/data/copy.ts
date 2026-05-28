@@ -8,6 +8,8 @@ export const COPY = {
       cta: "Request a private consultation",
       ctaSub: "Response within 12h · No commitment",
       scroll: "Discover",
+      metaLocation: "International · On board",
+      metaSince: "Est. 2014",
     },
     imageAlts: {
       hero: "Grégory Tordjman performing private manual therapy in a premium hospitality setting",
@@ -67,6 +69,11 @@ export const COPY = {
         { italic: "For hospitality partners.", note: "A premium complementary service that protects comfort, satisfaction and the memory of the stay." },
       ],
     },
+    environments: {
+      label: "Environments",
+      title: "Settings of intervention",
+      items: ["Premier hotels", "Private villas", "Yachts", "Conciergeries", "Spa teams", "VIP guests"],
+    },
     teams: {
       headline: "For the teams behind the experience.",
       body: "When the season demands more, the body must follow. Grégory supports spa practitioners, villa staff, operations teams and managers through targeted on-site sessions or bespoke recovery workshops.",
@@ -111,11 +118,11 @@ export const COPY = {
         next: "Choose your slot",
       },
       step3: {
-        title: "When should we call you?",
-        slotsAvailable: "slots available this week",
-        taken: "Booked",
+        title: "When would you like to be called back?",
+        slotsAvailable: "suggested callback slots",
+        taken: "Unavailable",
         trust: ["Confidential", "No commitment", "Personal reply within 12h"],
-        cta: "Send private request",
+        cta: "Send my private request",
       },
       step4: {
         headline: "Your private request has been transmitted.",
@@ -146,6 +153,8 @@ export const COPY = {
       cta: "Demander une consultation privée",
       ctaSub: "Réponse sous 12h · Sans engagement",
       scroll: "Découvrir",
+      metaLocation: "International · À bord",
+      metaSince: "Depuis 2014",
     },
     imageAlts: {
       hero: "Grégory Tordjman lors d'une intervention privée en thérapie manuelle dans un cadre premium",
@@ -205,6 +214,11 @@ export const COPY = {
         { italic: "Pour les partenaires hospitality.", note: "Un service premium complémentaire pour préserver le confort, la satisfaction et le souvenir du séjour." },
       ],
     },
+    environments: {
+      label: "Environnements",
+      title: "Lieux d'intervention",
+      items: ["Hôtels d'exception", "Villas privées", "Yachts", "Conciergeries", "Équipes spa", "Clients VIP"],
+    },
     teams: {
       headline: "Pour les équipes derrière l'expérience.",
       body: "Quand la saison exige plus, le corps doit suivre. Grégory accompagne praticiens spa, équipes villa, opérations et managers avec des séances ciblées sur site ou des ateliers de récupération sur mesure.",
@@ -249,11 +263,11 @@ export const COPY = {
         next: "Choisir votre créneau",
       },
       step3: {
-        title: "Quand souhaitez-vous être appelé ?",
-        slotsAvailable: "créneaux disponibles cette semaine",
-        taken: "Réservé",
+        title: "Quand souhaitez-vous être rappelé ?",
+        slotsAvailable: "créneaux proposés pour un rappel",
+        taken: "Indisponible",
         trust: ["Confidentiel", "Sans engagement", "Réponse personnelle sous 12h"],
-        cta: "Transmettre ma demande",
+        cta: "Envoyer ma demande privée",
       },
       step4: {
         headline: "Votre demande privée a été transmise.",
@@ -284,6 +298,8 @@ export const COPY = {
       cta: "Solicitar una consulta privada",
       ctaSub: "Respuesta en 12h · Sin compromiso",
       scroll: "Descubrir",
+      metaLocation: "Internacional · A bordo",
+      metaSince: "Desde 2014",
     },
     imageAlts: {
       hero: "Grégory Tordjman durante una intervención privada de terapia manual en un entorno premium",
@@ -343,6 +359,11 @@ export const COPY = {
         { italic: "Para partners hospitality.", note: "Un servicio premium complementario para preservar el confort, la satisfacción y el recuerdo de la estancia." },
       ],
     },
+    environments: {
+      label: "Entornos",
+      title: "Áreas de intervención",
+      items: ["Hoteles de lujo", "Villas privadas", "Yates", "Concierges", "Equipos spa", "Clientes VIP"],
+    },
     teams: {
       headline: "Para los equipos detrás de la experiencia.",
       body: "Cuando la temporada exige más, el cuerpo debe seguir. Grégory acompaña a profesionales de spa, equipos de villa, operaciones y managers con sesiones específicas en sitio o talleres de recuperación a medida.",
@@ -388,10 +409,10 @@ export const COPY = {
       },
       step3: {
         title: "¿Cuándo desea que le llamemos?",
-        slotsAvailable: "horarios disponibles esta semana",
-        taken: "Reservado",
+        slotsAvailable: "horarios propuestos para una llamada",
+        taken: "No disponible",
         trust: ["Confidencial", "Sin compromiso", "Respuesta personal en 12h"],
-        cta: "Enviar solicitud privada",
+        cta: "Enviar mi solicitud privada",
       },
       step4: {
         headline: "Su solicitud privada ha sido transmitida.",

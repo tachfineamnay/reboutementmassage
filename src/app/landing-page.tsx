@@ -215,7 +215,7 @@ function Hero({ t, heroTreatment, layout }: { t: LandingCopy, heroTreatment: str
             <Reveal delay={0.55}>
               <div className="hero-cream-meta">
                 <span className="rule-thin" />
-                <span className="eyebrow eyebrow--faint">International · Aboard</span>
+                <span className="eyebrow eyebrow--faint">{t.hero.metaLocation}</span>
               </div>
             </Reveal>
           </div>
@@ -289,11 +289,11 @@ function Hero({ t, heroTreatment, layout }: { t: LandingCopy, heroTreatment: str
 
         <Reveal delay={0.5} className="hero-meta">
           <div className="hero-meta-row">
-            <span className="eyebrow eyebrow--faint">International · Aboard</span>
+            <span className="eyebrow eyebrow--faint">{t.hero.metaLocation}</span>
           </div>
           <div className="hero-meta-row hero-meta-row--rule">
             <span className="rule-thin" />
-            <span className="eyebrow eyebrow--faint">Est. 2014  ·  MMXXVI</span>
+            <span className="eyebrow eyebrow--faint">{t.hero.metaSince}  ·  MMXXVI</span>
           </div>
         </Reveal>
       </div>
@@ -495,6 +495,35 @@ function Profiles({ t }: { t: LandingCopy }) {
             style={{ objectFit: "cover", objectPosition: "center 25%" }}
           />
         </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────
+   Section 04b — Environments
+   ────────────────────────────────────────────────────────── */
+function Environments({ t }: { t: LandingCopy }) {
+  return (
+    <section className="environments" id="environments">
+      <div className="container">
+        <div className="environments-head">
+          <Reveal>
+            <span className="eyebrow eyebrow--gold">{t.environments.label}</span>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <h2 className="section-title">{t.environments.title}</h2>
+          </Reveal>
+        </div>
+
+        <div className="environments-grid">
+          {t.environments.items.map((item, i) => (
+            <Reveal className="environment-card" key={i} delay={0.1 + i * 0.05}>
+              <span className="environment-num">{String(i + 1).padStart(2, "0")}</span>
+              <h3 className="environment-name">{item}</h3>
+            </Reveal>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -1070,6 +1099,7 @@ export default function LandingPage({ initialLang }: { initialLang: Language }) 
         <TrustBar t={t} />
         <Practices t={t} />
         <Profiles t={t} />
+        <Environments t={t} />
         <Teams t={t} />
         <How t={t} />
         <About t={t} />
