@@ -140,7 +140,7 @@ function Header({ lang }: { lang: Language }) {
         <a href="#top" className="brand" aria-label="Thérapie Manuelle by Grégory Tordjman — home">
           <span className="brand-logo">
             <Image
-              src="/logo-icon.png"
+              src="/logo-icon-reboutement.png"
               alt="Logo Thérapie Manuelle — Méthode TMS® by Grégory Tordjman"
               width={40}
               height={40}
@@ -310,7 +310,7 @@ function Problem({ t }: { t: LandingCopy }) {
         {/* Watermark logo behind text */}
         <div className="problem-watermark" aria-hidden="true">
           <Image
-            src="/logo.png"
+            src="/logo-badge.png"
             alt=""
             width={280}
             height={280}
@@ -645,10 +645,10 @@ function BrandSignature({ t }: { t: LandingCopy }) {
           <div className="brand-sig__logo-wrap">
             <div className="brand-sig__logo-ring" aria-hidden="true" />
             <Image
-              src="/logo.png"
+              src="/logo-badge.png"
               alt="Thérapie Manuelle Reboutement & Massage by Grégory Tordjman — Logo officiel Méthode TMS®"
-              width={260}
-              height={260}
+              width={300}
+              height={300}
               className="brand-sig__logo-img"
               priority={false}
             />
@@ -1119,10 +1119,10 @@ function Footer({ t }: { t: LandingCopy }) {
       <div className="footer-inner">
         <div className="footer-mark">
           <Image
-            src="/logo-icon.png"
-            alt="Logo Thérapie Manuelle — Méthode TMS® by Grégory Tordjman"
-            width={44}
-            height={44}
+            src="/logo--reboutement-tgrégory-tordjman.png"
+            alt="Thérapie Manuelle Reboutement & Massage by Grégory Tordjman"
+            width={120}
+            height={120}
             className="footer-mark__img"
           />
         </div>
