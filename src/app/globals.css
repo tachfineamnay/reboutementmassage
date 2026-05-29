@@ -591,8 +591,11 @@ html[data-layout="cream"] .header-cta {
   z-index: 0;
   opacity: 0.045;
 }
-.problem-watermark__svg {
+.problem-watermark__img {
   display: block;
+  width: 280px;
+  height: 280px;
+  object-fit: contain;
 }
 .problem-container .problem-lead,
 .problem-container .problem-body {
@@ -1830,7 +1833,7 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   .trust-bar__guarantees { gap: 16px; }
   .trust-bar__guarantee { font-size: 10px; }
   .problem-watermark { opacity: 0.035; }
-  .problem-watermark__svg { width: 200px !important; height: 200px !important; }
+  .problem-watermark__img { width: 200px !important; height: 200px !important; }
   .brand-logo { width: 40px; height: 40px; }
 
   .environments-grid {

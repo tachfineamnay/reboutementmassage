@@ -309,7 +309,14 @@ function Problem({ t }: { t: LandingCopy }) {
       <div className="container container--narrow problem-container">
         {/* Watermark logo behind text */}
         <div className="problem-watermark" aria-hidden="true">
-          <HandLogo size={280} color="var(--ink)" className="problem-watermark__svg" />
+          <Image
+            src="/logo.png"
+            alt=""
+            width={280}
+            height={280}
+            className="problem-watermark__img"
+            draggable={false}
+          />
         </div>
         <Reveal>
           <p className="problem-lead">{t.problem[0]}</p>
