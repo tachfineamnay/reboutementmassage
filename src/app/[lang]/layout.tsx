@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { absoluteUrl, isLocale } from "@/lib/seo";
 import "../globals.css";
 
@@ -43,6 +44,7 @@ export default async function RootLayout({
   return (
     <html lang={htmlLang} className={`${cormorant.variable} ${dmSans.variable}`}>
       <body>
+        <GoogleAnalytics />
         {children}
       </body>
     </html>
