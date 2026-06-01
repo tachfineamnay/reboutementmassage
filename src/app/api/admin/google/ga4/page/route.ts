@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getGoogleConfig } from "@/lib/google/oauth";
 import { fetchPageTraffic } from "@/lib/google/ga4";
+import { getArticlePublicPath } from "@/lib/routes";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Article non trouvé." }, { status: 404 });
     }
 
-    const pagePath = `/stories/${article.slug}`;
+    const pagePath = getArticlePublicPath({ locale: article.locale, slug: article.slug });
 
     console.log(`GA4 API : Récupération du rapport pour le chemin : ${pagePath}...`);
     const trafficData = await fetchPageTraffic(pagePath);

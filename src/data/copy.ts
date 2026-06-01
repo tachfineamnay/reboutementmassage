@@ -1,6 +1,6 @@
 export const COPY = {
   EN: {
-    nav: { contact: "Contact", cta: "Book a consultation" },
+    nav: { contact: "Contact", cta: "Book a consultation", stories: "Stories" },
     hero: {
       eyebrow: "Méthode TMS® · Private manual therapy · International",
       headline: ["When the body stops.", "The experience must continue."],
@@ -151,7 +151,7 @@ export const COPY = {
     },
   },
   FR: {
-    nav: { contact: "Contact", cta: "Réserver une consultation" },
+    nav: { contact: "Contact", cta: "Réserver une consultation", stories: "Stories" },
     hero: {
       eyebrow: "Méthode TMS® · Thérapie manuelle de précision · International",
       headline: ["Quand le corps bloque.", "L'expérience doit continuer."],
@@ -302,7 +302,7 @@ export const COPY = {
     },
   },
   ES: {
-    nav: { contact: "Contacto", cta: "Reservar una consulta" },
+    nav: { contact: "Contacto", cta: "Reservar una consulta", stories: "Stories" },
     hero: {
       eyebrow: "Método TMS® · Terapia manual privada · Internacional",
       headline: ["Cuando el cuerpo se bloquea.", "La experiencia debe continuar."],

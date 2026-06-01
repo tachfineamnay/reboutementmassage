@@ -43,7 +43,7 @@ export default function SeoPanel({
         <p className="seo-preview__label">Aperçu Google</p>
         <div className="seo-preview__card">
           <span className="seo-preview__url">
-            {SITE_DOMAIN}/stories/{locale.toLowerCase()}/{slug || "votre-slug"}
+            {SITE_DOMAIN}/{locale.toLowerCase()}/stories/{slug || "votre-slug"}
           </span>
           <p className="seo-preview__title">
             {seoTitle || "Titre SEO (60 caractères max)"}

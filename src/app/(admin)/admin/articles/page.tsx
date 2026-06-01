@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { computeSeoScore } from "@/lib/utils";
+import { getArticlePublicPath } from "@/lib/routes";
 import ArticleStatusBadge from "@/components/admin/ArticleStatusBadge";
 import SeoScoreBadge from "@/components/admin/SeoScoreBadge";
 import DeleteArticleButton from "./DeleteArticleButton";
@@ -233,7 +234,7 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
                     {/* Slug */}
                     <td className="admin-table__slug-cell">
                       <code className="admin-table__slug-code">
-                        /{article.locale.toLowerCase()}/{article.slug}
+                        {getArticlePublicPath({ locale: article.locale, slug: article.slug })}
                       </code>
                     </td>
 
@@ -276,7 +277,7 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
                       </Link>
                       {article.status === "PUBLISHED" && (
                         <a
-                          href={`/stories/${article.locale.toLowerCase()}/${article.slug}`}
+                          href={getArticlePublicPath({ locale: article.locale, slug: article.slug })}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="admin-action admin-action--view"

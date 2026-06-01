@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getGoogleConfig } from "@/lib/google/oauth";
 import { runMobileAudit } from "@/lib/google/pagespeed";
+import { getArticlePublicPath } from "@/lib/routes";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Article non trouvé." }, { status: 404 });
     }
 
-    const absoluteArticleUrl = `${config.siteUrl}/stories/${article.slug}`;
+    const absoluteArticleUrl = `${config.siteUrl}${getArticlePublicPath({ locale: article.locale, slug: article.slug })}`;
 
     console.log(`PageSpeed API : Lancement pour : ${absoluteArticleUrl}...`);
     const auditResult = await runMobileAudit(absoluteArticleUrl);

@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getGoogleConfig } from "@/lib/google/oauth";
 import { inspectUrl } from "@/lib/google/search-console";
+import { getArticlePublicPath } from "@/lib/routes";
 
 export const dynamic = "force-dynamic";
 
@@ -38,8 +39,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Article non trouvé." }, { status: 404 });
     }
 
-    // URL absolue publique de l'article sur le site
-    const absoluteArticleUrl = `${config.siteUrl}/stories/${article.slug}`;
+    const absoluteArticleUrl = `${config.siteUrl}${getArticlePublicPath({ locale: article.locale, slug: article.slug })}`;
 
     console.log(`URL Inspection : Inspection de l'URL : ${absoluteArticleUrl}...`);
     const inspectionData = await inspectUrl(absoluteArticleUrl);

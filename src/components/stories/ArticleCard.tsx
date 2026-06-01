@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getArticlePublicPath } from "@/lib/routes";
 
 type ArticleCardProps = {
   article: {
@@ -16,7 +17,7 @@ type ArticleCardProps = {
 export default function ArticleCard({ article }: ArticleCardProps) {
   const displayTitle = article.seo?.seoTitle ?? article.title;
   const date = article.publishedAt
-    ? new Intl.DateTimeFormat("fr-FR", {
+    ? new Intl.DateTimeFormat(article.locale === "EN" ? "en-US" : article.locale === "ES" ? "es-ES" : "fr-FR", {
         day: "numeric",
         month: "long",
         year: "numeric",
@@ -24,7 +25,10 @@ export default function ArticleCard({ article }: ArticleCardProps) {
     : null;
 
   const readingTime = article.content?.readingTime;
-  const href = `/stories/${article.slug}`;
+  const href = getArticlePublicPath({ locale: article.locale || "FR", slug: article.slug });
+
+  const ctaText = article.locale === "EN" ? "Read story →" : article.locale === "ES" ? "Leer artículo →" : "Lire l'article →";
+  const readingTimeText = article.locale === "EN" ? "min read" : article.locale === "ES" ? "min de lectura" : "min de lecture";
 
   return (
     <article className="article-card">
@@ -49,7 +53,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
             {date && readingTime && <span className="article-card__separator" style={{ opacity: 0.5 }}>·</span>}
             {readingTime && (
               <span className="article-card__reading-time" style={{ letterSpacing: "0.05em", textTransform: "uppercase" }}>
-                {readingTime} min de lecture
+                {readingTime} {readingTimeText}
               </span>
             )}
           </div>
@@ -57,7 +61,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
           {article.excerpt && (
             <p className="article-card__excerpt">{article.excerpt}</p>
           )}
-          <span className="article-card__cta">Lire l&apos;article →</span>
+          <span className="article-card__cta">{ctaText}</span>
         </div>
       </Link>
     </article>

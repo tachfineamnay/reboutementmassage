@@ -169,7 +169,7 @@ export default function NewArticleForm() {
         </label>
         <div className="admin-input-group">
           <span className="admin-input-prefix">
-            /stories/{data.locale.toLowerCase()}/
+            /{data.locale.toLowerCase()}/stories/
           </span>
           <input
             id="na-slug"

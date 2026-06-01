@@ -152,6 +152,13 @@ function Header({ lang }: { lang: Language }) {
 
         <div className="header-right">
           <nav className="lang-switch" aria-label="Language">
+            <a 
+              href={`/${lang.toLowerCase()}/stories`} 
+              className="lang-btn" 
+              style={{ marginRight: '20px', fontWeight: 400 }}
+            >
+              {COPY[lang].nav.stories}
+            </a>
             {(["EN", "FR", "ES"] as Language[]).map((code, i) => (
               <React.Fragment key={code}>
                 {i > 0 && <span className="lang-sep" aria-hidden="true">·</span>}

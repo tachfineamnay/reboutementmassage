@@ -67,24 +67,31 @@ export async function POST() {
 
       if (!pathname.includes("/stories")) continue;
 
-      // Enlever le préfixe /stories/
-      const cleanPath = pathname.replace(/^\/stories\/?/, ""); // ex: "fr/mon-slug" ou "mon-slug"
+      const cleanPath = pathname.replace(/^\//, "");
       const segments = cleanPath.split("/").filter(Boolean);
 
+      let locale = "";
       let slug = "";
-      if (segments.length === 2) {
-        // Format legacy /stories/[locale]/[slug]
-        slug = segments[1];
-      } else if (segments.length === 1) {
-        // Format standard /stories/[slug]
-        slug = segments[0];
+
+      if (segments.length === 3 && segments[1] === "stories") {
+        locale = segments[0];
+        slug = segments[2];
       } else {
-        continue;
+        const storiesIndex = segments.indexOf("stories");
+        if (storiesIndex >= 0 && segments.length > storiesIndex + 1) {
+          if (segments.length === storiesIndex + 3) {
+            locale = segments[storiesIndex + 1];
+            slug = segments[storiesIndex + 2];
+          } else if (segments.length === storiesIndex + 2) {
+            slug = segments[storiesIndex + 1];
+          }
+        }
       }
 
-      // Chercher l'article correspondant par slug
+      if (!slug) continue;
+
       const matchedArticle = articles.find(
-        (a) => a.slug.toLowerCase() === slug.toLowerCase()
+        (a) => a.slug.toLowerCase() === slug.toLowerCase() && (!locale || a.locale.toLowerCase() === locale.toLowerCase())
       );
 
       if (!matchedArticle) continue;
