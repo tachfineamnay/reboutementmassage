@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+  // Prisma et bcrypt nécessitent une exécution côté serveur Node.js uniquement
+  serverExternalPackages: ["@prisma/client", "bcryptjs", "sharp"],
 };
 
 export default nextConfig;

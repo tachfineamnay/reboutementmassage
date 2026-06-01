@@ -1,0 +1,224 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Prisma Schema — Méthode TMS® CMS
+// Prisma 7 : pas de `url` dans datasource (géré via prisma.config.ts)
+// ─────────────────────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum Locale {
+  FR
+  EN
+  ES
+}
+
+enum ArticleStatus {
+  DRAFT
+  READY
+  PUBLISHED
+  ARCHIVED
+}
+
+enum LandingSectionStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AdminUser — authentification admin
+// ─────────────────────────────────────────────────────────────────────────────
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("admin_users")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MediaAsset — images et fichiers uploadés localement
+// ─────────────────────────────────────────────────────────────────────────────
+
+model MediaAsset {
+  id           String   @id @default(cuid())
+  filename     String   @unique        // UUID + extension ex: a1b2c3.webp
+  originalName String                  // Nom original du fichier uploadé
+  mimeType     String                  // image/webp, image/jpeg …
+  url          String                  // URL publique ex: /api/uploads/a1b2c3.webp
+  localPath    String                  // Chemin absolu ex: /app/storage/uploads/a1b2c3.webp
+  width        Int?
+  height       Int?
+  size         Int                     // Taille en octets
+
+  // Textes alt multilingues
+  altFr        String?
+  altEn        String?
+  altEs        String?
+
+  createdAt    DateTime @default(now())
+
+  // Relations inverses
+  articles        Article[]        @relation("ArticleCover")
+  articlesSeo     ArticleSeo[]     @relation("ArticleOgImage")
+  landingSections LandingSection[] @relation("SectionImage")
+
+  @@map("media_assets")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Article — article de blog multilingue
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Article {
+  id          String        @id @default(cuid())
+  locale      Locale        @default(FR)
+  slug        String
+  title       String
+  excerpt     String?
+  status      ArticleStatus @default(DRAFT)
+
+  // Image de couverture
+  coverImageId String?
+  coverImage   MediaAsset? @relation("ArticleCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+
+  // Relations 1-1
+  content      ArticleContent?
+  seo          ArticleSeo?
+
+  // Relations 1-N
+  metrics      ArticleMetric[]
+
+  publishedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Un slug est unique par locale
+  @@unique([locale, slug])
+  @@index([status])
+  @@index([locale, status])
+  @@index([publishedAt])
+  @@map("articles")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ArticleContent — corps de l'article (JSON éditeur + HTML + texte)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ArticleContent {
+  id          String  @id @default(cuid())
+  articleId   String  @unique
+  article     Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  editorJson  Json?   // Document ProseMirror/Tiptap brut
+  html        String? // HTML rendu (cache serveur)
+  plainText   String? // Texte brut pour recherche / preview
+  wordCount   Int     @default(0)
+  readingTime Int     @default(0) // En minutes
+
+  @@map("article_contents")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ArticleSeo — métadonnées SEO de l'article
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ArticleSeo {
+  id          String  @id @default(cuid())
+  articleId   String  @unique
+  article     Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  focusKeyword   String?
+  seoTitle       String?
+  metaDescription String?
+  canonical      String?
+
+  // Open Graph
+  ogTitle        String?
+  ogDescription  String?
+  ogImageId      String?
+  ogImage        MediaAsset? @relation("ArticleOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+
+  noindex        Boolean @default(false)
+
+  // Score calculé (0-100) et liste d'issues JSON
+  score          Int     @default(0)
+  issues         Json    @default("[]")
+
+  @@map("article_seo")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ArticleMetric — métriques journalières (Search Console + GA4)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ArticleMetric {
+  id               String   @id @default(cuid())
+  articleId        String
+  article          Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  date             DateTime @db.Date
+
+  // Search Console
+  clicks           Int      @default(0)
+  impressions      Int      @default(0)
+  ctr              Float    @default(0) // 0.0 → 1.0
+  position         Float    @default(0)
+
+  // GA4
+  organicSessions  Int      @default(0)
+  ctaClicks        Int      @default(0)
+  leads            Int      @default(0)
+
+  // Un seul enregistrement par article par jour
+  @@unique([articleId, date])
+  @@index([articleId])
+  @@index([date])
+  @@map("article_metrics")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LandingSection — blocs dynamiques de la landing page
+// ─────────────────────────────────────────────────────────────────────────────
+
+model LandingSection {
+  id        String               @id @default(cuid())
+  type      String               // "hero" | "about" | "testimonial" | "cta" …
+  locale    Locale               @default(FR)
+  status    LandingSectionStatus @default(DRAFT)
+  placement Int                  @default(0) // Ordre d'affichage
+
+  // Contenu éditorial
+  title     String?
+  subtitle  String?
+  body      String?
+  ctaLabel  String?
+  ctaHref   String?
+
+  // Image associée
+  imageId   String?
+  image     MediaAsset? @relation("SectionImage", fields: [imageId], references: [id], onDelete: SetNull)
+
+  // Planification
+  startAt   DateTime?
+  endAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([locale, status])
+  @@index([type, locale])
+  @@map("landing_sections")
+}
