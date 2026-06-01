@@ -1,4 +1,5 @@
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import "../globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -21,7 +22,10 @@ export default function PublicLayout({
 }) {
   return (
     <html lang="fr" className={`${cormorant.variable} ${dmSans.variable}`}>
-      <body>{children}</body>
+      <body>
+        <GoogleAnalytics />
+        {children}
+      </body>
     </html>
   );
 }
