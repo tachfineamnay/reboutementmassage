@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { Prisma } from "@prisma/client";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { computeSeoScore } from "@/lib/utils";
@@ -13,6 +14,15 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
+type OverviewArticle = Prisma.ArticleGetPayload<{
+  include: {
+    seo: true;
+    content: { select: { html: true; wordCount: true } };
+    coverImage: true;
+    metrics: true;
+  };
+}>;
+
 type Issue = {
   articleId: string;
   title: string;
@@ -22,17 +32,22 @@ type Issue = {
   priorityClass: string;
 };
 
-export default async function OverviewPage() {
-  const now = new Date();
-  const date28DaysAgo = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
+function isMissingSchemaObjectError(error: unknown) {
+  const code = (error as { code?: string }).code;
+  if (code === "P2021" || code === "P2022") return true;
 
-  // Vérification de la configuration Google
-  const googleConfig = getGoogleConfig();
-  const isGoogleConfigured = !!googleConfig;
+  const message = String(
+    (error as { message?: unknown })?.message ?? error
+  );
 
-  // 1. Récupération optimisée des articles et des sections landing
-  const [articles, sections] = await Promise.all([
-    prisma.article.findMany({
+  return /relation .* does not exist|table .* does not exist|column .* does not exist/i.test(
+    message
+  );
+}
+
+async function getOverviewArticles(date28DaysAgo: Date): Promise<OverviewArticle[]> {
+  try {
+    return await prisma.article.findMany({
       orderBy: { updatedAt: "desc" },
       include: {
         seo: true,
@@ -46,15 +61,65 @@ export default async function OverviewPage() {
           },
         },
       },
-    }),
-    prisma.landingSection.findMany({
+    });
+  } catch (error) {
+    if (!isMissingSchemaObjectError(error)) throw error;
+
+    console.warn(
+      "[admin/overview] Article metrics schema is unavailable; rendering dashboard without Google metrics.",
+      error
+    );
+
+    const articles = await prisma.article.findMany({
+      orderBy: { updatedAt: "desc" },
+      include: {
+        seo: true,
+        content: { select: { html: true, wordCount: true } },
+        coverImage: true,
+      },
+    });
+
+    return articles.map((article) => ({
+      ...article,
+      metrics: [],
+    }));
+  }
+}
+
+async function getOverviewSections() {
+  try {
+    return await prisma.landingSection.findMany({
       select: {
         id: true,
         status: true,
         startAt: true,
         endAt: true,
       },
-    }),
+    });
+  } catch (error) {
+    if (!isMissingSchemaObjectError(error)) throw error;
+
+    console.warn(
+      "[admin/overview] Landing sections schema is unavailable; rendering dashboard without landing section metrics.",
+      error
+    );
+
+    return [];
+  }
+}
+
+export default async function OverviewPage() {
+  const now = new Date();
+  const date28DaysAgo = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
+
+  // Vérification de la configuration Google
+  const googleConfig = getGoogleConfig();
+  const isGoogleConfigured = !!googleConfig;
+
+  // 1. Récupération optimisée des articles et des sections landing
+  const [articles, sections] = await Promise.all([
+    getOverviewArticles(date28DaysAgo),
+    getOverviewSections(),
   ]);
 
   // 2. Calculs des métriques d'articles

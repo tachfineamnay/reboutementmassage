@@ -53,9 +53,9 @@ Pour éviter la perte des images uploadées lors du redémarrage ou de la mise �
   ```bash
   npx prisma generate
   ```
-- **Appliquer les migrations en production** (à exécuter lors du déploiement ou du démarrage du conteneur) :
+- **Synchroniser le schéma en production** (le Dockerfile le fait automatiquement au démarrage si `DATABASE_URL` est défini) :
   ```bash
-  npx prisma migrate deploy
+  npx prisma db push
   ```
 - **Créer une nouvelle migration en développement** :
   ```bash
@@ -117,4 +117,4 @@ Avant de marquer le déploiement comme prêt :
 - [ ] **Configuration de volume** : Le volume persistant est monté sur le chemin `/app/storage`.
 - [ ] **Variables d'upload** : `UPLOAD_DIR` est bien configuré sur `/app/storage/uploads` et `UPLOAD_PUBLIC_PATH` sur `/uploads`.
 - [ ] **Adresse de site** : `SITE_URL` pointe sur l'URL de domaine de production finale (ex: `https://votre-domaine.fr`), nécessaire pour la génération du sitemap.xml, des redirections et des métadonnées canoniques.
-- [ ] **Initialisation Prisma** : Le script de déploiement exécute `npx prisma migrate deploy` avant de lancer la compilation `npm run build`.
+- [ ] **Initialisation Prisma** : le démarrage Docker exécute `prisma db push`, sauf si `SKIP_DB_PUSH=1` est défini.

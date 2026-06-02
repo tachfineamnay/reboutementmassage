@@ -13,7 +13,7 @@ const ALLOWED_MIME_TYPES: Record<string, string> = {
 const MAX_SIZE = 5 * 1024 * 1024; // 5 Mo
 
 export function getUploadsConfig() {
-  const uploadDir = process.env.UPLOAD_DIR || path.join(process.cwd(), "uploads");
+  const uploadDir = process.env.UPLOAD_DIR || "uploads";
   const publicPath = process.env.UPLOAD_PUBLIC_PATH || "/uploads";
   return { uploadDir, publicPath };
 }

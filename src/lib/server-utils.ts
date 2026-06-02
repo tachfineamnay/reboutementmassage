@@ -8,7 +8,7 @@ import fs from "fs/promises";
 // En production Coolify: /app/storage/uploads
 // En développement: <racine du projet>/uploads
 export function getUploadsDir(): string {
-  return process.env.UPLOADS_DIR ?? path.join(process.cwd(), "uploads");
+  return process.env.UPLOAD_DIR ?? "uploads";
 }
 
 export function getUploadUrl(filename: string): string {

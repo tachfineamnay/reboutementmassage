@@ -43,6 +43,14 @@ RUN chown nextjs:nodejs .next
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/scripts/docker-entrypoint.sh ./docker-entrypoint.sh
+
+# The standalone trace includes the Prisma client but not the Prisma CLI.
+# Keep the CLI available so the container can sync the database schema at boot.
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+
+RUN sed -i 's/\r$//' ./docker-entrypoint.sh && chmod +x ./docker-entrypoint.sh
 
 USER nextjs
 
@@ -52,4 +60,4 @@ ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
 # server.js is created by next build from the standalone output
-CMD ["node", "server.js"]
+CMD ["./docker-entrypoint.sh"]

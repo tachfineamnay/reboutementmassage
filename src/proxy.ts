@@ -4,7 +4,7 @@ import { decrypt } from "@/lib/auth";
 // Routes admin publiques (pas d'auth requise)
 const PUBLIC_ROUTES = ["/admin/login"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // ── 1. Routes admin UI ────────────────────────────────────────────────────
@@ -23,7 +23,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    // Session valide → laisse passer
+    // Session valide -> laisse passer
     return NextResponse.next();
   }
 
