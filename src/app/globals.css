@@ -4266,3 +4266,336 @@ textarea.sf-field__input::placeholder { font-style: normal; }
 .article-editor__stat--dirty {
   color: #fbbf24;
 }
+
+/* ══════════════════════════════════════════════════════════
+   BIOGRAPHY PAGE — /fr/biographie · /en/biography · /es/biografia
+   All tokens inherited from the root design system.
+   ══════════════════════════════════════════════════════════ */
+
+/* ─────────── Bio text primitives ─────────── */
+.bio-text {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--mid);
+  text-wrap: pretty;
+  max-width: 52ch;
+}
+.bio-text + .bio-text {
+  margin-top: 20px;
+}
+.bio-text--light {
+  color: rgba(250,248,243,0.75);
+  max-width: 48ch;
+}
+.bio-text--light + .bio-text--light {
+  margin-top: 18px;
+}
+
+/* ─────────── 01 Hero ─────────── */
+.bio-hero {
+  min-height: 92vh;
+  background: var(--cream);
+  color: var(--ink);
+  padding: 120px 0 100px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+.bio-hero__grid {
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--x-pad);
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 80px;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+.bio-hero__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.bio-hero__h1 {
+  margin-top: 24px;
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(44px, 5.8vw, 66px);
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+.bio-hero__h1 .hh-italic {
+  color: var(--forest);
+}
+.bio-hero__sub {
+  margin-top: 28px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--mid);
+  max-width: 46ch;
+  text-wrap: pretty;
+}
+.bio-hero__btn-sec {
+  color: var(--forest);
+}
+.bio-hero__photo {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--ink);
+  border: 0.5px solid var(--line);
+}
+.bio-hero__photo img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: saturate(.88) contrast(1.02) brightness(.95);
+}
+.bio-hero__photo::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 65%, rgba(26,23,20,0.2) 100%);
+  pointer-events: none;
+}
+.bio-hero__cap {
+  position: absolute;
+  left: 18px; bottom: 18px;
+  color: rgba(250,248,243,0.9);
+  z-index: 2;
+}
+/* Subtle accent blob — mirrors hero--cream::before */
+.bio-hero::before {
+  content: "";
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 320px; height: 320px;
+  border-radius: 50%;
+  background: var(--forest);
+  opacity: 0.035;
+  filter: blur(16px);
+  pointer-events: none;
+}
+
+/* ─────────── 02 Origine ─────────── */
+.bio-origine {
+  background: var(--white);
+  padding: var(--pad-l) 0;
+}
+.bio-origine__inner {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 72px;
+  align-items: flex-start;
+  border-top: 0.5px solid var(--line);
+  padding-top: 56px;
+}
+.bio-origine__left {
+  position: sticky;
+  top: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.bio-origine__title {
+  font-size: clamp(28px, 3vw, 38px);
+  line-height: 1.15;
+  max-width: 14ch;
+}
+.bio-origine__right {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ─────────── 03 Méthode ─────────── */
+.bio-methode {
+  background: var(--cream);
+  padding: var(--pad-m) 0;
+}
+.bio-methode__head {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 640px;
+  margin-bottom: 56px;
+}
+.bio-methode__title {
+  font-size: clamp(28px, 3.2vw, 40px);
+  line-height: 1.15;
+}
+.bio-methode__sub {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 22px;
+  color: var(--gold-muted);
+  letter-spacing: -0.005em;
+}
+.bio-methode__body {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 72px;
+  align-items: flex-start;
+}
+.bio-methode__texts {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.bio-methode__pillars {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 0.5px solid var(--line);
+}
+.bio-pillar {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 18px;
+  align-items: baseline;
+  padding: 20px 0;
+  border-bottom: 0.5px solid var(--line);
+}
+.bio-pillar__num {
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+  padding-top: 3px;
+}
+.bio-pillar__label {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.2;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+  margin-bottom: 5px;
+}
+.bio-pillar__desc {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--mid);
+}
+
+/* ─────────── 04 Stats (reuses trust-bar) ─────────── */
+.bio-stats {
+  border-top: 0.5px solid rgba(201,169,90,0.15);
+  border-bottom: 0.5px solid rgba(201,169,90,0.15);
+}
+.bio-stats .trust-bar__guarantees { display: none; }
+.bio-stats .trust-bar__stats { margin-bottom: 0; }
+
+/* ─────────── 05 Vision ─────────── */
+.bio-vision {
+  background: var(--ink);
+  color: var(--cream);
+  padding: var(--pad-m) 0;
+}
+.bio-vision__grid {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--x-pad);
+  display: grid;
+  grid-template-columns: 42% 58%;
+  gap: 80px;
+  align-items: center;
+}
+.bio-vision__photo {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--ink-light);
+  border: 0.5px solid rgba(201,169,90,0.18);
+}
+.bio-vision__photo img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: brightness(.92) saturate(.82);
+}
+.bio-vision__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-left: 8px;
+}
+.bio-vision__title {
+  margin: 14px 0 28px;
+  font-size: clamp(26px, 3.2vw, 36px);
+  line-height: 1.2;
+}
+html[data-palette="forest"] .bio-vision { background: var(--ink); }
+
+/* ─────────── 06 Présence (reuses environments) ─────────── */
+.bio-presence {
+  background: var(--white);
+}
+
+/* ─────────── 07 CTA (reuses brand-sig) ─────────── */
+.bio-cta__inner {
+  flex-direction: row;
+  align-items: center;
+  gap: 72px;
+}
+.bio-cta__headline {
+  white-space: pre-line;
+}
+.bio-cta__phone {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+  transition: color .25s ease;
+  text-decoration: none;
+}
+.bio-cta__phone:hover {
+  color: var(--cream);
+}
+
+/* ─────────── Bio responsive ─────────── */
+@media (max-width: 1100px) {
+  .bio-methode__body { grid-template-columns: 1fr; gap: 48px; }
+  .bio-cta__inner { flex-direction: column; gap: 40px; }
+}
+
+@media (max-width: 920px) {
+  /* Hero */
+  .bio-hero { padding: 110px 0 80px; min-height: auto; }
+  .bio-hero__grid { grid-template-columns: 1fr; gap: 44px; }
+  .bio-hero__photo { max-width: 520px; aspect-ratio: 4 / 3; }
+  .bio-hero__h1 { font-size: 38px; }
+
+  /* Origine */
+  .bio-origine__inner { grid-template-columns: 1fr; gap: 36px; padding-top: 40px; }
+  .bio-origine__left { position: static; }
+
+  /* Vision */
+  .bio-vision__grid { grid-template-columns: 1fr; gap: 44px; padding: 0 32px; }
+  .bio-vision__photo { max-width: 520px; aspect-ratio: 4 / 3; }
+  .bio-vision__text { padding-left: 0; }
+
+  /* Methode */
+  .bio-methode__body { grid-template-columns: 1fr; gap: 40px; }
+}
+
+@media (max-width: 640px) {
+  .bio-hero__grid,
+  .bio-origine__inner,
+  .bio-methode__body,
+  .bio-vision__grid { padding: 0 24px; }
+
+  .bio-hero__h1 { font-size: 34px; }
+  .bio-text { font-size: 15px; }
+  .bio-vision__title { font-size: 26px; }
+}

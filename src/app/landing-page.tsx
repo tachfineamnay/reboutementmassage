@@ -152,6 +152,13 @@ function Header({ lang }: { lang: Language }) {
 
         <div className="header-right">
           <nav className="lang-switch" aria-label="Language">
+            <a
+              href={lang === "FR" ? "/fr/biographie" : lang === "EN" ? "/en/biography" : "/es/biografia"}
+              className="lang-btn"
+              style={{ marginRight: '20px', fontWeight: 400 }}
+            >
+              {lang === "FR" ? "Biographie" : lang === "EN" ? "Biography" : "Biografía"}
+            </a>
             <a 
               href={`/${lang.toLowerCase()}/stories`} 
               className="lang-btn" 
