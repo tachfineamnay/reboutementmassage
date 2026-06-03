@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     select: { title: true },
   });
   return {
-    title: article ? `${article.title} — Admin TMS` : "Article — Admin TMS",
+    title: article ? `${article.title} — GT Dash` : "Article — GT Dash",
     robots: { index: false, follow: false },
   };
 }

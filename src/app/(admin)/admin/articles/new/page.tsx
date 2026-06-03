@@ -3,7 +3,7 @@ import Link from "next/link";
 import NewArticleForm from "@/components/admin/NewArticleForm";
 
 export const metadata: Metadata = {
-  title: "Nouvel article — Admin TMS",
+  title: "Nouvel article — GT Dash",
   robots: { index: false, follow: false },
 };
 

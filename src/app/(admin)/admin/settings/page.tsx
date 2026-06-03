@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getSession } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: "Settings — Admin TMS",
+  title: "Settings — GT Dash",
   robots: { index: false, follow: false },
 };
 

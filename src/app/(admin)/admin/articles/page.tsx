@@ -8,7 +8,7 @@ import SeoScoreBadge from "@/components/admin/SeoScoreBadge";
 import DeleteArticleButton from "./DeleteArticleButton";
 
 export const metadata: Metadata = {
-  title: "Articles — Admin TMS",
+  title: "Articles — GT Dash",
   robots: { index: false, follow: false },
 };
 

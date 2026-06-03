@@ -6,9 +6,14 @@ import { computeSeoScore } from "@/lib/utils";
 import ArticleStatusBadge from "@/components/admin/ArticleStatusBadge";
 import GoogleImportButton from "@/components/admin/GoogleImportButton";
 import { getGoogleConfig } from "@/lib/google/oauth";
+import {
+  LEAD_STATUS_CLASSES,
+  LEAD_STATUS_LABELS,
+  formatLeadSlot,
+} from "@/lib/admin-leads";
 
 export const metadata: Metadata = {
-  title: "Cockpit Vue d'ensemble — Admin TMS",
+  title: "Vue d'ensemble — GT Dash",
   robots: { index: false, follow: false },
 };
 
@@ -30,6 +35,24 @@ type Issue = {
   problem: string;
   priority: "Haute" | "Moyenne" | "Basse";
   priorityClass: string;
+};
+
+type LeadStats = {
+  total: number;
+  today: number;
+  week: number;
+  failed: number;
+  callbacksToday: number;
+};
+
+type CallbackLead = {
+  id: string;
+  firstName: string;
+  contact: string;
+  selectedDayLabel: string | null;
+  selectedTime: string;
+  timezone: string | null;
+  status: "CAPTURED" | "MOCKED" | "SENT_TO_GHL" | "FAILED" | "ARCHIVED";
 };
 
 function isMissingSchemaObjectError(error: unknown) {
@@ -108,6 +131,78 @@ async function getOverviewSections() {
   }
 }
 
+function getDayBounds(date: Date) {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 1);
+  return { start, end };
+}
+
+function getWeekStart(date: Date) {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  const day = start.getDay();
+  const daysSinceMonday = day === 0 ? 6 : day - 1;
+  start.setDate(start.getDate() - daysSinceMonday);
+  return start;
+}
+
+async function getOverviewLeadStats(now: Date): Promise<{
+  stats: LeadStats;
+  callbacks: CallbackLead[];
+}> {
+  const today = getDayBounds(now);
+  const weekStart = getWeekStart(now);
+
+  const [total, todayCount, week, failed, callbacksToday, callbacks] = await Promise.all([
+    prisma.leadSubmission.count(),
+    prisma.leadSubmission.count({
+      where: { createdAt: { gte: today.start, lt: today.end } },
+    }),
+    prisma.leadSubmission.count({
+      where: { createdAt: { gte: weekStart } },
+    }),
+    prisma.leadSubmission.count({
+      where: { status: "FAILED" },
+    }),
+    prisma.leadSubmission.count({
+      where: {
+        selectedAt: { gte: today.start, lt: today.end },
+        status: { not: "ARCHIVED" },
+      },
+    }),
+    prisma.leadSubmission.findMany({
+      where: {
+        selectedAt: { gte: today.start, lt: today.end },
+        status: { not: "ARCHIVED" },
+      },
+      orderBy: { selectedAt: "asc" },
+      take: 5,
+      select: {
+        id: true,
+        firstName: true,
+        contact: true,
+        selectedDayLabel: true,
+        selectedTime: true,
+        timezone: true,
+        status: true,
+      },
+    }),
+  ]);
+
+  return {
+    stats: {
+      total,
+      today: todayCount,
+      week,
+      failed,
+      callbacksToday,
+    },
+    callbacks,
+  };
+}
+
 export default async function OverviewPage() {
   const now = new Date();
   const date28DaysAgo = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
@@ -117,9 +212,10 @@ export default async function OverviewPage() {
   const isGoogleConfigured = !!googleConfig;
 
   // 1. Récupération optimisée des articles et des sections landing
-  const [articles, sections] = await Promise.all([
+  const [articles, sections, leadOverview] = await Promise.all([
     getOverviewArticles(date28DaysAgo),
     getOverviewSections(),
+    getOverviewLeadStats(now),
   ]);
 
   // 2. Calculs des métriques d'articles
@@ -282,23 +378,102 @@ export default async function OverviewPage() {
 
   // 5. Derniers articles modifiés (Top 5)
   const recentArticles = articlesWithScore.slice(0, 5);
+  const leadStats = leadOverview.stats;
+  const callbackLeads = leadOverview.callbacks;
 
   return (
     <div className="admin-page">
       {/* Header */}
       <div className="admin-page__header">
         <div>
-          <h1 className="admin-page__title">Cockpit TMS</h1>
+          <h1 className="admin-page__title">GT Dash</h1>
           <p className="admin-page__meta" style={{ marginTop: "4px" }}>
-            Santé du contenu, du SEO et de la landing page
+            Santé business, demandes reçues, contenus et SEO
           </p>
         </div>
         <div style={{ display: "flex", gap: "8px" }}>
+          <Link href="/admin/demandes" className="admin-btn admin-btn--ghost">
+            Voir les demandes
+          </Link>
           <Link href="/admin/articles/new" className="admin-btn admin-btn--primary">
             + Écrire une story
           </Link>
         </div>
       </div>
+
+      <div className="kpi-grid kpi-grid--business" style={{ marginBottom: "8px" }}>
+        <Link href="/admin/demandes" className="kpi-card kpi-card--link kpi-card--green">
+          <span className="kpi-card__value">{leadStats.total}</span>
+          <span className="kpi-card__label">Demandes reçues</span>
+        </Link>
+        <Link href="/admin/demandes?period=today" className="kpi-card kpi-card--link">
+          <span className="kpi-card__value">{leadStats.today}</span>
+          <span className="kpi-card__label">Demandes aujourd&apos;hui</span>
+        </Link>
+        <Link href="/admin/demandes?period=week" className="kpi-card kpi-card--link">
+          <span className="kpi-card__value">{leadStats.week}</span>
+          <span className="kpi-card__label">Demandes cette semaine</span>
+        </Link>
+        <Link href="/admin/demandes?status=FAILED" className="kpi-card kpi-card--link kpi-card--red">
+          <span className="kpi-card__value">{leadStats.failed}</span>
+          <span className="kpi-card__label">Échecs GHL</span>
+        </Link>
+        <Link href="/admin/demandes?period=today" className="kpi-card kpi-card--link kpi-card--amber">
+          <span className="kpi-card__value">{leadStats.callbacksToday}</span>
+          <span className="kpi-card__label">À rappeler aujourd&apos;hui</span>
+        </Link>
+      </div>
+
+      <section className="admin-section" style={{ marginBottom: "8px" }}>
+        <div className="admin-section__header">
+          <h2 className="admin-section__title">Demandes à traiter aujourd&apos;hui</h2>
+          <Link href="/admin/demandes?period=today" className="admin-link">
+            Voir tout
+          </Link>
+        </div>
+        {callbackLeads.length === 0 ? (
+          <div className="admin-empty" style={{ padding: "24px" }}>
+            <p>Aucune demande à rappeler aujourd&apos;hui.</p>
+          </div>
+        ) : (
+          <div className="admin-table-wrapper">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Prénom</th>
+                  <th>Contact</th>
+                  <th>Créneau</th>
+                  <th>Statut</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {callbackLeads.map((lead) => (
+                  <tr key={lead.id}>
+                    <td className="admin-table__title">
+                      <Link href={`/admin/demandes/${lead.id}`} className="admin-table__title-link">
+                        {lead.firstName}
+                      </Link>
+                    </td>
+                    <td className="admin-table__contact">{lead.contact}</td>
+                    <td className="admin-table__date">{formatLeadSlot(lead)}</td>
+                    <td>
+                      <span className={LEAD_STATUS_CLASSES[lead.status]}>
+                        {LEAD_STATUS_LABELS[lead.status]}
+                      </span>
+                    </td>
+                    <td>
+                      <Link href={`/admin/demandes/${lead.id}`} className="admin-action">
+                        Ouvrir
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       {/* ────────────────── 1. GRILLE DE CARTES PRINCIPALES (KPIs) ────────────────── */}
       <div className="kpi-grid" style={{ marginBottom: "24px" }}>

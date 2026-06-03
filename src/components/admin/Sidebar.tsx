@@ -18,6 +18,12 @@ const NAV_ITEMS = [
     exact: false,
   },
   {
+    href: "/admin/demandes",
+    label: "Demandes",
+    icon: "☎",
+    exact: false,
+  },
+  {
     href: "/admin/sections",
     label: "Landing Sections",
     icon: "⊞",
@@ -58,8 +64,8 @@ export default function AdminSidebar() {
       {/* Brand */}
       <div className="admin-sidebar__brand">
         <Link href="/admin/overview" className="admin-sidebar__logo">
-          <span className="admin-sidebar__logo-icon">TMS</span>
-          <span className="admin-sidebar__logo-text">Admin</span>
+          <span className="admin-sidebar__logo-icon">GT</span>
+          <span className="admin-sidebar__logo-text">Dash</span>
         </Link>
       </div>
 
