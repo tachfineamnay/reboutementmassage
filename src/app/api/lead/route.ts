@@ -1,3 +1,5 @@
+import { prisma } from "@/lib/prisma";
+
 type LeadPayload = {
   firstName: string;
   contact: string;
@@ -11,6 +13,8 @@ type LeadPayload = {
   pageUrl: string;
   utm: Record<string, string>;
 };
+
+type LeadSubmissionStatus = "CAPTURED" | "MOCKED" | "SENT_TO_GHL" | "FAILED" | "ARCHIVED";
 
 type GhlContactResponse = {
   id?: string;
@@ -84,6 +88,12 @@ function normalizePayload(raw: unknown): LeadPayload | null {
   return payload;
 }
 
+function normalizeLocale(lang: string): "FR" | "EN" | "ES" {
+  const locale = lang.trim().toUpperCase();
+  if (locale === "EN" || locale === "ES") return locale;
+  return "FR";
+}
+
 function splitContact(contact: string): { email?: string; phone?: string } | null {
   if (contact.includes("@")) {
     const email = contact.toLowerCase();
@@ -118,6 +128,54 @@ function configuredTags(payload: LeadPayload) {
         .filter(Boolean)
     )
   );
+}
+
+async function createLeadSubmission(payload: LeadPayload, tags: string[]) {
+  try {
+    const lead = await prisma.leadSubmission.create({
+      data: {
+        firstName: payload.firstName,
+        contact: payload.contact,
+        type: payload.type,
+        context: payload.context || null,
+        locale: normalizeLocale(payload.lang),
+        selectedDayLabel: payload.selectedDayLabel || null,
+        selectedTime: payload.selectedTime,
+        selectedAt: new Date(payload.selectedDateTime),
+        timezone: payload.timezone || null,
+        pageUrl: payload.pageUrl || null,
+        utm: payload.utm,
+        tags,
+        status: "CAPTURED",
+      },
+      select: { id: true },
+    });
+
+    return lead.id;
+  } catch (error) {
+    console.error("Lead persistence failed", error);
+    return null;
+  }
+}
+
+async function updateLeadSubmission(
+  leadSubmissionId: string | null,
+  data: {
+    status: LeadSubmissionStatus;
+    ghlContactId?: string | null;
+    errorMessage?: string | null;
+  }
+) {
+  if (!leadSubmissionId) return;
+
+  try {
+    await prisma.leadSubmission.update({
+      where: { id: leadSubmissionId },
+      data,
+    });
+  } catch (error) {
+    console.error("Lead status update failed", error);
+  }
 }
 
 function getLeadMode() {
@@ -243,11 +301,20 @@ export async function POST(request: Request) {
   if (!parsedContact) return jsonError(400, "INVALID_CONTACT");
 
   const tags = configuredTags(payload);
-  if (getLeadMode() === "mock") return mockLeadResponse(payload, tags);
+  const leadSubmissionId = await createLeadSubmission(payload, tags);
+
+  if (getLeadMode() === "mock") {
+    await updateLeadSubmission(leadSubmissionId, { status: "MOCKED" });
+    return mockLeadResponse(payload, tags);
+  }
 
   const config = getGhlConfig();
   if (!config) {
     console.error("Missing required GHL environment variables.");
+    await updateLeadSubmission(leadSubmissionId, {
+      status: "FAILED",
+      errorMessage: "GHL_NOT_CONFIGURED",
+    });
     return jsonError(500, "GHL_NOT_CONFIGURED");
   }
 
@@ -319,9 +386,19 @@ export async function POST(request: Request) {
       );
     }
 
+    await updateLeadSubmission(leadSubmissionId, {
+      status: "SENT_TO_GHL",
+      ghlContactId: contactId,
+      errorMessage: null,
+    });
+
     return Response.json({ ok: true });
   } catch (error) {
     console.error("GHL lead submission failed", error);
+    await updateLeadSubmission(leadSubmissionId, {
+      status: "FAILED",
+      errorMessage: error instanceof Error ? error.message.slice(0, 4000) : "GHL_SUBMISSION_FAILED",
+    });
     return jsonError(502, "GHL_SUBMISSION_FAILED");
   }
 }
