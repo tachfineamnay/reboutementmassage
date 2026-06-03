@@ -3,6 +3,7 @@
 import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { Language } from "@/data/copy";
+import SharedHeader from "@/components/SharedHeader";
 
 /* ──────────────────────────────────────────────────────────
    Constants
@@ -76,87 +77,7 @@ const Arrow = () => (
   </svg>
 );
 
-/* ──────────────────────────────────────────────────────────
-   Header
-   ────────────────────────────────────────────────────────── */
-function Header({ lang }: { lang: Language }) {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const navCta: Record<Language, string> = {
-    FR: "S'inscrire",
-    EN: "Register",
-    ES: "Inscribirse",
-  };
-
-  return (
-    <header
-      className="site-header"
-      style={{
-        background: scrolled ? "rgba(26,23,20,0.85)" : "transparent",
-        backdropFilter: scrolled ? "blur(12px)" : "none",
-        WebkitBackdropFilter: scrolled ? "blur(12px)" : "none",
-        borderBottom: scrolled ? "0.5px solid rgba(201,169,90,0.18)" : "0.5px solid transparent",
-      }}
-    >
-      <div className="header-inner">
-        <a href={LANGUAGE_ROUTES[lang]} className="brand" aria-label="Thérapie Manuelle by Grégory Tordjman — home">
-          <span className="brand-logo">
-            <Image
-              src="/logo-icon-reboutement.png"
-              alt="Logo Méthode TMS® by Grégory Tordjman"
-              width={40}
-              height={40}
-              className="brand-logo__img"
-              priority
-            />
-          </span>
-        </a>
-
-        <div className="header-right">
-          <nav className="lang-switch" aria-label="Language">
-            <a
-              href={lang === "FR" ? "/fr/biographie" : lang === "EN" ? "/en/biography" : "/es/biografia"}
-              className="lang-btn"
-              style={{ marginRight: "20px", fontWeight: 400 }}
-            >
-              {lang === "FR" ? "Biographie" : lang === "EN" ? "Biography" : "Biografía"}
-            </a>
-            <a
-              href={`/${lang.toLowerCase()}/stories`}
-              className="lang-btn"
-              style={{ marginRight: "20px", fontWeight: 400 }}
-            >
-              Stories
-            </a>
-            {(["EN", "FR", "ES"] as Language[]).map((code, i) => (
-              <React.Fragment key={code}>
-                {i > 0 && <span className="lang-sep" aria-hidden="true">·</span>}
-                <a
-                  href={LANGUAGE_ROUTES[code]}
-                  className={"lang-btn " + (lang === code ? "is-active" : "")}
-                  aria-current={lang === code ? "page" : undefined}
-                  hrefLang={LANGUAGE_ROUTES[code].slice(1)}
-                >
-                  {code}
-                </a>
-              </React.Fragment>
-            ))}
-          </nav>
-          <a href="#inscription" className="header-cta" id="ws-header-cta">
-            {navCta[lang]}
-            <Arrow />
-          </a>
-        </div>
-      </div>
-    </header>
-  );
-}
+/* Header moved to SharedHeader component */
 
 /* ──────────────────────────────────────────────────────────
    01 — Hero (dark editorial, full-bleed)
@@ -1022,7 +943,7 @@ export default function WorkshopsPage({ initialLang }: { initialLang: Language }
 
   return (
     <>
-      <Header lang={lang} />
+      <SharedHeader lang={lang} activePage="workshops" heroStyle="dark" />
       <main>
         <WsHero lang={lang} />
         <WsPourQui lang={lang} />

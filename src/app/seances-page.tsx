@@ -3,6 +3,7 @@
 import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { Language } from "@/data/copy";
+import SharedHeader from "@/components/SharedHeader";
 
 /* ──────────────────────────────────────────────────────────
    Constants
@@ -76,94 +77,7 @@ const Arrow = () => (
   </svg>
 );
 
-/* ──────────────────────────────────────────────────────────
-   Header
-   ────────────────────────────────────────────────────────── */
-function Header({ lang }: { lang: Language }) {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const navCta: Record<Language, string> = {
-    FR: "Demander une séance",
-    EN: "Request a session",
-    ES: "Solicitar una sesión",
-  };
-
-  return (
-    <header
-      className="site-header"
-      style={{
-        background: scrolled ? "rgba(26,23,20,0.85)" : "transparent",
-        backdropFilter: scrolled ? "blur(12px)" : "none",
-        WebkitBackdropFilter: scrolled ? "blur(12px)" : "none",
-        borderBottom: scrolled ? "0.5px solid rgba(201,169,90,0.18)" : "0.5px solid transparent",
-      }}
-    >
-      <div className="header-inner">
-        <a href={LANGUAGE_ROUTES[lang]} className="brand" aria-label="Thérapie Manuelle by Grégory Tordjman — home">
-          <span className="brand-logo">
-            <Image
-              src="/logo-icon-reboutement.png"
-              alt="Logo Méthode TMS® by Grégory Tordjman"
-              width={40}
-              height={40}
-              className="brand-logo__img"
-              priority
-            />
-          </span>
-        </a>
-
-        <div className="header-right">
-          <nav className="lang-switch" aria-label="Language">
-            <a
-              href={lang === "FR" ? "/fr/biographie" : lang === "EN" ? "/en/biography" : "/es/biografia"}
-              className="lang-btn"
-              style={{ marginRight: "20px", fontWeight: 400 }}
-            >
-              {lang === "FR" ? "Biographie" : lang === "EN" ? "Biography" : "Biografía"}
-            </a>
-            <a
-              href={`/${lang.toLowerCase()}/stages-workshops`}
-              className="lang-btn"
-              style={{ marginRight: "20px", fontWeight: 400 }}
-            >
-              {lang === "FR" ? "Formations" : lang === "EN" ? "Training" : "Formación"}
-            </a>
-            <a
-              href={`/${lang.toLowerCase()}/stories`}
-              className="lang-btn"
-              style={{ marginRight: "20px", fontWeight: 400 }}
-            >
-              Stories
-            </a>
-            {(["EN", "FR", "ES"] as Language[]).map((code, i) => (
-              <React.Fragment key={code}>
-                {i > 0 && <span className="lang-sep" aria-hidden="true">·</span>}
-                <a
-                  href={LANGUAGE_ROUTES[code]}
-                  className={"lang-btn " + (lang === code ? "is-active" : "")}
-                  aria-current={lang === code ? "page" : undefined}
-                  hrefLang={LANGUAGE_ROUTES[code].slice(1)}
-                >
-                  {code}
-                </a>
-              </React.Fragment>
-            ))}
-          </nav>
-          <a href="#demande" className="header-cta" id="seances-header-cta">
-            {navCta[lang]}
-            <Arrow />
-          </a>
-        </div>
-      </div>
-    </header>
-  );
-}
+/* Header moved to SharedHeader component */
 
 /* ──────────────────────────────────────────────────────────
    01 — Hero (cream layout, portrait Grégory)
@@ -1022,13 +936,13 @@ export default function SeancesPage({ initialLang }: { initialLang: Language }) 
   useEffect(() => {
     document.documentElement.setAttribute("data-density", "editorial");
     document.documentElement.setAttribute("data-palette", "forest");
-    document.documentElement.setAttribute("data-layout", "editorial");
+    document.documentElement.setAttribute("data-layout", "cream");
     document.documentElement.lang = lang.toLowerCase();
   }, [lang]);
 
   return (
     <>
-      <Header lang={lang} />
+      <SharedHeader lang={lang} activePage="seances" heroStyle="light" />
       <main>
         <SeancesHero lang={lang} />
         <SeanceIntro lang={lang} />
