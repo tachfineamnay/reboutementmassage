@@ -1277,25 +1277,26 @@ html[data-palette="forest"] .brand-sig__logo-ring {
 
 /* ── Step content — slider ── */
 .sf-content {
-  overflow: hidden;
+  overflow: visible;
   position: relative;
 }
 .sf-slider {
-  display: flex;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform;
-  align-items: flex-start;
+  display: block;
 }
 .sf-slide {
-  min-width: 100%;
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity 0.35s ease 0.18s;
-  pointer-events: none;
+  display: none;
+  width: 100%;
+  min-width: 0;
 }
 .sf-slide.is-active {
+  display: block;
   opacity: 1;
   pointer-events: auto;
+  animation: sfStepIn 0.28s ease both;
+}
+@keyframes sfStepIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .sf-step__title {
   font-family: var(--serif);
@@ -1393,9 +1394,12 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
+  max-width: 100%;
   margin-bottom: 28px;
 }
 .sf-type {
+  max-width: 100%;
+  min-height: 44px;
   padding: 10px 22px;
   border: 1px solid var(--line);
   border-radius: 28px;
@@ -1407,6 +1411,9 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   cursor: pointer;
   transition: all 0.25s ease;
   letter-spacing: 0.02em;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 .sf-type:hover {
   border-color: var(--gold-muted);
@@ -1617,6 +1624,15 @@ textarea.sf-field__input::placeholder { font-style: normal; }
 .sf-error {
   margin-top: 18px;
   text-align: right;
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #8A4A3D;
+}
+.sf-help {
+  margin: -16px 0 24px;
+  text-align: left;
   font-family: var(--sans);
   font-weight: 400;
   font-size: 12px;
@@ -1851,10 +1867,10 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   .about-name { font-size: 32px; }
   .sf-field__input { font-size: 18px; }
   .sf-nav { flex-direction: column-reverse; gap: 10px; }
-  .sf-nav--between { flex-direction: row; }
+  .sf-nav--between { flex-direction: column-reverse; align-items: stretch; }
   .sf-btn { justify-content: center; width: 100%; }
-  .sf-nav--between .sf-btn { width: auto; }
-  .sf-nav--between .sf-btn--back { width: auto; flex-shrink: 0; }
+  .sf-nav--between .sf-btn { width: 100%; }
+  .sf-nav--between .sf-btn--back { width: 100%; flex-shrink: 0; }
   .sf-types { gap: 8px; }
   .sf-type { padding: 8px 16px; font-size: 12px; }
   .sf-ind__sep { display: none; }

@@ -792,6 +792,19 @@ const initialContactForm: ContactForm = {
   selectedTime: "",
 };
 
+function isValidFirstName(value: string) {
+  return value.trim().length >= 2;
+}
+
+function isValidContactValue(value: string) {
+  const contact = value.trim();
+  if (contact.includes("@")) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.toLowerCase());
+  }
+
+  return contact.replace(/\D/g, "").length >= 6;
+}
+
 function Contact({ t, lang }: { t: LandingCopy; lang: Language }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<ContactForm>(initialContactForm);
@@ -814,11 +827,21 @@ function Contact({ t, lang }: { t: LandingCopy; lang: Language }) {
 
   function updateField(key: "firstName" | "contact", value: string) {
     setForm((f) => ({ ...f, [key]: value }));
-    setValidated((v) => ({ ...v, [key]: value.trim().length >= 2 }));
+    setValidated((v) => ({
+      ...v,
+      [key]: key === "firstName" ? isValidFirstName(value) : isValidContactValue(value),
+    }));
     setSubmitError(null);
   }
 
-  function goNext() { setStep((s) => Math.min(s + 1, 4)); }
+  function goNext() {
+    setStep((s) => {
+      if (s === 1 && !(isValidFirstName(form.firstName) && isValidContactValue(form.contact))) return s;
+      if (s === 2 && !form.type) return s;
+      if (s === 3 && !form.selectedTime) return s;
+      return Math.min(s + 1, 4);
+    });
+  }
   function goBack() { setStep((s) => Math.max(s - 1, 1)); }
 
   const selectedSlotStart = useMemo(() => {
@@ -860,8 +883,15 @@ function Contact({ t, lang }: { t: LandingCopy; lang: Language }) {
         }),
       });
 
-      const result = (await response.json().catch(() => null)) as { ok?: boolean } | null;
-      if (!response.ok || !result?.ok) throw new Error("Lead submission failed");
+      const result = (await response.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+      if (!response.ok || !result?.ok) {
+        if (result?.error === "INVALID_CONTACT") {
+          setLoading(false);
+          setSubmitError(t.contact.step1.contactError);
+          return;
+        }
+        throw new Error("Lead submission failed");
+      }
 
       setLoading(false);
       goNext();
@@ -872,10 +902,11 @@ function Contact({ t, lang }: { t: LandingCopy; lang: Language }) {
   }
 
   const availableCount = days.reduce((a, d) => a + d.slots.filter((s) => !s.taken).length, 0);
-  const canProceed1 = form.firstName.trim().length >= 2 && form.contact.trim().length >= 2;
+  const canProceed1 = isValidFirstName(form.firstName) && isValidContactValue(form.contact);
   const canProceed2 = form.type !== "";
   const canProceed3 = form.selectedTime !== "";
   const selectedDayLabel = form.selectedTime ? days[form.selectedDay]?.label : "";
+  const showContactError = form.contact.trim().length > 0 && !isValidContactValue(form.contact);
 
   /* Google Calendar link */
   const calendarLink = useMemo(() => {
@@ -946,7 +977,7 @@ function Contact({ t, lang }: { t: LandingCopy; lang: Language }) {
 
         {/* ─── Step content — smooth slider ─── */}
         <div className="sf-content">
-          <div className="sf-slider" style={{ transform: `translateX(-${(step - 1) * 100}%)` }}>
+          <div className="sf-slider">
 
             {/* STEP 1 — Identity */}
             <div className={`sf-slide ${step === 1 ? "is-active" : ""}`}>
@@ -968,6 +999,11 @@ function Contact({ t, lang }: { t: LandingCopy; lang: Language }) {
                   valid={validated.contact}
                 />
               </div>
+              {showContactError && (
+                <p className="sf-help" role="status">
+                  {t.contact.step1.contactError}
+                </p>
+              )}
               <div className="sf-nav">
                 <button className="sf-btn" onClick={goNext} disabled={!canProceed1} type="button">
                   <span>{t.contact.step1.next}</span>{arrow}
@@ -987,6 +1023,7 @@ function Contact({ t, lang }: { t: LandingCopy; lang: Language }) {
                       setForm((f) => ({ ...f, type: tp }));
                       setSubmitError(null);
                     }}
+                    aria-pressed={form.type === tp}
                     type="button"
                   >{tp}</button>
                 ))}

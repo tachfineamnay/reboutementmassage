@@ -114,6 +114,7 @@ export const COPY = {
         firstNamePh: "Your first name",
         contact: "How can we reach you?",
         contactPh: "Email or phone number",
+        contactError: "Enter a valid email address or phone number.",
         next: "Continue",
       },
       step2: {
@@ -265,6 +266,7 @@ export const COPY = {
         firstNamePh: "Votre prénom",
         contact: "Comment vous joindre ?",
         contactPh: "Email ou numéro de téléphone",
+        contactError: "Renseignez un email ou un numéro de téléphone valide.",
         next: "Continuer",
       },
       step2: {
@@ -416,6 +418,7 @@ export const COPY = {
         firstNamePh: "Su nombre",
         contact: "¿Cómo contactarle?",
         contactPh: "Email o número de teléfono",
+        contactError: "Indique un email o número de teléfono válido.",
         next: "Continuar",
       },
       step2: {

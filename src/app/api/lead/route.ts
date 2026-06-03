@@ -13,6 +13,7 @@ type LeadPayload = {
 };
 
 type GhlContactResponse = {
+  id?: string;
   contact?: {
     id?: string;
   };
@@ -26,7 +27,8 @@ type GhlRequestOptions = {
 
 const DEFAULT_GHL_BASE_URL = "https://services.leadconnectorhq.com";
 const DEFAULT_GHL_API_VERSION = "2021-07-28";
-const DEFAULT_TAGS = ["landing-tms", "demande-privee"];
+const DEFAULT_TAGS = ["landing-tms", "demande-privee", "source-landing-page"];
+const DEFAULT_GHL_SOURCE = "Landing Méthode TMS";
 
 function jsonError(status: number, error: string) {
   return Response.json({ ok: false, error }, { status });
@@ -106,8 +108,8 @@ function slugTag(value: string) {
 
 function configuredTags(payload: LeadPayload) {
   const envTags = process.env.GHL_DEFAULT_TAGS?.split(",") ?? DEFAULT_TAGS;
-  const requestTag = slugTag(`demande ${payload.type}`);
-  const languageTag = payload.lang ? slugTag(`lang ${payload.lang}`) : "";
+  const requestTag = slugTag(`type ${payload.type}`);
+  const languageTag = payload.lang ? slugTag(`lang ${payload.lang.toLowerCase()}`) : "";
 
   return Array.from(
     new Set(
@@ -116,6 +118,25 @@ function configuredTags(payload: LeadPayload) {
         .filter(Boolean)
     )
   );
+}
+
+function getLeadMode() {
+  const mode = process.env.GHL_LEAD_MODE?.trim().toLowerCase();
+  if (mode === "mock" || mode === "live") return mode;
+  return process.env.NODE_ENV === "production" ? "live" : "mock";
+}
+
+function mockLeadResponse(payload: LeadPayload, tags: string[]) {
+  console.info("GHL mock lead submission", {
+    firstName: payload.firstName,
+    contact: payload.contact,
+    type: payload.type,
+    lang: payload.lang,
+    selectedDateTime: payload.selectedDateTime,
+    tags,
+  });
+
+  return Response.json({ ok: true, mode: "mock", tags });
 }
 
 function makeNoteBody(payload: LeadPayload) {
@@ -160,6 +181,7 @@ function getGhlConfig() {
     pipelineId: process.env.GHL_PIPELINE_ID,
     pipelineStageId: process.env.GHL_PIPELINE_STAGE_ID,
     workflowId: process.env.GHL_WORKFLOW_ID,
+    source: process.env.GHL_SOURCE || DEFAULT_GHL_SOURCE,
   };
 }
 
@@ -180,7 +202,12 @@ async function ghlFetch<T>(
   });
 
   const text = await response.text();
-  const data = text ? (JSON.parse(text) as T) : ({} as T);
+  let data: T;
+  try {
+    data = text ? (JSON.parse(text) as T) : ({} as T);
+  } catch {
+    data = { raw: text } as T;
+  }
 
   if (!response.ok) {
     throw new Error(`GHL ${response.status} ${path}: ${text}`);
@@ -215,6 +242,9 @@ export async function POST(request: Request) {
   const parsedContact = splitContact(payload.contact);
   if (!parsedContact) return jsonError(400, "INVALID_CONTACT");
 
+  const tags = configuredTags(payload);
+  if (getLeadMode() === "mock") return mockLeadResponse(payload, tags);
+
   const config = getGhlConfig();
   if (!config) {
     console.error("Missing required GHL environment variables.");
@@ -228,12 +258,12 @@ export async function POST(request: Request) {
         firstName: payload.firstName,
         name: payload.firstName,
         ...parsedContact,
-        source: "Landing Méthode TMS",
+        source: config.source,
         ...(config.assignedUserId ? { assignedTo: config.assignedUserId } : {}),
       },
     });
 
-    const contactId = contactResponse.contact?.id;
+    const contactId = contactResponse.contact?.id ?? contactResponse.id;
     if (!contactId) throw new Error(`GHL upsert did not return a contact id: ${contactResponse.traceId ?? "no traceId"}`);
 
     const noteBody = makeNoteBody(payload);
@@ -244,7 +274,7 @@ export async function POST(request: Request) {
     ].join("\n");
 
     await ghlFetch(config, `/contacts/${contactId}/tags`, {
-      body: { tags: configuredTags(payload) },
+      body: { tags },
     });
 
     await ghlFetch(config, `/contacts/${contactId}/notes`, {
