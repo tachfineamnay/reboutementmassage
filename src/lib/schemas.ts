@@ -25,6 +25,15 @@ export const LandingSectionStatusSchema = z.enum([
 ]);
 export type LandingSectionStatusType = z.infer<typeof LandingSectionStatusSchema>;
 
+export const LeadStatusSchema = z.enum([
+  "CAPTURED",
+  "MOCKED",
+  "SENT_TO_GHL",
+  "FAILED",
+  "ARCHIVED",
+]);
+export type LeadStatusType = z.infer<typeof LeadStatusSchema>;
+
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
 export const LoginSchema = z.object({
@@ -126,6 +135,31 @@ export const LandingSectionUpdateSchema = LandingSectionCreateSchema.partial();
 export type LandingSectionCreateInput = z.infer<typeof LandingSectionCreateSchema>;
 export type LandingSectionUpdateInput = z.infer<typeof LandingSectionUpdateSchema>;
 
+// ─── LeadSubmission ───────────────────────────────────────────────────────────
+
+export const LeadSubmissionCreateSchema = z.object({
+  firstName: z.string().min(2).max(120),
+  contact: z.string().min(3).max(255),
+  type: z.string().min(2).max(255),
+  context: z.string().max(4000).optional().nullable(),
+  locale: LocaleSchema.default("FR"),
+  selectedDayLabel: z.string().max(120).optional().nullable(),
+  selectedTime: z.string().min(1).max(20),
+  selectedAt: z.string().datetime(),
+  timezone: z.string().max(120).optional().nullable(),
+  pageUrl: z.string().max(1000).optional().nullable(),
+  utm: z.record(z.string(), z.string()).default({}),
+  tags: z.array(z.string().max(100)).default([]),
+  status: LeadStatusSchema.default("CAPTURED"),
+  ghlContactId: z.string().optional().nullable(),
+  errorMessage: z.string().max(4000).optional().nullable(),
+});
+
+export const LeadSubmissionUpdateSchema = LeadSubmissionCreateSchema.partial();
+
+export type LeadSubmissionCreateInput = z.infer<typeof LeadSubmissionCreateSchema>;
+export type LeadSubmissionUpdateInput = z.infer<typeof LeadSubmissionUpdateSchema>;
+
 // ─── ArticleMetric ────────────────────────────────────────────────────────────
 
 export const ArticleMetricUpsertSchema = z.object({
@@ -136,8 +170,39 @@ export const ArticleMetricUpsertSchema = z.object({
   ctr: z.number().min(0).max(1).default(0),
   position: z.number().min(0).default(0),
   organicSessions: z.number().int().min(0).default(0),
+  storyViews: z.number().int().min(0).default(0),
   ctaClicks: z.number().int().min(0).default(0),
   leads: z.number().int().min(0).default(0),
 });
 
 export type ArticleMetricUpsertInput = z.infer<typeof ArticleMetricUpsertSchema>;
+
+// ─── Audits Google ────────────────────────────────────────────────────────────
+
+export const ArticlePageSpeedAuditSchema = z.object({
+  articleId: z.string().min(1),
+  url: z.string().url(),
+  strategy: z.string().default("mobile"),
+  performanceScore: z.number().int().min(0).max(100),
+  seoScore: z.number().int().min(0).max(100),
+  accessibilityScore: z.number().int().min(0).max(100),
+  lcp: z.string().optional().nullable(),
+  cls: z.string().optional().nullable(),
+  raw: z.any().optional().nullable(),
+});
+
+export type ArticlePageSpeedAuditInput = z.infer<typeof ArticlePageSpeedAuditSchema>;
+
+export const ArticleUrlInspectionSchema = z.object({
+  articleId: z.string().min(1),
+  url: z.string().url(),
+  indexStatus: z.string().optional().nullable(),
+  verdict: z.string().optional().nullable(),
+  coverageState: z.string().optional().nullable(),
+  lastCrawlTime: z.string().datetime().optional().nullable(),
+  userCanonical: z.string().optional().nullable(),
+  googleCanonical: z.string().optional().nullable(),
+  raw: z.any().optional().nullable(),
+});
+
+export type ArticleUrlInspectionInput = z.infer<typeof ArticleUrlInspectionSchema>;

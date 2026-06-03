@@ -34,6 +34,14 @@ enum LandingSectionStatus {
   ARCHIVED
 }
 
+enum LeadStatus {
+  CAPTURED
+  MOCKED
+  SENT_TO_GHL
+  FAILED
+  ARCHIVED
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // AdminUser — authentification admin
 // ─────────────────────────────────────────────────────────────────────────────
@@ -46,6 +54,40 @@ model AdminUser {
   updatedAt    DateTime @updatedAt
 
   @@map("admin_users")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LeadSubmission — demandes privées reçues depuis la landing page
+// ─────────────────────────────────────────────────────────────────────────────
+
+model LeadSubmission {
+  id               String     @id @default(cuid())
+  firstName        String
+  contact          String
+  type             String
+  context          String?    @db.Text
+  locale           Locale     @default(FR)
+
+  selectedDayLabel String?
+  selectedTime     String
+  selectedAt       DateTime
+  timezone         String?
+  pageUrl          String?
+
+  utm              Json       @default("{}")
+  tags             String[]   @default([])
+
+  status           LeadStatus @default(CAPTURED)
+  ghlContactId     String?
+  errorMessage     String?    @db.Text
+
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@index([status])
+  @@index([locale, createdAt])
+  @@index([selectedAt])
+  @@map("lead_submissions")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -99,7 +141,9 @@ model Article {
   seo          ArticleSeo?
 
   // Relations 1-N
-  metrics      ArticleMetric[]
+  metrics         ArticleMetric[]
+  pageSpeedAudits ArticlePageSpeedAudit[]
+  urlInspections  ArticleUrlInspection[]
 
   publishedAt  DateTime?
   createdAt    DateTime  @default(now())
@@ -179,6 +223,7 @@ model ArticleMetric {
 
   // GA4
   organicSessions  Int      @default(0)
+  storyViews       Int      @default(0)
   ctaClicks        Int      @default(0)
   leads            Int      @default(0)
 
@@ -187,6 +232,56 @@ model ArticleMetric {
   @@index([articleId])
   @@index([date])
   @@map("article_metrics")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ArticlePageSpeedAudit — historique des audits PageSpeed par article
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ArticlePageSpeedAudit {
+  id                 String   @id @default(cuid())
+  articleId          String
+  article            Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  url                String
+  strategy           String   @default("mobile")
+  performanceScore   Int
+  seoScore           Int
+  accessibilityScore Int
+  lcp                String?
+  cls                String?
+  raw                Json?
+
+  auditedAt          DateTime @default(now())
+
+  @@index([articleId, auditedAt])
+  @@index([auditedAt])
+  @@map("article_pagespeed_audits")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ArticleUrlInspection — historique des inspections d'URL Google
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ArticleUrlInspection {
+  id              String   @id @default(cuid())
+  articleId       String
+  article         Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  url             String
+  indexStatus     String?
+  verdict         String?
+  coverageState   String?
+  lastCrawlTime   DateTime?
+  userCanonical   String?
+  googleCanonical String?
+  raw             Json?
+
+  inspectedAt     DateTime @default(now())
+
+  @@index([articleId, inspectedAt])
+  @@index([inspectedAt])
+  @@map("article_url_inspections")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
