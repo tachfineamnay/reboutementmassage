@@ -4599,3 +4599,585 @@ html[data-palette="forest"] .bio-vision { background: var(--ink); }
   .bio-text { font-size: 15px; }
   .bio-vision__title { font-size: 26px; }
 }
+
+/* ══════════════════════════════════════════════════════════
+   WORKSHOPS PAGE — /fr/stages-workshops · /en/ · /es/
+   All tokens inherited from the root design system.
+   ══════════════════════════════════════════════════════════ */
+
+/* ─────────── Hero overrides ─────────── */
+.ws-hero .hero-sub--light {
+  max-width: 540px;
+}
+.ws-hero__sub {
+  margin-top: 24px;
+}
+.ws-hero__btn-sec {
+  color: var(--gold);
+}
+
+/* ─────────── 01 Pour qui (dark bg, mirrored profiles) ─────────── */
+.ws-pour-qui {
+  background: var(--ink);
+  color: var(--cream);
+  padding: var(--pad-m) 0;
+}
+.ws-pour-qui__grid {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--x-pad);
+  display: grid;
+  grid-template-columns: 55% 45%;
+  gap: 80px;
+  align-items: flex-start;
+}
+.ws-pour-qui__text { padding-right: 12px; }
+.ws-pour-qui__title {
+  margin: 14px 0 24px;
+  font-size: clamp(24px, 2.8vw, 34px);
+  line-height: 1.18;
+  max-width: 16ch;
+}
+.ws-profiles-list { margin-top: 32px; }
+.ws-pour-qui__photo {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--ink-light);
+  border: 0.5px solid rgba(201,169,90,0.18);
+}
+.ws-pour-qui__photo img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: brightness(.94) saturate(.82);
+}
+html[data-palette="forest"] .ws-pour-qui { background: var(--ink); }
+
+/* ─────────── 02 Pédagogie (reuses practices) ─────────── */
+.ws-pedagogy {
+  background: var(--white);
+}
+
+/* ─────────── 03 Formats grid ─────────── */
+.ws-formats {
+  background: var(--cream);
+  padding: var(--pad-m) 0;
+}
+.ws-formats__head {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 620px;
+  margin-bottom: 56px;
+}
+.ws-formats__title {
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1.15;
+}
+.ws-formats__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2px;
+  border-top: 0.5px solid var(--line);
+  border-left: 0.5px solid var(--line);
+}
+.ws-format-card {
+  padding: 40px 36px;
+  border-right: 0.5px solid var(--line);
+  border-bottom: 0.5px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  transition: background .3s ease;
+}
+.ws-format-card:hover {
+  background: rgba(30,77,58,0.03);
+}
+.ws-format-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.ws-format-card__num {
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+}
+.ws-format-card__duration {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+.ws-format-card__name {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 24px;
+  line-height: 1.15;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  margin-bottom: 16px;
+}
+.ws-format-card__desc {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--mid);
+  flex: 1;
+  text-wrap: pretty;
+  margin-bottom: 20px;
+}
+.ws-format-card__detail {
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--forest);
+  padding-top: 16px;
+  border-top: 0.5px solid var(--line);
+}
+
+/* ─────────── 04 Stats (reuses trust-bar) ─────────── */
+.ws-stats {
+  border-top: 0.5px solid rgba(201,169,90,0.15);
+  border-bottom: 0.5px solid rgba(201,169,90,0.15);
+}
+.ws-stats .trust-bar__guarantees { display: none; }
+.ws-stats .trust-bar__stats { margin-bottom: 0; }
+
+/* ─────────── 05 Citations ─────────── */
+.ws-citations {
+  background: var(--white);
+  padding: var(--pad-m) 0;
+}
+.ws-citations__head {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 480px;
+  margin-bottom: 56px;
+}
+.ws-citations__title {
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1.15;
+}
+.ws-citations__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border-top: 0.5px solid var(--line);
+}
+.ws-citation {
+  padding: 40px 32px 40px 0;
+  border-right: 0.5px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.ws-citation:last-child {
+  border-right: none;
+  padding-right: 0;
+  padding-left: 32px;
+}
+.ws-citation:nth-child(2) {
+  padding-left: 32px;
+}
+.ws-citation__mark {
+  font-family: var(--serif);
+  font-size: 52px;
+  line-height: 0.6;
+  color: var(--gold);
+  opacity: 0.55;
+  display: block;
+  margin-bottom: 8px;
+}
+.ws-citation__quote {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 20px;
+  line-height: 1.38;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+  text-wrap: pretty;
+  flex: 1;
+}
+.ws-citation__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 20px;
+  border-top: 0.5px solid var(--line);
+}
+.ws-citation__author {
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+.ws-citation__loc {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+}
+
+/* ─────────── 06 Comment (reuses how) ─────────── */
+.ws-comment {
+  background: var(--cream);
+}
+
+/* ─────────── 07 CTA final ─────────── */
+.ws-cta__inner {
+  flex-direction: row;
+  align-items: center;
+  gap: 72px;
+}
+.ws-cta__headline {
+  white-space: pre-line;
+}
+.ws-cta__contact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ws-cta__phone {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+  text-decoration: none;
+  transition: color .25s ease;
+}
+.ws-cta__phone:hover { color: var(--cream); }
+.ws-cta__note {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: rgba(184,172,156,0.55);
+}
+
+/* ─────────── Responsive ─────────── */
+@media (max-width: 1100px) {
+  .ws-cta__inner { flex-direction: column; gap: 40px; }
+  .ws-citations__grid { grid-template-columns: 1fr 1fr; }
+  .ws-citation:nth-child(3) { grid-column: 1 / -1; border-right: none; padding-left: 0; padding-right: 0; border-top: 0.5px solid var(--line); padding-top: 32px; }
+}
+
+@media (max-width: 920px) {
+  /* Pour qui */
+  .ws-pour-qui__grid { grid-template-columns: 1fr; gap: 44px; padding: 0 32px; }
+  .ws-pour-qui__photo { max-width: 520px; aspect-ratio: 4 / 3; }
+  .ws-pour-qui__title { font-size: 28px; }
+
+  /* Formats */
+  .ws-formats__grid { grid-template-columns: 1fr; }
+
+  /* Citations */
+  .ws-citations__grid { grid-template-columns: 1fr; }
+  .ws-citation { padding: 32px 0; border-right: none; border-top: 0.5px solid var(--line); }
+  .ws-citation:first-child { border-top: none; }
+  .ws-citation:nth-child(2) { padding-left: 0; }
+  .ws-citation:last-child { padding-left: 0; }
+}
+
+@media (max-width: 640px) {
+  .ws-pour-qui__grid { padding: 0 24px; }
+  .ws-formats .container { padding: 0 24px; }
+  .ws-format-card { padding: 28px 20px; }
+  .ws-format-card__name { font-size: 20px; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   SÉANCES PAGE — /fr/seances · /en/sessions · /es/sesiones
+   All tokens inherited from the root design system.
+   ══════════════════════════════════════════════════════════ */
+
+/* ─────────── Hero overrides ─────────── */
+.seances-hero .bio-hero__h1 .hh-italic {
+  color: var(--forest);
+}
+.seances-intro__title {
+  white-space: pre-line;
+}
+
+/* ─────────── 02 Déroulé (4 steps, dark bg) ─────────── */
+.seances-deroule {
+  background: var(--ink);
+  color: var(--cream);
+  padding: var(--pad-m) 0;
+}
+.seances-deroule__head {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 560px;
+  margin-bottom: 64px;
+}
+.seances-deroule__title {
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1.15;
+  color: var(--cream);
+}
+.seances-deroule__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 0.5px solid rgba(201,169,90,0.2);
+}
+.seances-step {
+  padding: 48px 28px 48px 0;
+  border-right: 0.5px solid rgba(201,169,90,0.15);
+  position: relative;
+}
+.seances-step:last-child { border-right: none; padding-right: 0; }
+.seances-step:not(:first-child) { padding-left: 28px; }
+.seances-step::before {
+  content: "";
+  position: absolute;
+  top: -1px; left: 0;
+  width: 28px; height: 1px;
+  background: var(--gold);
+  opacity: 0.65;
+}
+.seances-step__num {
+  display: block;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+  margin-bottom: 20px;
+}
+.seances-step__word {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 1.1;
+  color: var(--cream);
+  margin-bottom: 14px;
+  letter-spacing: -0.01em;
+}
+.seances-step__sub {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 13px;
+  line-height: 1.65;
+  color: rgba(250,248,243,0.62);
+  text-wrap: pretty;
+}
+html[data-palette="forest"] .seances-deroule { background: var(--ink); }
+
+/* ─────────── 03 Indications (environments 3-col) ─────────── */
+.seances-indications__title {
+  white-space: pre-line;
+  font-size: clamp(24px, 2.8vw, 34px);
+  line-height: 1.2;
+}
+.seances-indications__grid {
+  grid-template-columns: repeat(3, 1fr) !important;
+}
+.seances-indication-card__desc {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--mid);
+  margin-top: 8px;
+  text-wrap: pretty;
+}
+
+/* ─────────── 04 Où (dark split — reuses bio-vision) ─────────── */
+.seances-ou__grid {
+  max-width: var(--container) !important;
+}
+.seances-ou__text { gap: 20px; }
+.seances-ou__list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border-top: 0.5px solid rgba(201,169,90,0.18);
+  margin-top: 32px;
+}
+.seances-ou__item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 0.5px solid rgba(201,169,90,0.12);
+}
+.seances-ou__num {
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+.seances-ou__name {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 17px;
+  line-height: 1.2;
+  color: var(--cream);
+  letter-spacing: -0.005em;
+}
+
+/* ─────────── 05 Tarifs ─────────── */
+.seances-tarifs {
+  background: var(--white);
+  padding: var(--pad-m) 0;
+}
+.seances-tarifs__head {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 620px;
+  margin-bottom: 56px;
+}
+.seances-tarifs__title {
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1.15;
+}
+.seances-tarifs__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  border-top: 0.5px solid var(--line);
+  border-left: 0.5px solid var(--line);
+}
+.seances-tarif-card {
+  padding: 40px 36px;
+  border-right: 0.5px solid var(--line);
+  border-bottom: 0.5px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  transition: background .3s ease;
+}
+.seances-tarif-card:hover { background: rgba(30,77,58,0.025); }
+.seances-tarif-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.seances-tarif-card__tag {
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+}
+.seances-tarif-card__duration {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+.seances-tarif-card__name {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 24px;
+  line-height: 1.15;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  margin-bottom: 14px;
+}
+.seances-tarif-card__desc {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--mid);
+  flex: 1;
+  text-wrap: pretty;
+  margin-bottom: 24px;
+}
+.seances-tarif-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  border-top: 0.5px solid var(--line);
+}
+.seances-tarif-card__price {
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--forest);
+}
+.seances-tarif-card__cta {
+  color: var(--gold);
+  padding: 0;
+  gap: 0;
+}
+.seances-tarif-card__cta:hover { color: var(--ink); gap: 4px; }
+.seances-tarifs__note {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  color: var(--faint);
+  text-align: center;
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 0.5px solid var(--line);
+}
+
+/* ─────────── 06 Stats (reuses trust-bar) ─────────── */
+.seances-stats {
+  border-top: 0.5px solid rgba(201,169,90,0.15);
+  border-bottom: 0.5px solid rgba(201,169,90,0.15);
+}
+.seances-stats .trust-bar__guarantees { display: none; }
+.seances-stats .trust-bar__stats { margin-bottom: 0; }
+
+/* ─────────── 07 Citations (reuses ws-citations, cream bg) ─────────── */
+.seances-citations { background: var(--cream); }
+
+/* ─────────── 08 CTA final ─────────── */
+.seances-cta__inner {
+  flex-direction: row;
+  align-items: center;
+  gap: 72px;
+}
+.seances-cta__headline { white-space: pre-line; }
+.seances-cta__contact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ─────────── Responsive ─────────── */
+@media (max-width: 1100px) {
+  .seances-deroule__grid { grid-template-columns: repeat(2, 1fr); }
+  .seances-step:nth-child(2) { border-right: none; }
+  .seances-step:nth-child(3) { border-top: 0.5px solid rgba(201,169,90,0.2); padding-left: 0; }
+  .seances-step:nth-child(3)::before { display: none; }
+  .seances-step:nth-child(4) { border-top: 0.5px solid rgba(201,169,90,0.2); }
+  .seances-step:nth-child(4)::before { display: none; }
+  .seances-cta__inner { flex-direction: column; gap: 40px; }
+}
+
+@media (max-width: 920px) {
+  .seances-deroule__grid { grid-template-columns: 1fr 1fr; }
+  .seances-indications__grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .seances-ou__list { grid-template-columns: 1fr; }
+  .seances-tarifs__grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .seances-deroule__grid { grid-template-columns: 1fr; }
+  .seances-step { border-right: none; padding-left: 0 !important; padding-right: 0; border-top: 0.5px solid rgba(201,169,90,0.15); }
+  .seances-step:first-child { border-top: none; }
+  .seances-step::before { display: none; }
+  .seances-indications__grid { grid-template-columns: 1fr !important; }
+  .seances-tarif-card { padding: 28px 20px; }
+}
+
+

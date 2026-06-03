@@ -159,6 +159,20 @@ function Header({ lang }: { lang: Language }) {
             >
               {lang === "FR" ? "Biographie" : lang === "EN" ? "Biography" : "Biografía"}
             </a>
+            <a
+              href={lang === "FR" ? "/fr/seances" : lang === "EN" ? "/en/sessions" : "/es/sesiones"}
+              className="lang-btn"
+              style={{ marginRight: '20px', fontWeight: 400 }}
+            >
+              {lang === "FR" ? "Séances" : lang === "EN" ? "Sessions" : "Sesiones"}
+            </a>
+            <a
+              href={`/${lang.toLowerCase()}/stages-workshops`}
+              className="lang-btn"
+              style={{ marginRight: '20px', fontWeight: 400 }}
+            >
+              {lang === "FR" ? "Formations" : lang === "EN" ? "Training" : "Formación"}
+            </a>
             <a 
               href={`/${lang.toLowerCase()}/stories`} 
               className="lang-btn" 
