@@ -11,5 +11,5 @@ Coolify settings:
 - Test temporary domain first with http://xxxxx.sslip.io
 
 Database schema:
-- The Docker entrypoint runs `prisma db push` before `node server.js` when `DATABASE_URL` is set.
-- Set `SKIP_DB_PUSH=1` only if schema synchronization is handled elsewhere.
+- The Docker entrypoint runs `pnpm exec prisma generate` and `pnpm exec prisma db push` before `node server.js` when `RUN_DB_PUSH=1` and `DATABASE_URL` are set.
+- Leave `RUN_DB_PUSH` unset or set to `0` if schema synchronization is handled elsewhere.

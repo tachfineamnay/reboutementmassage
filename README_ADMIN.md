@@ -51,41 +51,41 @@ Pour éviter la perte des images uploadées lors du redémarrage ou de la mise �
 ### Base de données (Prisma)
 - **Générer le client Prisma** :
   ```bash
-  npx prisma generate
+  pnpm exec prisma generate
   ```
-- **Synchroniser le schéma en production** (le Dockerfile le fait automatiquement au démarrage si `DATABASE_URL` est défini) :
+- **Synchroniser le schéma en production** (le Dockerfile le fait automatiquement au démarrage si `RUN_DB_PUSH=1` et `DATABASE_URL` sont définis) :
   ```bash
-  npx prisma db push
+  pnpm exec prisma db push
   ```
 - **Créer une nouvelle migration en développement** :
   ```bash
-  npx prisma migrate dev --name <nom_de_la_migration>
+  pnpm exec prisma migrate dev --name <nom_de_la_migration>
   ```
 - **Lancer Prisma Studio** (interface graphique locale) :
   ```bash
-  npx prisma studio
+  pnpm exec prisma studio
   ```
 
 ### Build & Démarrage
 - **Lancer en développement** :
   ```bash
-  npm run dev
+  pnpm dev
   ```
 - **Compiler pour la production** :
   ```bash
-  npm run build
+  pnpm build
   ```
 - **Démarrer en production** :
   ```bash
-  npm run start
+  pnpm start
   ```
 - **Lancer le typecheck** :
   ```bash
-  npx tsc --noEmit
+  pnpm exec tsc --noEmit
   ```
 - **Lancer le linter** :
   ```bash
-  npm run lint
+  pnpm lint
   ```
 
 ---
@@ -117,4 +117,4 @@ Avant de marquer le déploiement comme prêt :
 - [ ] **Configuration de volume** : Le volume persistant est monté sur le chemin `/app/storage`.
 - [ ] **Variables d'upload** : `UPLOAD_DIR` est bien configuré sur `/app/storage/uploads` et `UPLOAD_PUBLIC_PATH` sur `/uploads`.
 - [ ] **Adresse de site** : `SITE_URL` pointe sur l'URL de domaine de production finale (ex: `https://votre-domaine.fr`), nécessaire pour la génération du sitemap.xml, des redirections et des métadonnées canoniques.
-- [ ] **Initialisation Prisma** : le démarrage Docker exécute `prisma db push`, sauf si `SKIP_DB_PUSH=1` est défini.
+- [ ] **Initialisation Prisma** : le démarrage Docker exécute `pnpm exec prisma generate` puis `pnpm exec prisma db push` si `RUN_DB_PUSH=1` et `DATABASE_URL` sont définis.
