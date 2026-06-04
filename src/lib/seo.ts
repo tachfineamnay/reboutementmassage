@@ -50,36 +50,12 @@ export type LocalizedRouteKey =
   | "luxuryHospitality";
 
 export const LOCALIZED_ROUTES: Record<LocalizedRouteKey, Record<Locale, string>> = {
-  home: {
-    fr: "/fr",
-    en: "/en",
-    es: "/es",
-  },
-  stories: {
-    fr: "/fr/stories",
-    en: "/en/stories",
-    es: "/es/stories",
-  },
-  biography: {
-    fr: "/fr/biographie",
-    en: "/en/biography",
-    es: "/es/biografia",
-  },
-  sessions: {
-    fr: "/fr/seances",
-    en: "/en/sessions",
-    es: "/es/sesiones",
-  },
-  stagesWorkshops: {
-    fr: "/fr/stages-workshops",
-    en: "/en/stages-workshops",
-    es: "/es/stages-workshops",
-  },
-  luxuryHospitality: {
-    fr: "/fr/hotellerie-luxe",
-    en: "/en/luxury-hospitality",
-    es: "/es/hospitalidad-lujo",
-  },
+  home: { fr: "/fr", en: "/en", es: "/es" },
+  stories: { fr: "/fr/stories", en: "/en/stories", es: "/es/stories" },
+  biography: { fr: "/fr/biographie", en: "/en/biography", es: "/es/biografia" },
+  sessions: { fr: "/fr/seances", en: "/en/sessions", es: "/es/sesiones" },
+  stagesWorkshops: { fr: "/fr/stages-workshops", en: "/en/stages-workshops", es: "/es/stages-workshops" },
+  luxuryHospitality: { fr: "/fr/hotellerie-luxe", en: "/en/luxury-hospitality", es: "/es/hospitalidad-lujo" },
 };
 
 const NON_CANONICAL_ROUTE_MAP = new Map<string, string>(
@@ -101,7 +77,7 @@ const NON_CANONICAL_ROUTE_MAP = new Map<string, string>(
 export type JsonLd = Record<string, unknown>;
 
 export function isLocale(value: string): value is Locale {
-  return LOCAES.includes(value as Locale);
+  return LOCALES.includes(value as Locale);
 }
 
 export function getSiteUrl() {
@@ -181,10 +157,7 @@ export function createIdentityJsonLd(locale: Locale): JsonLd {
         name: "Méthode TMS®",
         legalName: "Grégory Tordjman - Méthode TMS®",
         url: absoluteUrl(),
-        logo: {
-          "@type": "ImageObject",
-          url: logoUrl,
-        },
+        logo: { "@type": "ImageObject", url: logoUrl },
         image: imageUrl,
         priceRange: "$$$",
         areaServed: ["France", "Caribbean", "Mexico", "International"],
@@ -274,12 +247,7 @@ export function createB2BServiceJsonLd(locale: Locale): JsonLd {
       "Bespoke Méthode TMS® support for luxury hotels, five-star spas, villas, yachts, concierge teams and VIP guests.",
     url,
     provider: { "@id": entityId("gregory-tordjman") },
-    serviceType: [
-      "Hospitality training",
-      "Spa team workshops",
-      "VIP manual therapy sessions",
-      "On-site private consultations",
-    ],
+    serviceType: ["Hospitality training", "Spa team workshops", "VIP manual therapy sessions", "On-site private consultations"],
     areaServed: ["Caribbean", "Mexico", "Europe", "International"],
     audience: {
       "@type": "BusinessAudience",
@@ -290,21 +258,9 @@ export function createB2BServiceJsonLd(locale: Locale): JsonLd {
       "@type": "OfferCatalog",
       name: "B2B hospitality offers",
       itemListElement: [
-        {
-          "@type": "Offer",
-          name: "Hospitality team training",
-          businessFunction: "http://purl.org/goodrelations/v1#ProvideService",
-        },
-        {
-          "@type": "Offer",
-          name: "VIP guest sessions",
-          businessFunction: "http://purl.org/goodrelations/v1#ProvideService",
-        },
-        {
-          "@type": "Offer",
-          name: "On-site spa protocol consultation",
-          businessFunction: "http://purl.org/goodrelations/v1#ProvideService",
-        },
+        { "@type": "Offer", name: "Hospitality team training", businessFunction: "http://purl.org/goodrelations/v1#ProvideService" },
+        { "@type": "Offer", name: "VIP guest sessions", businessFunction: "http://purl.org/goodrelations/v1#ProvideService" },
+        { "@type": "Offer", name: "On-site spa protocol consultation", businessFunction: "http://purl.org/goodrelations/v1#ProvideService" },
       ],
     },
   };
@@ -329,23 +285,10 @@ export function createCourseJsonLd(locale: Locale): JsonLd {
       "Spa team intervention protocols",
       "Guest-centered relief techniques",
     ],
-    audience: {
-      "@type": "BusinessAudience",
-      audienceType: "Therapists, spa teams and hospitality professionals",
-    },
+    audience: { "@type": "BusinessAudience", audienceType: "Therapists, spa teams and hospitality professionals" },
     hasCourseInstance: [
-      {
-        "@type": "CourseInstance",
-        name: "Online foundation training",
-        courseMode: "online",
-        inLanguage: locale,
-      },
-      {
-        "@type": "CourseInstance",
-        name: "On-site hospitality workshop",
-        courseMode: "onsite",
-        inLanguage: locale,
-      },
+      { "@type": "CourseInstance", name: "Online foundation training", courseMode: "online", inLanguage: locale },
+      { "@type": "CourseInstance", name: "On-site hospitality workshop", courseMode: "onsite", inLanguage: locale },
     ],
   };
 }
@@ -363,10 +306,7 @@ export function createEducationEventJsonLd(locale: Locale): JsonLd {
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     eventStatus: "https://schema.org/EventScheduled",
     organizer: { "@id": entityId("gregory-tordjman") },
-    audience: {
-      "@type": "BusinessAudience",
-      audienceType: "Spa and hospitality teams",
-    },
+    audience: { "@type": "BusinessAudience", audienceType: "Spa and hospitality teams" },
     teaches: "Méthode TMS® manual therapy protocols",
     inLanguage: locale,
   };
@@ -379,10 +319,7 @@ export function createFaqJsonLd(faqs: Array<{ question: string; answer: string }
     mainEntity: faqs.map((faq) => ({
       "@type": "Question",
       name: faq.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: faq.answer,
-      },
+      acceptedAnswer: { "@type": "Answer", text: faq.answer },
     })),
   };
 }
@@ -411,10 +348,7 @@ export function createArticleJsonLd(params: {
     wordCount: params.wordCount ?? undefined,
     author: { "@id": entityId("gregory-tordjman") },
     publisher: { "@id": entityId("organization") },
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": params.url,
-    },
+    mainEntityOfPage: { "@type": "WebPage", "@id": params.url },
   };
 }
 
