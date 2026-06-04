@@ -25,19 +25,19 @@ export const LOCALE_LABELS: Record<Language, string> = {
 
 export const META_BY_LOCALE: Record<Locale, { title: string; description: string }> = {
   fr: {
-    title: "Grégory Tordjman — Méthode TMS® | Thérapie manuelle privée",
+    title: "Grégory Tordjman — Méthode TMS® | Reboutement & thérapie manuelle",
     description:
-      "Demande privée pour thérapie manuelle, reboutement et massage thérapeutique avec Grégory Tordjman. Intervention discrète pour hôtels, villas, yachts, équipes et clients privés.",
+      "Demande privée pour reboutement TMS®, thérapie manuelle de précision et massage thérapeutique avec Grégory Tordjman. Intervention discrète pour hôtels, villas, yachts, équipes et clients privés.",
   },
   en: {
-    title: "Grégory Tordjman — TMS Method | Private Manual Therapy",
+    title: "Grégory Tordjman — TMS® Manual Therapy | French Bonesetting",
     description:
-      "Private request for manual therapy, French bodywork and therapeutic massage with Grégory Tordjman. Discreet support for hotels, villas, yachts, teams and private clients.",
+      "Private request for TMS® Manual Therapy, a precise hands-on approach inspired by traditional French bonesetting, therapeutic bodywork and deep body reading. Discreet support for hotels, villas, yachts, teams and private clients.",
   },
   es: {
     title: "Grégory Tordjman — Método TMS® | Terapia manual privada",
     description:
-      "Solicitud privada de terapia manual, reboutement y masaje terapéutico con Grégory Tordjman. Intervención discreta para hoteles, villas, yates, equipos y clientes privados.",
+      "Solicitud privada de Terapia manual TMS®, inspirada en el reboutement tradicional francés, la lectura corporal y el masaje terapéutico profundo. Intervención discreta para hoteles, villas, yates, equipos y clientes privados.",
   },
 };
 
@@ -101,7 +101,7 @@ const NON_CANONICAL_ROUTE_MAP = new Map<string, string>(
 export type JsonLd = Record<string, unknown>;
 
 export function isLocale(value: string): value is Locale {
-  return LOCALES.includes(value as Locale);
+  return LOCAES.includes(value as Locale);
 }
 
 export function getSiteUrl() {
@@ -200,8 +200,12 @@ export function createIdentityJsonLd(locale: Locale): JsonLd {
         brand: { "@id": entityId("organization") },
         knowsAbout: [
           "Méthode TMS®",
-          "Manual therapy",
+          "Reboutement TMS®",
           "Reboutement",
+          "Traditional French bonesetting",
+          "TMS® Manual Therapy",
+          "Terapia manual TMS®",
+          "Manual therapy",
           "Therapeutic massage",
           "Luxury hospitality",
           "Spa team training",
@@ -313,11 +317,14 @@ export function createCourseJsonLd(locale: Locale): JsonLd {
     "@type": "Course",
     "@id": `${url}#course`,
     name: "Formation Méthode TMS®",
-    description: "Manual therapy training for therapists, spa practitioners and luxury hospitality teams.",
+    description:
+      "Manual therapy training for therapists, spa practitioners and hospitality teams, with body reading, reboutement-inspired precision and therapeutic bodywork protocols.",
     url,
     provider: { "@id": entityId("gregory-tordjman") },
     teaches: [
       "Manual assessment",
+      "Reboutement TMS®",
+      "Traditional French bonesetting principles",
       "Therapeutic bodywork",
       "Spa team intervention protocols",
       "Guest-centered relief techniques",
@@ -350,7 +357,8 @@ export function createEducationEventJsonLd(locale: Locale): JsonLd {
     "@type": "EducationEvent",
     "@id": `${url}#education-event`,
     name: "Méthode TMS® hospitality workshop",
-    description: "On-site training event for spa teams and therapists working with high-end guests.",
+    description:
+      "On-site training event for spa teams and therapists working with high-end guests, focused on manual therapy, body reading and reboutement-inspired precision.",
     url,
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     eventStatus: "https://schema.org/EventScheduled",
