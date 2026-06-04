@@ -21,21 +21,21 @@ type PageProps = {
 
 const WS_META: Record<string, { title: string; description: string; slug: string }> = {
   fr: {
-    title: "Stages & Workshops — Méthode TMS® | Formation pour thérapeutes",
+    title: "Formation reboutement TMS® — Stages & Workshops | Grégory Tordjman",
     description:
-      "Formations pratiques en Méthode TMS® animées par Grégory Tordjman : workshops intensifs, stages de pratique, formation équipe spa et certification. Pour thérapeutes, praticiens et équipes hospitality.",
+      "Formations pratiques en Méthode TMS® animées par Grégory Tordjman : reboutement TMS®, lecture corporelle, thérapie manuelle de précision, workshops intensifs et formation équipe spa.",
     slug: "stages-workshops",
   },
   en: {
-    title: "Stages & Workshops — Méthode TMS® | Training for therapists",
+    title: "TMS® Manual Therapy Training | French Bonesetting Workshops",
     description:
-      "Practical Méthode TMS® training with Grégory Tordjman: intensive workshops, practice stages, spa team training and certification. For therapists, practitioners and hospitality teams.",
+      "Practical Méthode TMS® training with Grégory Tordjman: traditional French bonesetting-inspired precision, body reading, therapeutic bodywork, spa team training and intensive workshops.",
     slug: "stages-workshops",
   },
   es: {
-    title: "Stages & Workshops — Método TMS® | Formación para terapeutas",
+    title: "Formación Terapia manual TMS® | Reboutement francés",
     description:
-      "Formaciones prácticas en Método TMS® con Grégory Tordjman: workshops intensivos, stages de práctica, formación equipo spa y certificación. Para terapeutas, profesionales y equipos de hospitality.",
+      "Formaciones prácticas en Método TMS® con Grégory Tordjman: reboutement tradicional francés, lectura corporal, masaje terapéutico profundo, formación equipo spa y workshops intensivos.",
     slug: "stages-workshops",
   },
 };
