@@ -70,9 +70,12 @@ export default function SharedFooter({ lang }: { lang: Language }) {
               {l}
             </p>
           ))}
-          <nav className="footer-links" aria-label={lang === "FR" ? "Liens internes" : lang === "EN" ? "Internal links" : "Enlaces internos"}>
+          <nav
+            aria-label={lang === "FR" ? "Liens internes" : lang === "EN" ? "Internal links" : "Enlaces internos"}
+            style={{ display: "flex", flexWrap: "wrap", gap: "0 6px" }}
+          >
             {links.map((link, i) => (
-              <a key={link.href} href={link.href} className="footer-line">
+              <a key={link.href} href={link.href} className="footer-line" style={{ textDecoration: "none" }}>
                 {link.label}{i < links.length - 1 ? " ·" : ""}
               </a>
             ))}
