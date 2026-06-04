@@ -4,6 +4,7 @@ import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { Language } from "@/data/copy";
 import SharedHeader from "@/components/SharedHeader";
+import SharedFooter from "@/components/SharedFooter";
 
 /* ──────────────────────────────────────────────────────────
    Constants
@@ -878,55 +879,7 @@ function WsCta({ lang }: { lang: Language }) {
   );
 }
 
-/* ──────────────────────────────────────────────────────────
-   Footer
-   ────────────────────────────────────────────────────────── */
-function Footer({ lang }: { lang: Language }) {
-  const lines = {
-    FR: [
-      "Grégory Tordjman · Méthode TMS®",
-      "Thérapie manuelle de soulagement · Formation · Hospitality · Équipes",
-      "+33 6 65 51 77 35 · contact@reboutementmassage.fr",
-      "International sur demande",
-    ],
-    EN: [
-      "Grégory Tordjman · Méthode TMS®",
-      "Manual relief therapy · Training · Hospitality · Teams",
-      "+33 6 65 51 77 35 · contact@reboutementmassage.fr",
-      "International on request",
-    ],
-    ES: [
-      "Grégory Tordjman · Método TMS®",
-      "Terapia manual de alivio · Formación · Hospitality · Equipos",
-      "+33 6 65 51 77 35 · contact@reboutementmassage.fr",
-      "Internacional bajo solicitud",
-    ],
-  }[lang];
-
-  return (
-    <footer className="site-footer">
-      <div className="footer-inner">
-        <div className="footer-mark">
-          <Image
-            src="/logo--reboutement-tgrégory-tordjman.png"
-            alt="Thérapie Manuelle Reboutement & Massage by Grégory Tordjman"
-            width={120}
-            height={120}
-            className="footer-mark__img"
-          />
-        </div>
-        <div className="footer-lines">
-          {lines.map((l, i) => (
-            <p key={i} className={i === 0 ? "footer-name" : "footer-line"}>{l}</p>
-          ))}
-        </div>
-        <div className="footer-meta">
-          <span className="eyebrow eyebrow--mute">© MMXXVI</span>
-        </div>
-      </div>
-    </footer>
-  );
-}
+/* Footer moved to SharedFooter component */
 
 /* ──────────────────────────────────────────────────────────
    Root export
@@ -954,7 +907,7 @@ export default function WorkshopsPage({ initialLang }: { initialLang: Language }
         <WsComment lang={lang} />
         <WsCta lang={lang} />
       </main>
-      <Footer lang={lang} />
+      <SharedFooter lang={lang} />
     </>
   );
 }

@@ -4,6 +4,7 @@ import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { Language } from "@/data/copy";
 import SharedHeader from "@/components/SharedHeader";
+import SharedFooter from "@/components/SharedFooter";
 
 /* ──────────────────────────────────────────────────────────
    Constants
@@ -954,7 +955,7 @@ export default function SeancesPage({ initialLang }: { initialLang: Language }) 
         <SeanceCitations lang={lang} />
         <SeanceCta lang={lang} />
       </main>
-      <Footer lang={lang} />
+      <SharedFooter lang={lang} />
     </>
   );
 }
