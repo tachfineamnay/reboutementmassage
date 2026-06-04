@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import SeancesPage from "../../seances-page";
 import {
   absoluteUrl,
+  createFaqJsonLd,
   createIdentityJsonLd,
   createProfessionalServiceJsonLd,
   createWebPageJsonLd,
@@ -14,29 +15,98 @@ import {
   routeAlternates,
 } from "@/lib/seo";
 
+const INTERNAL_LINKS = {
+  fr: {
+    home: "/fr",
+    training: "/fr/stages-workshops",
+  },
+  en: {
+    home: "/en",
+    training: "/en/stages-workshops",
+  },
+  es: {
+    home: "/es",
+    training: "/es/stages-workshops",
+  },
+} as const;
+
 type PageProps = {
   params: Promise<{ lang: string }>;
 };
 
 const SEANCES_META: Record<string, { title: string; description: string; slug: string }> = {
   fr: {
-    title: "Séances privées — Méthode TMS® | Grégory Tordjman",
+    title: "Séance de reboutement & thérapie manuelle — Méthode TMS® | Grégory Tordjman",
     description:
-      "Séances de thérapie manuelle privées avec Grégory Tordjman, créateur de la Méthode TMS®. Intervention à domicile, hôtel, villa, yacht. Réponse personnelle sous 12h.",
+      "Séance privée de reboutement TMS®, thérapie manuelle de précision et massage thérapeutique avec Grégory Tordjman. Soulagement des blocages, tensions profondes et restrictions articulaires à domicile, hôtel, villa ou yacht.",
     slug: "seances",
   },
   en: {
-    title: "Private sessions — Méthode TMS® | Grégory Tordjman",
+    title: "TMS® Manual Therapy & French Bonesetting | Grégory Tordjman",
     description:
-      "Private manual therapy sessions with Grégory Tordjman, creator of the Méthode TMS®. On-site at home, hotel, villa, yacht. Personal reply within 12h.",
+      "Private TMS® Manual Therapy session with Grégory Tordjman: a precise hands-on approach inspired by traditional French bonesetting, therapeutic bodywork and deep body reading. Home, hotel, villa or yacht.",
     slug: "sessions",
   },
   es: {
-    title: "Sesiones privadas — Método TMS® | Grégory Tordjman",
+    title: "Terapia manual TMS® & reboutement francés | Grégory Tordjman",
     description:
-      "Sesiones privadas de terapia manual con Grégory Tordjman, creador del Método TMS®. Intervención a domicilio, hotel, villa, yate. Respuesta personal en 12h.",
+      "Sesión privada de Terapia manual TMS® con Grégory Tordjman, inspirada en el reboutement tradicional francés, la lectura corporal y el masaje terapéutico profundo. Domicilio, hotel, villa o yate.",
     slug: "sesiones",
   },
+};
+
+const SEANCES_FAQ: Record<string, Array<{ question: string; answer: string }>> = {
+  fr: [
+    {
+      question: "Qu'est-ce qu'une séance de reboutement TMS® ?",
+      answer:
+        "Une séance de reboutement TMS® est une intervention manuelle précise qui s'inspire du reboutement traditionnel tout en l'inscrivant dans la Méthode TMS® : lecture du corps, travail ciblé des blocages, tensions profondes, restrictions articulaires et compensations anciennes.",
+    },
+    {
+      question: "Quelle différence entre reboutement, massage thérapeutique et ostéopathie ?",
+      answer:
+        "La Méthode TMS® ne remplace pas un suivi médical. Elle associe une lecture corporelle fine, un toucher manuel direct et des repères personnalisés. Le reboutement apporte l'ancrage traditionnel, le massage thérapeutique le travail tissulaire, et la méthode construit une réponse adaptée au corps présent.",
+    },
+    {
+      question: "Quand demander une séance ?",
+      answer:
+        "Une demande est pertinente lorsque le corps bloque, lorsque les tensions reviennent, ou après un voyage, une saison intense, un effort physique, un stress prolongé ou une fatigue corporelle profonde.",
+    },
+  ],
+  en: [
+    {
+      question: "What is a TMS® Manual Therapy session?",
+      answer:
+        "A TMS® Manual Therapy session is a precise hands-on intervention inspired by traditional French bonesetting, therapeutic bodywork and deep body reading. It focuses on blockages, deep tension, joint restrictions and long-standing compensation patterns.",
+    },
+    {
+      question: "Is it the same as bonesetting or massage?",
+      answer:
+        "No. The TMS® Method does not replace medical care. It uses traditional bonesetting as a cultural reference, therapeutic bodywork as a manual layer, and a personalised body reading to adapt the session to the person and context.",
+    },
+    {
+      question: "When should I request a session?",
+      answer:
+        "A session is relevant when the body locks up, when tension returns, after travel, intense work periods, physical effort, prolonged stress or deep fatigue.",
+    },
+  ],
+  es: [
+    {
+      question: "¿Qué es una sesión de Terapia manual TMS®?",
+      answer:
+        "Una sesión de Terapia manual TMS® es una intervención manual precisa inspirada en el reboutement tradicional francés, la lectura corporal y el masaje terapéutico profundo. Trabaja bloqueos, tensiones profundas, restricciones articulares y compensaciones antiguas.",
+    },
+    {
+      question: "¿Es lo mismo que un huesero, un sobador o un masaje?",
+      answer:
+        "No. El Método TMS® no sustituye un seguimiento médico. Toma el reboutement tradicional como referencia cultural, integra el trabajo manual terapéutico y adapta cada sesión al cuerpo, al contexto y a la necesidad del momento.",
+    },
+    {
+      question: "¿Cuándo solicitar una sesión?",
+      answer:
+        "Cuando el cuerpo se bloquea, cuando las tensiones vuelven, después de un viaje, una temporada intensa, un esfuerzo físico, estrés prolongado o fatiga corporal profunda.",
+    },
+  ],
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -62,7 +132,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       siteName: "Méthode TMS®",
       title: meta.title,
       description: meta.description,
-      images: [{ url: imageUrl, width: 1200, height: 630, alt: "Séances privées — Méthode TMS®" }],
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: "Séance de reboutement — Méthode TMS®" }],
     },
     twitter: {
       card: "summary_large_image",
@@ -77,16 +147,25 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 function structuredData(lang: string) {
   const locale = isLocale(lang) ? lang : "fr";
   const meta = SEANCES_META[locale] ?? SEANCES_META.fr;
+  const links = INTERNAL_LINKS[locale];
+
   return graphJsonLd([
     createIdentityJsonLd(locale),
     createProfessionalServiceJsonLd({
       locale,
       routeKey: "sessions",
-      name: "Private manual therapy sessions - Méthode TMS®",
+      name:
+        locale === "fr"
+          ? "Séance de reboutement TMS® et thérapie manuelle"
+          : locale === "en"
+          ? "TMS® Manual Therapy and traditional French bonesetting-inspired session"
+          : "Sesión de Terapia manual TMS® inspirada en el reboutement tradicional francés",
       description: meta.description,
       serviceType: [
+        "Reboutement TMS®",
         "Private manual therapy",
-        "Reboutement",
+        "Traditional French bonesetting-inspired bodywork",
+        "Therapeutic massage",
         "Home session",
         "Hotel villa yacht intervention",
       ],
@@ -95,9 +174,10 @@ function structuredData(lang: string) {
       locale,
       routeKey: "sessions",
       title: meta.title,
-      description: meta.description,
+      description: `${meta.description} Related pages: ${absoluteUrl(links.home)} and ${absoluteUrl(links.training)}.`,
       aboutId: `${absoluteUrl()}#gregory-tordjman`,
     }),
+    createFaqJsonLd(SEANCES_FAQ[locale] ?? SEANCES_FAQ.fr),
   ]);
 }
 
