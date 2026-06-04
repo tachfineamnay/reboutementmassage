@@ -1,0 +1,76 @@
+"@media (max-width: 640px) {
+  .section-sub { font-size: 15px; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   WORKSHOPS PAGE — styles spécifiques
+   ══════════════════════════════════════════════════════════════ */
+
+/* ─── WS Hero ─── */
+.ws-hero { position: relative; }
+.ws-hero .hero-sub--light { color: rgba(250,248,243,0.72); max-width: 520px; }
+.ws-hero .hero-meta { margin-top: auto; }
+
+/* ─── WS Pour Qui ─── */
+.ws-pour-qui {
+  background: var(--cream);
+  padding: var(--pad-m) 0;
+}
+.ws-pour-qui__grid {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--x-pad);
+  display: grid;
+  grid-template-columns: 55% 45%;
+  gap: 80px;
+  align-items: flex-start;
+}
+.ws-pour-qui__text { padding-right: 8px; }
+.ws-pour-qui__title {
+  margin: 16px 0 40px;
+}
+.ws-profiles-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+.ws-pour-qui__photo {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--ink);
+  border: 0.5px solid var(--line);
+}
+.ws-pour-qui__photo img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center 25%;
+  filter: brightness(.95) saturate(.85);
+}
+
+/* ─── WS Pedagogy ─── */
+.ws-pedagogy {
+  background: var(--white);
+}
+.ws-pedagogy .practices-head { max-width: 680px; }
+
+/* ─── WS Formats ─── */
+.ws-formats {
+  background: var(--cream);
+  padding: var(--pad-m) 0;
+}
+.ws-formats__head {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 56px;
+  max-width: 620px;
+}
+.ws-formats__title { letter-spacing: -0.01em; }
+
+.ws-formats__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  border-top: 
+<truncated 20164 bytes>

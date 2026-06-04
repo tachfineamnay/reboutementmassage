@@ -113,36 +113,20 @@ function WsHero({ lang }: { lang: Language }) {
   }[lang];
 
   return (
-    <section className="hero ws-hero" id="top">
-      <div className="hero-photo" aria-hidden="false">
-        <Image
-          src="/practice-01.webp"
-          alt={lang === "FR"
-            ? "Formation à la Méthode TMS® — transmission du geste thérapeutique"
-            : lang === "EN"
-            ? "Méthode TMS® training — transmitting the therapeutic gesture"
-            : "Formación Método TMS® — transmisión del gesto terapéutico"}
-          fill
-          priority
-          sizes="100vw"
-          style={{ objectFit: "cover", objectPosition: "center 40%", filter: "saturate(.85) contrast(1.04) brightness(.88)" }}
-        />
-        <div className="hero-vignette" />
-      </div>
-
-      <div className="hero-grid">
-        <div className="hero-text">
+    <section className="bio-hero ws-hero" id="top">
+      <div className="bio-hero__grid">
+        <div className="bio-hero__text">
           <Reveal delay={0.05}>
             <div className="eyebrow eyebrow--gold">{t.eyebrow}</div>
           </Reveal>
           <Reveal delay={0.2}>
-            <h1 className="hero-headline">
+            <h1 className="bio-hero__h1">
               <span className="hh-line">{t.h1[0]}</span>
               <span className="hh-line hh-italic">{t.h1[1]}</span>
             </h1>
           </Reveal>
           <Reveal delay={0.35}>
-            <p className="hero-sub hero-sub--light ws-hero__sub">{t.sub}</p>
+            <p className="bio-hero__sub">{t.sub}</p>
           </Reveal>
           <Reveal delay={0.48}>
             <div className="hero-cta-group">
@@ -150,7 +134,7 @@ function WsHero({ lang }: { lang: Language }) {
                 <span>{t.cta}</span>
                 <Arrow />
               </a>
-              <a href="#formats" className="btn-inline ws-hero__btn-sec" id="ws-hero-sec">
+              <a href="#formats" className="btn-inline bio-hero__btn-sec" id="ws-hero-sec">
                 <span>{t.ctaSec}</span>
                 <Arrow />
               </a>
@@ -158,14 +142,26 @@ function WsHero({ lang }: { lang: Language }) {
           </Reveal>
         </div>
 
-        <Reveal delay={0.5} className="hero-meta">
-          <div className="hero-meta-row">
-            <span className="eyebrow eyebrow--faint">{t.metaLabel}</span>
-          </div>
+        <Reveal className="bio-hero__photo" delay={0.18}>
+          <Image
+            src="/practice-01.webp"
+            alt={lang === "FR"
+              ? "Formation à la Méthode TMS® — transmission du geste thérapeutique"
+              : lang === "EN"
+              ? "Méthode TMS® training — transmitting the therapeutic gesture"
+              : "Formación Método TMS® — transmisión del gesto terapéutico"}
+            fill
+            priority
+            sizes="(max-width: 920px) 100vw, 46vw"
+            style={{ objectFit: "cover", objectPosition: "center 40%", filter: "saturate(.85) contrast(1.04) brightness(.88)" }}
+          />
+          <span className="bio-hero__cap eyebrow eyebrow--gold">
+            {t.metaLabel}
+          </span>
         </Reveal>
       </div>
 
-      <div className="hero-scroll" aria-hidden="true">
+      <div className="hero-scroll hero-scroll--ink" aria-hidden="true">
         <svg width="10" height="36" viewBox="0 0 10 36" fill="none">
           <line x1="5" y1="0" x2="5" y2="26" stroke="currentColor" strokeWidth="0.6" />
           <polyline points="1.5,22 5,30 8.5,22" fill="none" stroke="currentColor" strokeWidth="0.6" />
@@ -891,13 +887,13 @@ export default function WorkshopsPage({ initialLang }: { initialLang: Language }
   useEffect(() => {
     document.documentElement.setAttribute("data-density", "editorial");
     document.documentElement.setAttribute("data-palette", "forest");
-    document.documentElement.setAttribute("data-layout", "editorial");
+    document.documentElement.setAttribute("data-layout", "cream");
     document.documentElement.lang = lang.toLowerCase();
   }, [lang]);
 
   return (
     <>
-      <SharedHeader lang={lang} activePage="workshops" heroStyle="dark" />
+      <SharedHeader lang={lang} activePage="workshops" heroStyle="light" />
       <main>
         <WsHero lang={lang} />
         <WsPourQui lang={lang} />

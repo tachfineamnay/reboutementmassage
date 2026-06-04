@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { absoluteUrl } from "@/lib/seo";
 import ArticleCard from "@/components/stories/ArticleCard";
+import StoriesPageShell from "@/components/stories/StoriesPageShell";
 import "@/app/globals.css";
 
 type PageProps = {
@@ -131,38 +132,46 @@ export default async function StoriesIndexPage({ params }: PageProps) {
         }}
       />
 
-      <main className="stories-page">
-        {/* Header */}
-        <header className="stories-header">
-          <nav className="stories-nav">
-            <Link href={`/${lang}`} className="stories-nav__back">
-              {content.back}
-            </Link>
-          </nav>
-          <div className="stories-header__content">
-            <span className="stories-header__label">{content.h1}</span>
-            <h1 className="stories-header__title">
-              {content.h1}
-            </h1>
-            <p className="stories-header__desc">
-              {content.desc}
-            </p>
-          </div>
-        </header>
+      <StoriesPageShell lang={lang}>
+        <main className="stories-page">
+          {/* Stories Hero */}
+          <section className="stories-hero">
+            <div className="stories-hero__inner">
+              <span className="eyebrow eyebrow--gold stories-hero__eyebrow">{content.h1}</span>
+              <h1 className="stories-hero__h1">
+                {lang === "en" ? (
+                  <>Body <em>insights</em>,<br />field stories.</>
+                ) : lang === "es" ? (
+                  <>Lecturas del <em>cuerpo</em>,<br />relatos de terreno.</>
+                ) : (
+                  <>Lectures du <em>corps</em>,<br />récits de terrain.</>
+                )}
+              </h1>
+              <p className="stories-hero__desc">
+                {content.desc}
+              </p>
+            </div>
+          </section>
 
-        {/* Grid */}
-        <section className="stories-grid-section" style={{ paddingTop: "32px" }}>
-          <div className="stories-grid">
-            {articles.length === 0 ? (
-              <p className="stories-empty">{content.empty}</p>
-            ) : (
-              articles.map((article) => (
-                <ArticleCard key={article.id} article={article as Parameters<typeof ArticleCard>[0]["article"]} />
-              ))
-            )}
-          </div>
-        </section>
-      </main>
+          {/* Grid Section */}
+          <section className="stories-grid-section" style={{ paddingTop: "32px" }}>
+            <div className="stories-grid-section__head">
+              <span className="stories-grid-section__count">
+                {articles.length} {lang === "en" ? "articles" : lang === "es" ? "artículos" : "articles"}
+              </span>
+            </div>
+            <div className="stories-grid">
+              {articles.length === 0 ? (
+                <p className="stories-empty">{content.empty}</p>
+              ) : (
+                articles.map((article) => (
+                  <ArticleCard key={article.id} article={article as Parameters<typeof ArticleCard>[0]["article"]} />
+                ))
+              )}
+            </div>
+          </section>
+        </main>
+      </StoriesPageShell>
     </>
   );
 }
