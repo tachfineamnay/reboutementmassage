@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Language } from "@/data/copy";
 import SharedHeader from "@/components/SharedHeader";
 import SharedFooter from "@/components/SharedFooter";
+import SharedContactForm from "@/components/SharedContactForm";
 
 /* ──────────────────────────────────────────────────────────
    Types
@@ -540,7 +541,7 @@ function BioCta({ lang }: { lang: Language }) {
   }[lang];
 
   return (
-    <section className="brand-sig bio-cta" id="contact">
+    <section className="brand-sig bio-cta" id="bio-cta-section">
       <div className="brand-sig__bg" aria-hidden="true" />
       <div className="container">
         <Reveal className="brand-sig__inner bio-cta__inner">
@@ -566,7 +567,7 @@ function BioCta({ lang }: { lang: Language }) {
             </Reveal>
             <Reveal delay={0.4}>
               <div className="brand-sig__cta-row">
-                <a href={`/${lang.toLowerCase()}#contact`} className="btn-primary" id="bio-cta-final">
+                <a href="#contact" className="btn-primary" id="bio-cta-final">
                   <span>{t.cta}</span>
                   <Arrow />
                 </a>
@@ -608,6 +609,7 @@ export default function BiographyPage({ initialLang }: { initialLang: Language }
         <BioVision lang={lang} />
         <BioPresence lang={lang} />
         <BioCta lang={lang} />
+        <SharedContactForm lang={lang} id="contact" />
       </main>
       <SharedFooter lang={lang} />
     </>

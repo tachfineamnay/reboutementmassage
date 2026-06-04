@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Language } from "@/data/copy";
 import SharedHeader from "@/components/SharedHeader";
 import SharedFooter from "@/components/SharedFooter";
+import SharedContactForm from "@/components/SharedContactForm";
 
 /* ──────────────────────────────────────────────────────────
    Constants
@@ -833,7 +834,7 @@ function SeanceCta({ lang }: { lang: Language }) {
   }[lang];
 
   return (
-    <section className="brand-sig seances-cta" id="demande">
+    <section className="brand-sig seances-cta" id="seances-cta-section">
       <div className="brand-sig__bg" aria-hidden="true" />
       <div className="container">
         <Reveal className="brand-sig__inner seances-cta__inner">
@@ -859,7 +860,7 @@ function SeanceCta({ lang }: { lang: Language }) {
             </Reveal>
             <Reveal delay={0.4}>
               <div className="brand-sig__cta-row">
-                <a href={`/${lang.toLowerCase()}#contact`} className="btn-primary" id="seances-cta-final">
+                <a href="#demande" className="btn-primary" id="seances-cta-final">
                   <span>{t.cta}</span>
                   <Arrow />
                 </a>
@@ -954,6 +955,7 @@ export default function SeancesPage({ initialLang }: { initialLang: Language }) 
         <SeanceStats lang={lang} />
         <SeanceCitations lang={lang} />
         <SeanceCta lang={lang} />
+        <SharedContactForm lang={lang} id="demande" />
       </main>
       <SharedFooter lang={lang} />
     </>

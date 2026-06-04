@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Language } from "@/data/copy";
 import SharedHeader from "@/components/SharedHeader";
 import SharedFooter from "@/components/SharedFooter";
+import SharedContactForm from "@/components/SharedContactForm";
 
 /* ──────────────────────────────────────────────────────────
    Constants
@@ -834,7 +835,7 @@ function WsCta({ lang }: { lang: Language }) {
   }[lang];
 
   return (
-    <section className="brand-sig ws-cta" id="inscription">
+    <section className="brand-sig ws-cta" id="ws-cta-section">
       <div className="brand-sig__bg" aria-hidden="true" />
       <div className="container">
         <Reveal className="brand-sig__inner ws-cta__inner">
@@ -860,7 +861,7 @@ function WsCta({ lang }: { lang: Language }) {
             </Reveal>
             <Reveal delay={0.4}>
               <div className="brand-sig__cta-row">
-                <a href={`/${lang.toLowerCase()}#contact`} className="btn-primary" id="ws-cta-final">
+                <a href="#inscription" className="btn-primary" id="ws-cta-final">
                   <span>{t.cta}</span>
                   <Arrow />
                 </a>
@@ -906,6 +907,7 @@ export default function WorkshopsPage({ initialLang }: { initialLang: Language }
         <WsCitations lang={lang} />
         <WsComment lang={lang} />
         <WsCta lang={lang} />
+        <SharedContactForm lang={lang} id="inscription" />
       </main>
       <SharedFooter lang={lang} />
     </>
