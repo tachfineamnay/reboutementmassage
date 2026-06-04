@@ -20,6 +20,10 @@ type ArticleFormData = {
   slug: string;
   excerpt: string;
   content: Record<string, unknown> | null;
+  contentHtml: string;
+  contentPlainText: string;
+  contentWordCount: number;
+  contentReadingTime: number;
   coverImageId: string;
   coverImageUrl: string;
   status: ArticleStatus;
@@ -40,6 +44,10 @@ const DEFAULT: ArticleFormData = {
   slug: "",
   excerpt: "",
   content: null,
+  contentHtml: "",
+  contentPlainText: "",
+  contentWordCount: 0,
+  contentReadingTime: 0,
   coverImageId: "",
   coverImageUrl: "",
   status: "DRAFT",
@@ -109,7 +117,13 @@ export default function ArticleForm({ initialData, mode }: ArticleFormProps) {
         await fetch(`/api/admin/articles/${articleId}/content`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ editorJson: data.content }),
+          body: JSON.stringify({
+            editorJson: data.content,
+            html: data.contentHtml || null,
+            plainText: data.contentPlainText || null,
+            wordCount: data.contentWordCount,
+            readingTime: data.contentReadingTime,
+          }),
         });
 
         // Upsert ArticleSeo
@@ -218,7 +232,13 @@ export default function ArticleForm({ initialData, mode }: ArticleFormProps) {
             <label className="admin-label">Contenu</label>
             <TiptapEditor
               initialContent={data.content}
-              onChange={({ editorJson }) => set("content", editorJson)}
+              onChange={({ editorJson, html, plainText, stats }) => {
+                set("content", editorJson);
+                set("contentHtml", html);
+                set("contentPlainText", plainText);
+                set("contentWordCount", stats.wordCount);
+                set("contentReadingTime", stats.readingTime);
+              }}
             />
           </div>
         </div>
@@ -287,6 +307,10 @@ export default function ArticleForm({ initialData, mode }: ArticleFormProps) {
               noindex={data.noindex}
               slug={data.slug}
               locale={data.locale}
+              title={data.title}
+              plainText={data.contentPlainText}
+              html={data.contentHtml}
+              editorJson={data.content}
               onChange={(field, value) =>
                 set(field as keyof ArticleFormData, value as never)
               }

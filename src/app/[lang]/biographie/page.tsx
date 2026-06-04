@@ -1,7 +1,17 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import BiographyPage from "../../biography-page";
-import { absoluteUrl, isLocale, LOCALE_TO_LANGUAGE } from "@/lib/seo";
+import {
+  absoluteUrl,
+  createIdentityJsonLd,
+  createWebPageJsonLd,
+  graphJsonLd,
+  isLocale,
+  localizedPath,
+  LOCALE_TO_LANGUAGE,
+  renderJsonLd,
+  routeAlternates,
+} from "@/lib/seo";
 
 type PageProps = {
   params: Promise<{ lang: string }>;
@@ -34,7 +44,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const meta = BIO_META[lang] ?? BIO_META.fr;
   const imageUrl = absoluteUrl("/og-image.png");
-  const canonicalUrl = absoluteUrl(`/${lang}/${meta.slug}`);
+  const canonicalUrl = absoluteUrl(localizedPath("biography", lang));
 
   return {
     metadataBase: new URL(absoluteUrl()),
@@ -42,12 +52,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: meta.description,
     alternates: {
       canonical: canonicalUrl,
-      languages: {
-        "x-default": absoluteUrl("/fr/biographie"),
-        fr: absoluteUrl("/fr/biographie"),
-        en: absoluteUrl("/en/biography"),
-        es: absoluteUrl("/es/biografia"),
-      },
+      languages: routeAlternates("biography"),
     },
     openGraph: {
       type: "website",
@@ -69,50 +74,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 function structuredData(lang: string) {
-  const meta = BIO_META[lang] ?? BIO_META.fr;
-  const pageUrl = absoluteUrl(`/${lang}/${meta.slug}`);
-
-  return {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Person",
-        "@id": `${absoluteUrl()}#gregory-tordjman`,
-        name: "Grégory Tordjman",
-        url: pageUrl,
-        image: absoluteUrl("/portrait.webp"),
-        jobTitle: "Praticien en thérapie manuelle · Créateur de la Méthode TMS®",
-        description: meta.description,
-        brand: {
-          "@type": "Brand",
-          name: "Méthode TMS®",
-        },
-        knowsAbout: [
-          "Méthode TMS®",
-          "Thérapie manuelle",
-          "Reboutement",
-          "Massage thérapeutique",
-          "Fasciathérapie",
-          "Hospitality de luxe",
-        ],
-        hasOccupation: {
-          "@type": "Occupation",
-          name: "Thérapeute manuel",
-        },
-      },
-      {
-        "@type": "WebPage",
-        "@id": pageUrl,
-        url: pageUrl,
-        name: meta.title,
-        description: meta.description,
-        inLanguage: lang,
-        about: {
-          "@id": `${absoluteUrl()}#gregory-tordjman`,
-        },
-      },
-    ],
-  };
+  const locale = isLocale(lang) ? lang : "fr";
+  const meta = BIO_META[locale] ?? BIO_META.fr;
+  return graphJsonLd([
+    createIdentityJsonLd(locale),
+    createWebPageJsonLd({
+      locale,
+      routeKey: "biography",
+      title: meta.title,
+      description: meta.description,
+      aboutId: `${absoluteUrl()}#gregory-tordjman`,
+    }),
+  ]);
 }
 
 export default async function BiographyRoute({ params }: PageProps) {
@@ -124,7 +97,7 @@ export default async function BiographyRoute({ params }: PageProps) {
       <script
         type="application/ld+json"
         suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData(lang)) }}
+        dangerouslySetInnerHTML={{ __html: renderJsonLd(structuredData(lang)) }}
       />
       <BiographyPage initialLang={LOCALE_TO_LANGUAGE[lang]} />
     </>

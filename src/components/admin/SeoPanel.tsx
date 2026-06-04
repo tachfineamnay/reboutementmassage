@@ -1,5 +1,8 @@
 "use client";
 
+import { useMemo } from "react";
+import { auditGeoContent } from "@/lib/geo";
+
 type SeoPanelProps = {
   seoTitle: string;
   seoDescription: string;
@@ -7,6 +10,10 @@ type SeoPanelProps = {
   noindex: boolean;
   slug: string;
   locale: string;
+  title?: string;
+  plainText?: string;
+  html?: string;
+  editorJson?: unknown;
   onChange: (field: string, value: string | boolean) => void;
 };
 
@@ -19,10 +26,27 @@ export default function SeoPanel({
   noindex,
   slug,
   locale,
+  title,
+  plainText,
+  html,
+  editorJson,
   onChange,
 }: SeoPanelProps) {
   const titleLen = seoTitle.length;
   const descLen = seoDescription.length;
+  const geoAudit = useMemo(
+    () =>
+      auditGeoContent({
+        title,
+        seoTitle,
+        metaDescription: seoDescription,
+        focusKeyword,
+        plainText,
+        html,
+        editorJson,
+      }),
+    [title, seoTitle, seoDescription, focusKeyword, plainText, html, editorJson]
+  );
 
   const titleColor =
     titleLen === 0 ? "seo-field__count--empty"
@@ -123,6 +147,90 @@ export default function SeoPanel({
           />
           <span>Noindex (exclure de Google)</span>
         </label>
+      </div>
+
+      <div
+        className="seo-preview"
+        style={{
+          borderTop: "1px solid var(--admin-border)",
+          paddingTop: "18px",
+          marginTop: "18px",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+          <div>
+            <p className="seo-preview__label">Checklist AEO/GEO</p>
+            <p style={{ margin: "4px 0 0", color: "var(--admin-muted)", fontSize: "12px" }}>
+              Optimisation pour réponses directes et lecture par IA générative.
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", justifyContent: "flex-end" }}>
+            <span
+              className={`seo-score ${
+                geoAudit.llmReadabilityScore >= 80
+                  ? "seo-score--good"
+                  : geoAudit.llmReadabilityScore >= 50
+                  ? "seo-score--medium"
+                  : "seo-score--low"
+              }`}
+              title={`Score GEO : ${geoAudit.llmReadabilityScore}/100`}
+            >
+              <span className="seo-score__value">{geoAudit.llmReadabilityScore}</span>
+              <span className="seo-score__label">GEO</span>
+            </span>
+            <span
+              className={`seo-score ${
+                geoAudit.answerCoverageScore >= 80
+                  ? "seo-score--good"
+                  : geoAudit.answerCoverageScore >= 50
+                  ? "seo-score--medium"
+                  : "seo-score--low"
+              }`}
+              title={`Couverture réponses : ${geoAudit.answerCoverageScore}/100`}
+            >
+              <span className="seo-score__value">{geoAudit.answerCoverageScore}</span>
+              <span className="seo-score__label">AEO</span>
+            </span>
+          </div>
+        </div>
+
+        <div style={{ display: "grid", gap: "10px", marginTop: "14px" }}>
+          {geoAudit.checklist.map((item) => (
+            <div
+              key={item.id}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "minmax(0, 1fr) auto",
+                gap: "10px",
+                alignItems: "start",
+                padding: "10px 0",
+                borderBottom: "1px solid var(--admin-border)",
+              }}
+            >
+              <div>
+                <p style={{ margin: 0, fontSize: "13px", fontWeight: 600 }}>
+                  {item.label}
+                </p>
+                <p style={{ margin: "4px 0 0", color: "var(--admin-muted)", fontSize: "12px", lineHeight: 1.5 }}>
+                  {item.detail}
+                </p>
+              </div>
+              <span
+                style={{
+                  borderRadius: "999px",
+                  padding: "3px 8px",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  background: item.passed ? "rgba(34,197,94,0.12)" : "rgba(251,191,36,0.14)",
+                  color: item.passed ? "var(--admin-green)" : "#d97706",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {item.passed ? "OK" : "À corriger"}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -73,7 +73,17 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
         publishedAt: true,
         updatedAt: true,
         createdAt: true,
-        seo: { select: { seoTitle: true, metaDescription: true, focusKeyword: true, ogImageId: true, score: true } },
+        seo: {
+          select: {
+            seoTitle: true,
+            metaDescription: true,
+            focusKeyword: true,
+            ogImageId: true,
+            score: true,
+            llmReadabilityScore: true,
+            atomicAnswerPresent: true,
+          },
+        },
         content: { select: { wordCount: true } },
       },
     }),
@@ -95,6 +105,8 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
       excerpt: a.excerpt,
       wordCount: a.content?.wordCount,
     }),
+    geoScore: a.seo?.llmReadabilityScore ?? 0,
+    atomicAnswerPresent: a.seo?.atomicAnswerPresent ?? false,
   }));
 
   // Build filter URL helper
@@ -245,7 +257,11 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
 
                     {/* Score SEO */}
                     <td>
-                      <SeoScoreBadge score={article.seoScore} />
+                      <SeoScoreBadge
+                        score={article.seoScore}
+                        geoScore={article.geoScore}
+                        atomicAnswerPresent={article.atomicAnswerPresent}
+                      />
                     </td>
 
                     {/* Date publication */}

@@ -42,6 +42,19 @@ enum LeadStatus {
   ARCHIVED
 }
 
+enum TranscreationStatus {
+  DRAFT
+  AI_GENERATED
+  REVIEWED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum AudioProvider {
+  ELEVENLABS
+  OTHER
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // AdminUser — authentification admin
 // ─────────────────────────────────────────────────────────────────────────────
@@ -68,6 +81,13 @@ model LeadSubmission {
   context          String?    @db.Text
   locale           Locale     @default(FR)
 
+  // Qualification B2B / hospitality
+  companyName      String?
+  jobTitle         String?
+  propertyType     String?
+  destination      String?
+  leadSegment      String?
+
   selectedDayLabel String?
   selectedTime     String
   selectedAt       DateTime
@@ -81,11 +101,16 @@ model LeadSubmission {
   ghlContactId     String?
   errorMessage     String?    @db.Text
 
+  resendEmailId    String?
+  notificationSentAt DateTime?
+  notificationError  String?   @db.Text
+
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
 
   @@index([status])
   @@index([locale, createdAt])
+  @@index([leadSegment])
   @@index([selectedAt])
   @@map("lead_submissions")
 }
@@ -127,6 +152,7 @@ model MediaAsset {
 model Article {
   id          String        @id @default(cuid())
   locale      Locale        @default(FR)
+  translationGroupId String?
   slug        String
   title       String
   excerpt     String?
@@ -144,6 +170,8 @@ model Article {
   metrics         ArticleMetric[]
   pageSpeedAudits ArticlePageSpeedAudit[]
   urlInspections  ArticleUrlInspection[]
+  transcreations   ArticleTranscreation[]
+  audioAssets      ArticleAudioAsset[]
 
   publishedAt  DateTime?
   createdAt    DateTime  @default(now())
@@ -153,6 +181,7 @@ model Article {
   @@unique([locale, slug])
   @@index([status])
   @@index([locale, status])
+  @@index([translationGroupId])
   @@index([publishedAt])
   @@map("articles")
 }
@@ -201,7 +230,73 @@ model ArticleSeo {
   score          Int     @default(0)
   issues         Json    @default("[]")
 
+  // Score AEO/GEO calculé depuis le contenu visible
+  llmReadabilityScore Int      @default(0)
+  atomicAnswerPresent Boolean  @default(false)
+  schemaValidation    Json     @default("{}")
+  geoChecklist        Json     @default("[]")
+  answerCoverageScore Int      @default(0)
+  lastGeoAuditAt      DateTime?
+
   @@map("article_seo")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ArticleTranscreation — versions transcréées et contrôlées par langue
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ArticleTranscreation {
+  id          String  @id @default(cuid())
+  articleId   String
+  article     Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  sourceLocale Locale
+  targetLocale Locale
+  provider     String  @default("GOOGLE_AI_PRO")
+  model        String?
+
+  title      String?
+  excerpt    String? @db.Text
+  editorJson Json?
+  html       String? @db.Text
+  plainText  String? @db.Text
+
+  promptVersion String?
+  reviewStatus  TranscreationStatus @default(AI_GENERATED)
+  reviewedAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([articleId])
+  @@index([targetLocale, reviewStatus])
+  @@map("article_transcreations")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ArticleAudioAsset — pistes audio multilingues générées ou validées
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ArticleAudioAsset {
+  id        String  @id @default(cuid())
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  locale          Locale
+  provider        AudioProvider @default(ELEVENLABS)
+  providerVoiceId String?
+  voiceName       String?
+  audioUrl        String
+  durationSeconds Int?
+  transcript      String? @db.Text
+  status          TranscreationStatus @default(AI_GENERATED)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([articleId])
+  @@index([locale, status])
+  @@map("article_audio_assets")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

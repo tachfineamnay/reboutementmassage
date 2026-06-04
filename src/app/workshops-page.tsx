@@ -732,7 +732,7 @@ function WsCitations({ lang }: { lang: Language }) {
           {t.items.map((item, i) => (
             <Reveal className="ws-citation" key={i} delay={0.1 + i * 0.1}>
               <blockquote className="ws-citation__quote">
-                <span className="ws-citation__mark" aria-hidden="true">"</span>
+                <span className="ws-citation__mark" aria-hidden="true">&quot;</span>
                 {item.quote}
               </blockquote>
               <div className="ws-citation__footer">

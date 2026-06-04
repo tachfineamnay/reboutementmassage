@@ -1,8 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import { decrypt } from "@/lib/auth";
+import { getCanonicalLocalizedPath, isLocale, type Locale } from "@/lib/seo";
 
 // Routes admin publiques (pas d'auth requise)
 const PUBLIC_ROUTES = ["/admin/login"];
+const SUPPORTED_LOCALES: Locale[] = ["fr", "en", "es"];
+
+function detectPreferredLocale(request: NextRequest): Locale {
+  const cookieLocale =
+    request.cookies.get("NEXT_LOCALE")?.value ??
+    request.cookies.get("locale")?.value ??
+    request.cookies.get("lang")?.value;
+
+  if (cookieLocale && isLocale(cookieLocale.toLowerCase())) {
+    return cookieLocale.toLowerCase() as Locale;
+  }
+
+  const acceptLanguage = request.headers.get("accept-language") ?? "";
+  for (const languageRange of acceptLanguage.split(",")) {
+    const locale = languageRange.trim().split(";")[0]?.toLowerCase().split("-")[0];
+    if (locale && SUPPORTED_LOCALES.includes(locale as Locale)) return locale as Locale;
+  }
+
+  return "fr";
+}
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -47,12 +68,29 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // ── 3. Routage public i18n ────────────────────────────────────────────────
+  if (pathname === "/") {
+    const locale = detectPreferredLocale(request);
+    const url = request.nextUrl.clone();
+    url.pathname = `/${locale}`;
+    return NextResponse.redirect(url);
+  }
+
+  const canonicalPath = getCanonicalLocalizedPath(pathname);
+  if (canonicalPath) {
+    const url = request.nextUrl.clone();
+    url.pathname = canonicalPath;
+    return NextResponse.redirect(url);
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
   matcher: [
+    "/",
     "/admin/:path*",
     "/api/admin/:path*",
+    "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|llms.txt|.*\\..*).*)",
   ],
 };

@@ -7,6 +7,7 @@ import { slugify } from "@/lib/utils";
 import ImageUploader from "./ImageUploader";
 import SeoPanel from "./SeoPanel";
 import ArticleStatusBadge from "./ArticleStatusBadge";
+import type { GeoChecklistItem } from "@/lib/geo";
 import type { TiptapContent, ContentStats } from "./TiptapEditor";
 
 // ─── Chargement dynamique de l'éditeur (pas de SSR) ─────────────────────────
@@ -52,6 +53,10 @@ type ArticleData = {
     focusKeyword: string;
     noindex: boolean;
     score: number;
+    llmReadabilityScore: number;
+    atomicAnswerPresent: boolean;
+    answerCoverageScore: number;
+    geoChecklist: GeoChecklistItem[];
   };
 };
 
@@ -338,7 +343,7 @@ export default function ArticleEditor({
         });
 
         // 3. PUT SEO
-        await fetch(`/api/admin/articles/${current.id}/seo`, {
+        const seoRes = await fetch(`/api/admin/articles/${current.id}/seo`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -348,6 +353,35 @@ export default function ArticleEditor({
             noindex: current.seo.noindex,
           }),
         });
+
+        if (!seoRes.ok) {
+          const body = await seoRes.json().catch(() => ({}));
+          throw new Error(body.error ?? "Erreur sauvegarde SEO.");
+        }
+
+        const savedSeo = await seoRes.json();
+        setData((prev) => ({
+          ...prev,
+          seo: {
+            ...prev.seo,
+            score: typeof savedSeo.score === "number" ? savedSeo.score : prev.seo.score,
+            llmReadabilityScore:
+              typeof savedSeo.llmReadabilityScore === "number"
+                ? savedSeo.llmReadabilityScore
+                : prev.seo.llmReadabilityScore,
+            atomicAnswerPresent:
+              typeof savedSeo.atomicAnswerPresent === "boolean"
+                ? savedSeo.atomicAnswerPresent
+                : prev.seo.atomicAnswerPresent,
+            answerCoverageScore:
+              typeof savedSeo.answerCoverageScore === "number"
+                ? savedSeo.answerCoverageScore
+                : prev.seo.answerCoverageScore,
+            geoChecklist: Array.isArray(savedSeo.geoChecklist)
+              ? (savedSeo.geoChecklist as GeoChecklistItem[])
+              : prev.seo.geoChecklist,
+          },
+        }));
 
         // 4. PATCH cover image alt texts if coverImageId exists
         if (current.coverImageId) {
@@ -592,6 +626,10 @@ export default function ArticleEditor({
                 noindex={data.seo.noindex}
                 slug={data.slug}
                 locale={data.locale}
+                title={data.title}
+                plainText={data.content.plainText}
+                html={data.content.html}
+                editorJson={data.content.editorJson}
                 onChange={(field, value) => {
                   if (field === "seoTitle") setSeo("seoTitle", value as string);
                   else if (field === "seoDescription") setSeo("metaDescription", value as string);

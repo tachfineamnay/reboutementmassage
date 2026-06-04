@@ -1,7 +1,19 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import WorkshopsPage from "../../workshops-page";
-import { absoluteUrl, isLocale, LOCALE_TO_LANGUAGE } from "@/lib/seo";
+import {
+  absoluteUrl,
+  createCourseJsonLd,
+  createEducationEventJsonLd,
+  createIdentityJsonLd,
+  createWebPageJsonLd,
+  graphJsonLd,
+  isLocale,
+  localizedPath,
+  LOCALE_TO_LANGUAGE,
+  renderJsonLd,
+  routeAlternates,
+} from "@/lib/seo";
 
 type PageProps = {
   params: Promise<{ lang: string }>;
@@ -34,7 +46,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const meta = WS_META[lang] ?? WS_META.fr;
   const imageUrl = absoluteUrl("/og-image.png");
-  const canonicalUrl = absoluteUrl(`/${lang}/${meta.slug}`);
+  const canonicalUrl = absoluteUrl(localizedPath("stagesWorkshops", lang));
 
   return {
     metadataBase: new URL(absoluteUrl()),
@@ -42,12 +54,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: meta.description,
     alternates: {
       canonical: canonicalUrl,
-      languages: {
-        "x-default": absoluteUrl("/fr/stages-workshops"),
-        fr: absoluteUrl("/fr/stages-workshops"),
-        en: absoluteUrl("/en/stages-workshops"),
-        es: absoluteUrl("/es/stages-workshops"),
-      },
+      languages: routeAlternates("stagesWorkshops"),
     },
     openGraph: {
       type: "website",
@@ -69,65 +76,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 function structuredData(lang: string) {
-  const meta = WS_META[lang] ?? WS_META.fr;
-  const pageUrl = absoluteUrl(`/${lang}/${meta.slug}`);
-
-  return {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "EducationEvent",
-        "@id": `${pageUrl}#training`,
-        name: meta.title,
-        description: meta.description,
-        url: pageUrl,
-        organizer: {
-          "@type": "Person",
-          name: "Grégory Tordjman",
-          "@id": `${absoluteUrl()}#gregory-tordjman`,
-        },
-        about: {
-          "@type": "Thing",
-          name: "Méthode TMS®",
-        },
-        audience: {
-          "@type": "Audience",
-          audienceType: "Therapists, Spa teams, Hospitality professionals",
-        },
-      },
-      {
-        "@type": "Course",
-        name: "Formation Méthode TMS®",
-        description: meta.description,
-        url: pageUrl,
-        provider: {
-          "@type": "Person",
-          name: "Grégory Tordjman",
-          "@id": `${absoluteUrl()}#gregory-tordjman`,
-        },
-        hasCourseInstance: [
-          {
-            "@type": "CourseInstance",
-            courseMode: "onsite",
-            name: "Workshop intensif 1 jour",
-          },
-          {
-            "@type": "CourseInstance",
-            courseMode: "onsite",
-            name: "Stage de pratique 3 jours",
-          },
-        ],
-      },
-      {
-        "@type": "WebPage",
-        "@id": pageUrl,
-        url: pageUrl,
-        name: meta.title,
-        description: meta.description,
-        inLanguage: lang,
-      },
-    ],
-  };
+  const locale = isLocale(lang) ? lang : "fr";
+  const meta = WS_META[locale] ?? WS_META.fr;
+  return graphJsonLd([
+    createIdentityJsonLd(locale),
+    createCourseJsonLd(locale),
+    createEducationEventJsonLd(locale),
+    createWebPageJsonLd({
+      locale,
+      routeKey: "stagesWorkshops",
+      title: meta.title,
+      description: meta.description,
+      aboutId: `${absoluteUrl()}#gregory-tordjman`,
+    }),
+  ]);
 }
 
 export default async function WorkshopsRoute({ params }: PageProps) {
@@ -139,7 +101,7 @@ export default async function WorkshopsRoute({ params }: PageProps) {
       <script
         type="application/ld+json"
         suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData(lang)) }}
+        dangerouslySetInnerHTML={{ __html: renderJsonLd(structuredData(lang)) }}
       />
       <WorkshopsPage initialLang={LOCALE_TO_LANGUAGE[lang]} />
     </>

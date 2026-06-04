@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { absoluteUrl } from "@/lib/seo";
+import {
+  absoluteUrl,
+  createIdentityJsonLd,
+  createWebPageJsonLd,
+  graphJsonLd,
+  renderJsonLd,
+  routeAlternates,
+  type JsonLd,
+} from "@/lib/seo";
 import ArticleCard from "@/components/stories/ArticleCard";
 import StoriesPageShell from "@/components/stories/StoriesPageShell";
 import "@/app/globals.css";
@@ -48,11 +55,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: content.desc,
     alternates: {
       canonical: absoluteUrl(url),
-      languages: {
-        fr: absoluteUrl("/fr/stories"),
-        en: absoluteUrl("/en/stories"),
-        es: absoluteUrl("/es/stories"),
-      }
+      languages: routeAlternates("stories"),
     },
     openGraph: {
       type: "website",
@@ -67,17 +70,26 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 function storiesStructuredData(lang: "fr" | "en" | "es") {
-  return {
+  const content = LOCALIZED_CONTENT[lang];
+  const blog: JsonLd = {
     "@context": "https://schema.org",
     "@type": "Blog",
-    name: `${LOCALIZED_CONTENT[lang].h1} — Méthode TMS®`,
+    "@id": `${absoluteUrl(`/${lang}/stories`)}#blog`,
+    name: `${content.h1} — Méthode TMS®`,
     url: absoluteUrl(`/${lang}/stories`),
-    publisher: {
-      "@type": "Organization",
-      name: "Méthode TMS®",
-      url: absoluteUrl(),
-    },
+    publisher: { "@id": `${absoluteUrl()}#organization` },
   };
+
+  return graphJsonLd([
+    createIdentityJsonLd(lang),
+    createWebPageJsonLd({
+      locale: lang,
+      routeKey: "stories",
+      title: `${content.h1} — Méthode TMS®`,
+      description: content.desc,
+    }),
+    blog,
+  ]);
 }
 
 export const revalidate = 60;
@@ -128,7 +140,7 @@ export default async function StoriesIndexPage({ params }: PageProps) {
         type="application/ld+json"
         suppressHydrationWarning
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(storiesStructuredData(lang)),
+          __html: renderJsonLd(storiesStructuredData(lang)),
         }}
       />
 

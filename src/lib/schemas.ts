@@ -34,6 +34,18 @@ export const LeadStatusSchema = z.enum([
 ]);
 export type LeadStatusType = z.infer<typeof LeadStatusSchema>;
 
+export const TranscreationStatusSchema = z.enum([
+  "DRAFT",
+  "AI_GENERATED",
+  "REVIEWED",
+  "PUBLISHED",
+  "ARCHIVED",
+]);
+export type TranscreationStatusType = z.infer<typeof TranscreationStatusSchema>;
+
+export const AudioProviderSchema = z.enum(["ELEVENLABS", "OTHER"]);
+export type AudioProviderType = z.infer<typeof AudioProviderSchema>;
+
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
 export const LoginSchema = z.object({
@@ -48,6 +60,7 @@ const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export const ArticleCreateSchema = z.object({
   locale: LocaleSchema.default("FR"),
+  translationGroupId: z.string().max(120).optional().nullable(),
   slug: z
     .string()
     .min(1, "Le slug est requis")
@@ -88,6 +101,11 @@ export const ArticleSeoSchema = z.object({
   ogDescription: z.string().max(200).optional().nullable(),
   ogImageId: z.string().optional().nullable(),
   noindex: z.boolean().default(false),
+  llmReadabilityScore: z.number().int().min(0).max(100).optional(),
+  atomicAnswerPresent: z.boolean().optional(),
+  schemaValidation: z.any().optional(),
+  geoChecklist: z.any().optional(),
+  answerCoverageScore: z.number().int().min(0).max(100).optional(),
 });
 
 export type ArticleSeoInput = z.infer<typeof ArticleSeoSchema>;
@@ -143,6 +161,11 @@ export const LeadSubmissionCreateSchema = z.object({
   type: z.string().min(2).max(255),
   context: z.string().max(4000).optional().nullable(),
   locale: LocaleSchema.default("FR"),
+  companyName: z.string().max(180).optional().nullable(),
+  jobTitle: z.string().max(180).optional().nullable(),
+  propertyType: z.string().max(180).optional().nullable(),
+  destination: z.string().max(180).optional().nullable(),
+  leadSegment: z.string().max(80).optional().nullable(),
   selectedDayLabel: z.string().max(120).optional().nullable(),
   selectedTime: z.string().min(1).max(20),
   selectedAt: z.string().datetime(),
@@ -153,6 +176,9 @@ export const LeadSubmissionCreateSchema = z.object({
   status: LeadStatusSchema.default("CAPTURED"),
   ghlContactId: z.string().optional().nullable(),
   errorMessage: z.string().max(4000).optional().nullable(),
+  resendEmailId: z.string().optional().nullable(),
+  notificationSentAt: z.string().datetime().optional().nullable(),
+  notificationError: z.string().max(4000).optional().nullable(),
 });
 
 export const LeadSubmissionUpdateSchema = LeadSubmissionCreateSchema.partial();
@@ -206,3 +232,37 @@ export const ArticleUrlInspectionSchema = z.object({
 });
 
 export type ArticleUrlInspectionInput = z.infer<typeof ArticleUrlInspectionSchema>;
+
+// ─── Transcréation et audio multilingue ──────────────────────────────────────
+
+export const ArticleTranscreationSchema = z.object({
+  articleId: z.string().min(1),
+  sourceLocale: LocaleSchema,
+  targetLocale: LocaleSchema,
+  provider: z.string().max(80).default("GOOGLE_AI_PRO"),
+  model: z.string().max(120).optional().nullable(),
+  title: z.string().max(200).optional().nullable(),
+  excerpt: z.string().optional().nullable(),
+  editorJson: z.any().optional().nullable(),
+  html: z.string().optional().nullable(),
+  plainText: z.string().optional().nullable(),
+  promptVersion: z.string().max(120).optional().nullable(),
+  reviewStatus: TranscreationStatusSchema.default("AI_GENERATED"),
+  reviewedAt: z.string().datetime().optional().nullable(),
+});
+
+export type ArticleTranscreationInput = z.infer<typeof ArticleTranscreationSchema>;
+
+export const ArticleAudioAssetSchema = z.object({
+  articleId: z.string().min(1),
+  locale: LocaleSchema,
+  provider: AudioProviderSchema.default("ELEVENLABS"),
+  providerVoiceId: z.string().max(180).optional().nullable(),
+  voiceName: z.string().max(180).optional().nullable(),
+  audioUrl: z.string().url(),
+  durationSeconds: z.number().int().min(0).optional().nullable(),
+  transcript: z.string().optional().nullable(),
+  status: TranscreationStatusSchema.default("AI_GENERATED"),
+});
+
+export type ArticleAudioAssetInput = z.infer<typeof ArticleAudioAssetSchema>;

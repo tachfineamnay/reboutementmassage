@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { ArticleSeoSchema } from "@/lib/schemas";
+import { auditGeoContent } from "@/lib/geo";
 import { computeSeoScore } from "@/lib/utils";
 
 type Params = { params: Promise<{ id: string }> };
@@ -34,7 +35,14 @@ export async function PUT(req: NextRequest, { params }: Params) {
       title: true,
       coverImageId: true,
       excerpt: true,
-      content: { select: { wordCount: true } },
+      content: {
+        select: {
+          wordCount: true,
+          plainText: true,
+          html: true,
+          editorJson: true,
+        },
+      },
     },
   });
   if (!article)
@@ -50,6 +58,15 @@ export async function PUT(req: NextRequest, { params }: Params) {
     excerpt: article.excerpt,
     wordCount: article.content?.wordCount,
   });
+  const geoAudit = auditGeoContent({
+    title: article.title,
+    seoTitle: data.seoTitle,
+    metaDescription: data.metaDescription,
+    focusKeyword: data.focusKeyword,
+    plainText: article.content?.plainText,
+    html: article.content?.html,
+    editorJson: article.content?.editorJson,
+  });
 
   const seo = await prisma.articleSeo.upsert({
     where: { articleId: id },
@@ -64,6 +81,12 @@ export async function PUT(req: NextRequest, { params }: Params) {
       ogImageId: data.ogImageId ?? null,
       noindex: data.noindex ?? false,
       score,
+      llmReadabilityScore: geoAudit.llmReadabilityScore,
+      atomicAnswerPresent: geoAudit.atomicAnswerPresent,
+      schemaValidation: geoAudit.schemaValidation,
+      geoChecklist: geoAudit.checklist,
+      answerCoverageScore: geoAudit.answerCoverageScore,
+      lastGeoAuditAt: new Date(),
     },
     update: {
       focusKeyword: data.focusKeyword ?? null,
@@ -75,6 +98,12 @@ export async function PUT(req: NextRequest, { params }: Params) {
       ogImageId: data.ogImageId ?? null,
       noindex: data.noindex ?? false,
       score,
+      llmReadabilityScore: geoAudit.llmReadabilityScore,
+      atomicAnswerPresent: geoAudit.atomicAnswerPresent,
+      schemaValidation: geoAudit.schemaValidation,
+      geoChecklist: geoAudit.checklist,
+      answerCoverageScore: geoAudit.answerCoverageScore,
+      lastGeoAuditAt: new Date(),
     },
   });
 

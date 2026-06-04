@@ -3,12 +3,17 @@ import { notFound } from "next/navigation";
 import LandingPage from "../landing-page";
 import {
   absoluteUrl,
+  createIdentityJsonLd,
+  createProfessionalServiceJsonLd,
+  createWebPageJsonLd,
+  graphJsonLd,
   isLocale,
-  languageAlternates,
+  localizedPath,
   LOCALE_TO_LANGUAGE,
   LOCALES,
-  localePath,
   META_BY_LOCALE,
+  renderJsonLd,
+  routeAlternates,
   type Locale,
 } from "@/lib/seo";
 
@@ -25,7 +30,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!isLocale(lang)) return {};
 
   const meta = META_BY_LOCALE[lang];
-  const canonicalPath = localePath(lang);
+  const canonicalPath = localizedPath("home", lang);
   const imageUrl = absoluteUrl("/og-image.png");
 
   return {
@@ -34,7 +39,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: meta.description,
     alternates: {
       canonical: absoluteUrl(canonicalPath),
-      languages: languageAlternates(),
+      languages: routeAlternates("home"),
     },
     openGraph: {
       type: "website",
@@ -66,64 +71,29 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 function structuredData(locale: Locale) {
-  const pageUrl = absoluteUrl(localePath(locale));
-  const logoUrl = absoluteUrl("/logo.png");
-  const imageUrl = absoluteUrl("/portrait.webp");
-
-  return {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebSite",
-        "@id": `${absoluteUrl()}#website`,
-        name: "Méthode TMS®",
-        url: absoluteUrl(),
-        inLanguage: locale,
-      },
-      {
-        "@type": "Organization",
-        "@id": `${absoluteUrl()}#organization`,
-        name: "Méthode TMS®",
-        url: absoluteUrl(),
-        logo: logoUrl,
-      },
-      {
-        "@type": "Person",
-        "@id": `${absoluteUrl()}#gregory-tordjman`,
-        name: "Grégory Tordjman",
-        url: pageUrl,
-        image: imageUrl,
-        jobTitle: "Praticien en thérapie manuelle",
-        brand: {
-          "@id": `${absoluteUrl()}#organization`,
-        },
-        knowsAbout: [
-          "Méthode TMS®",
-          "Thérapie manuelle",
-          "Reboutement",
-          "Massage thérapeutique",
-          "Hospitality de luxe",
-        ],
-      },
-      {
-        "@type": "ProfessionalService",
-        "@id": `${pageUrl}#service`,
-        name: "Méthode TMS® - demande privée",
-        url: pageUrl,
-        image: imageUrl,
-        provider: {
-          "@id": `${absoluteUrl()}#gregory-tordjman`,
-        },
-        areaServed: "International",
-        serviceType: [
-          "Thérapie manuelle",
-          "Reboutement",
-          "Massage thérapeutique",
-          "Intervention privée en hôtel, villa et yacht",
-        ],
-      },
-    ],
-  };
+  const meta = META_BY_LOCALE[locale];
+  return graphJsonLd([
+    createIdentityJsonLd(locale),
+    createWebPageJsonLd({
+      locale,
+      routeKey: "home",
+      title: meta.title,
+      description: meta.description,
+      aboutId: `${absoluteUrl()}#gregory-tordjman`,
+    }),
+    createProfessionalServiceJsonLd({
+      locale,
+      routeKey: "home",
+      name: "Méthode TMS® - private manual therapy",
+      description: meta.description,
+      serviceType: [
+        "Private manual therapy",
+        "Reboutement",
+        "Therapeutic massage",
+        "On-site support for hotels, villas and yachts",
+      ],
+    }),
+  ]);
 }
 
 export default async function LocalizedPage({ params }: PageProps) {
@@ -135,7 +105,7 @@ export default async function LocalizedPage({ params }: PageProps) {
       <script
         type="application/ld+json"
         suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData(lang)) }}
+        dangerouslySetInnerHTML={{ __html: renderJsonLd(structuredData(lang)) }}
       />
       <LandingPage initialLang={LOCALE_TO_LANGUAGE[lang]} />
     </>

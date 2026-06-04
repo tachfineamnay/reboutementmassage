@@ -1,7 +1,18 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import SeancesPage from "../../seances-page";
-import { absoluteUrl, isLocale, LOCALE_TO_LANGUAGE } from "@/lib/seo";
+import {
+  absoluteUrl,
+  createIdentityJsonLd,
+  createProfessionalServiceJsonLd,
+  createWebPageJsonLd,
+  graphJsonLd,
+  isLocale,
+  localizedPath,
+  LOCALE_TO_LANGUAGE,
+  renderJsonLd,
+  routeAlternates,
+} from "@/lib/seo";
 
 type PageProps = {
   params: Promise<{ lang: string }>;
@@ -34,7 +45,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const meta = SEANCES_META[lang] ?? SEANCES_META.fr;
   const imageUrl = absoluteUrl("/og-image.png");
-  const canonicalUrl = absoluteUrl(`/${lang}/${meta.slug}`);
+  const canonicalUrl = absoluteUrl(localizedPath("sessions", lang));
 
   return {
     metadataBase: new URL(absoluteUrl()),
@@ -42,12 +53,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: meta.description,
     alternates: {
       canonical: canonicalUrl,
-      languages: {
-        "x-default": absoluteUrl("/fr/seances"),
-        fr: absoluteUrl("/fr/seances"),
-        en: absoluteUrl("/en/sessions"),
-        es: absoluteUrl("/es/sesiones"),
-      },
+      languages: routeAlternates("sessions"),
     },
     openGraph: {
       type: "website",
@@ -69,49 +75,30 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 function structuredData(lang: string) {
-  const meta = SEANCES_META[lang] ?? SEANCES_META.fr;
-  const pageUrl = absoluteUrl(`/${lang}/${meta.slug}`);
-
-  return {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "ProfessionalService",
-        "@id": `${pageUrl}#service`,
-        name: "Séances privées — Méthode TMS®",
-        description: meta.description,
-        url: pageUrl,
-        provider: {
-          "@type": "Person",
-          name: "Grégory Tordjman",
-          "@id": `${absoluteUrl()}#gregory-tordjman`,
-        },
-        areaServed: "International",
-        serviceType: [
-          "Thérapie manuelle privée",
-          "Reboutement",
-          "Séance à domicile",
-          "Intervention hôtel villa yacht",
-        ],
-        offers: {
-          "@type": "Offer",
-          availability: "https://schema.org/InStock",
-          availabilityStarts: "2014-01-01",
-        },
-      },
-      {
-        "@type": "WebPage",
-        "@id": pageUrl,
-        url: pageUrl,
-        name: meta.title,
-        description: meta.description,
-        inLanguage: lang,
-        about: {
-          "@id": `${absoluteUrl()}#gregory-tordjman`,
-        },
-      },
-    ],
-  };
+  const locale = isLocale(lang) ? lang : "fr";
+  const meta = SEANCES_META[locale] ?? SEANCES_META.fr;
+  return graphJsonLd([
+    createIdentityJsonLd(locale),
+    createProfessionalServiceJsonLd({
+      locale,
+      routeKey: "sessions",
+      name: "Private manual therapy sessions - Méthode TMS®",
+      description: meta.description,
+      serviceType: [
+        "Private manual therapy",
+        "Reboutement",
+        "Home session",
+        "Hotel villa yacht intervention",
+      ],
+    }),
+    createWebPageJsonLd({
+      locale,
+      routeKey: "sessions",
+      title: meta.title,
+      description: meta.description,
+      aboutId: `${absoluteUrl()}#gregory-tordjman`,
+    }),
+  ]);
 }
 
 export default async function SeancesRoute({ params }: PageProps) {
@@ -123,7 +110,7 @@ export default async function SeancesRoute({ params }: PageProps) {
       <script
         type="application/ld+json"
         suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData(lang)) }}
+        dangerouslySetInnerHTML={{ __html: renderJsonLd(structuredData(lang)) }}
       />
       <SeancesPage initialLang={LOCALE_TO_LANGUAGE[lang]} />
     </>

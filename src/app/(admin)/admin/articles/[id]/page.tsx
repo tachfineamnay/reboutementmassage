@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import ArticleEditor from "@/components/admin/ArticleEditor";
+import type { GeoChecklistItem } from "@/lib/geo";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -86,6 +87,12 @@ export default async function ArticleDetailPage({ params }: Props) {
             focusKeyword: article.seo?.focusKeyword ?? "",
             noindex: article.seo?.noindex ?? false,
             score: article.seo?.score ?? 0,
+            llmReadabilityScore: article.seo?.llmReadabilityScore ?? 0,
+            atomicAnswerPresent: article.seo?.atomicAnswerPresent ?? false,
+            answerCoverageScore: article.seo?.answerCoverageScore ?? 0,
+            geoChecklist: Array.isArray(article.seo?.geoChecklist)
+              ? (article.seo.geoChecklist as GeoChecklistItem[])
+              : [],
           },
         }}
         googleMetrics={{

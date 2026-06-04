@@ -77,6 +77,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     where: { id },
     data: {
       ...(data.locale !== undefined && { locale: data.locale }),
+      ...(data.translationGroupId !== undefined && { translationGroupId: data.translationGroupId }),
       ...(data.title !== undefined && { title: data.title }),
       ...(data.slug !== undefined && { slug: data.slug }),
       ...(data.excerpt !== undefined && { excerpt: data.excerpt }),

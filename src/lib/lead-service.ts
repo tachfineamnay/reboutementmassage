@@ -1,0 +1,584 @@
+import "server-only";
+
+import { Resend } from "resend";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+
+type LeadSubmissionStatus = "CAPTURED" | "MOCKED" | "SENT_TO_GHL" | "FAILED" | "ARCHIVED";
+
+type LeadPayload = {
+  firstName: string;
+  contact: string;
+  type: string;
+  context: string | null;
+  lang: string;
+  selectedDayLabel: string | null;
+  selectedTime: string;
+  selectedDateTime: string;
+  timezone: string | null;
+  pageUrl: string | null;
+  utm: Record<string, string>;
+  companyName: string | null;
+  jobTitle: string | null;
+  propertyType: string | null;
+  destination: string | null;
+  leadSegment: string | null;
+};
+
+type GhlContactResponse = {
+  id?: string;
+  contact?: {
+    id?: string;
+  };
+  traceId?: string;
+};
+
+type GhlRequestOptions = {
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  body?: unknown;
+};
+
+type NotificationResult =
+  | { status: "sent"; resendEmailId: string }
+  | { status: "not_configured"; error: "RESEND_NOT_CONFIGURED" }
+  | { status: "failed"; error: string };
+
+const DEFAULT_GHL_BASE_URL = "https://services.leadconnectorhq.com";
+const DEFAULT_GHL_API_VERSION = "2021-07-28";
+const DEFAULT_TAGS = ["landing-tms", "demande-privee", "source-landing-page"];
+const DEFAULT_GHL_SOURCE = "Landing Méthode TMS";
+
+const LeadRequestSchema = z.object({
+  firstName: z.string().trim().min(2).max(120),
+  contact: z.string().trim().min(3).max(255),
+  type: z.string().trim().min(2).max(255),
+  context: z.string().trim().max(4000).optional().nullable(),
+  lang: z.string().trim().max(8).optional().default("FR"),
+  selectedDayLabel: z.string().trim().max(120).optional().nullable(),
+  selectedTime: z.string().trim().min(1).max(20),
+  selectedDateTime: z.string().trim().refine((value) => !Number.isNaN(Date.parse(value)), {
+    message: "Invalid selectedDateTime",
+  }),
+  timezone: z.string().trim().max(120).optional().nullable(),
+  pageUrl: z.string().trim().max(1000).optional().nullable(),
+  utm: z.unknown().optional(),
+  companyName: z.string().trim().max(180).optional().nullable(),
+  jobTitle: z.string().trim().max(180).optional().nullable(),
+  propertyType: z.string().trim().max(180).optional().nullable(),
+  destination: z.string().trim().max(180).optional().nullable(),
+  leadSegment: z.string().trim().max(80).optional().nullable(),
+});
+
+function jsonError(status: number, error: string) {
+  return Response.json({ ok: false, error }, { status });
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function nullableText(value: string | null | undefined) {
+  const text = value?.trim();
+  return text ? text : null;
+}
+
+function parseUtm(value: unknown) {
+  if (!isRecord(value)) return {};
+
+  return Object.entries(value).reduce<Record<string, string>>((acc, [key, raw]) => {
+    if (typeof raw === "string" && key.toLowerCase().startsWith("utm_")) {
+      acc[key] = raw.slice(0, 200);
+    }
+    return acc;
+  }, {});
+}
+
+function inferLeadSegment(payload: Omit<LeadPayload, "leadSegment">, explicitSegment: string | null) {
+  if (explicitSegment) return explicitSegment;
+
+  const pageUrl = payload.pageUrl?.toLowerCase() ?? "";
+  if (
+    pageUrl.includes("luxury-hospitality") ||
+    pageUrl.includes("hotellerie-luxe") ||
+    pageUrl.includes("hospitalidad-lujo")
+  ) {
+    return "luxury_hospitality";
+  }
+
+  if (payload.companyName || payload.jobTitle || payload.propertyType || payload.destination) {
+    return "b2b";
+  }
+
+  return null;
+}
+
+function normalizePayload(raw: unknown): LeadPayload | null {
+  const parsed = LeadRequestSchema.safeParse(raw);
+  if (!parsed.success) return null;
+
+  const data = parsed.data;
+  const payloadWithoutSegment = {
+    firstName: data.firstName,
+    contact: data.contact,
+    type: data.type,
+    context: nullableText(data.context),
+    lang: data.lang,
+    selectedDayLabel: nullableText(data.selectedDayLabel),
+    selectedTime: data.selectedTime,
+    selectedDateTime: data.selectedDateTime,
+    timezone: nullableText(data.timezone),
+    pageUrl: nullableText(data.pageUrl),
+    utm: parseUtm(data.utm),
+    companyName: nullableText(data.companyName),
+    jobTitle: nullableText(data.jobTitle),
+    propertyType: nullableText(data.propertyType),
+    destination: nullableText(data.destination),
+  };
+
+  return {
+    ...payloadWithoutSegment,
+    leadSegment: inferLeadSegment(payloadWithoutSegment, nullableText(data.leadSegment)),
+  };
+}
+
+function normalizeLocale(lang: string): "FR" | "EN" | "ES" {
+  const locale = lang.trim().toUpperCase();
+  if (locale === "EN" || locale === "ES") return locale;
+  return "FR";
+}
+
+function splitContact(contact: string): { email?: string; phone?: string } | null {
+  if (contact.includes("@")) {
+    const email = contact.toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null;
+    return { email };
+  }
+
+  const digits = contact.replace(/\D/g, "");
+  if (digits.length < 6) return null;
+  return { phone: contact };
+}
+
+function slugTag(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+}
+
+function configuredTags(payload: LeadPayload) {
+  const envTags = process.env.GHL_DEFAULT_TAGS?.split(",") ?? DEFAULT_TAGS;
+  const derivedTags = [
+    `type ${payload.type}`,
+    payload.lang ? `lang ${payload.lang.toLowerCase()}` : "",
+    payload.leadSegment ? `segment ${payload.leadSegment}` : "",
+    payload.propertyType ? `property ${payload.propertyType}` : "",
+    payload.destination ? `destination ${payload.destination}` : "",
+  ];
+
+  return Array.from(
+    new Set(
+      [...envTags, ...derivedTags]
+        .map((tag) => slugTag(tag.trim()))
+        .filter(Boolean)
+    )
+  );
+}
+
+async function createLeadSubmission(payload: LeadPayload, tags: string[]) {
+  try {
+    const lead = await prisma.leadSubmission.create({
+      data: {
+        firstName: payload.firstName,
+        contact: payload.contact,
+        type: payload.type,
+        context: payload.context,
+        locale: normalizeLocale(payload.lang),
+        companyName: payload.companyName,
+        jobTitle: payload.jobTitle,
+        propertyType: payload.propertyType,
+        destination: payload.destination,
+        leadSegment: payload.leadSegment,
+        selectedDayLabel: payload.selectedDayLabel,
+        selectedTime: payload.selectedTime,
+        selectedAt: new Date(payload.selectedDateTime),
+        timezone: payload.timezone,
+        pageUrl: payload.pageUrl,
+        utm: payload.utm,
+        tags,
+        status: "CAPTURED",
+      },
+      select: { id: true },
+    });
+
+    return lead.id;
+  } catch (error) {
+    console.error("Lead persistence failed", error);
+    return null;
+  }
+}
+
+async function updateLeadSubmission(
+  leadSubmissionId: string | null,
+  data: {
+    status?: LeadSubmissionStatus;
+    ghlContactId?: string | null;
+    errorMessage?: string | null;
+    resendEmailId?: string | null;
+    notificationSentAt?: Date | null;
+    notificationError?: string | null;
+  }
+) {
+  if (!leadSubmissionId) return;
+
+  try {
+    await prisma.leadSubmission.update({
+      where: { id: leadSubmissionId },
+      data,
+    });
+  } catch (error) {
+    console.error("Lead status update failed", error);
+  }
+}
+
+function getLeadMode() {
+  const mode = process.env.GHL_LEAD_MODE?.trim().toLowerCase();
+  if (mode === "mock" || mode === "live") return mode;
+  return process.env.NODE_ENV === "production" ? "live" : "mock";
+}
+
+function mockLeadResponse(payload: LeadPayload, tags: string[], notification: NotificationResult) {
+  console.info("GHL mock lead submission", {
+    firstName: payload.firstName,
+    contact: payload.contact,
+    type: payload.type,
+    lang: payload.lang,
+    selectedDateTime: payload.selectedDateTime,
+    leadSegment: payload.leadSegment,
+    tags,
+    notificationStatus: notification.status,
+  });
+
+  return Response.json({ ok: true, mode: "mock", tags, notification: notification.status });
+}
+
+function makeQualificationLines(payload: LeadPayload) {
+  return [
+    payload.companyName ? `Entreprise: ${payload.companyName}` : "",
+    payload.jobTitle ? `Fonction: ${payload.jobTitle}` : "",
+    payload.propertyType ? `Type d'établissement: ${payload.propertyType}` : "",
+    payload.destination ? `Destination: ${payload.destination}` : "",
+    payload.leadSegment ? `Segment: ${payload.leadSegment}` : "",
+  ].filter(Boolean);
+}
+
+function makeNoteBody(payload: LeadPayload) {
+  const utm = Object.entries(payload.utm)
+    .map(([key, value]) => `${key}: ${value}`)
+    .join("\n");
+  const qualification = makeQualificationLines(payload);
+
+  const lines = [
+    "Demande privée transmise depuis la landing Méthode TMS®.",
+    "",
+    `Prénom: ${payload.firstName}`,
+    `Contact: ${payload.contact}`,
+    `Type de demande: ${payload.type}`,
+    `Créneau souhaité: ${payload.selectedDayLabel ?? "non précisé"} à ${payload.selectedTime}`,
+    `Date ISO: ${payload.selectedDateTime}`,
+    `Langue: ${payload.lang || "non précisée"}`,
+    `Fuseau horaire: ${payload.timezone || "non précisé"}`,
+  ];
+
+  if (qualification.length > 0) {
+    lines.push("", "Qualification B2B:", ...qualification);
+  }
+
+  lines.push(
+    "",
+    "Contexte:",
+    payload.context || "Non précisé.",
+    "",
+    `Page: ${payload.pageUrl || "non précisée"}`
+  );
+
+  if (utm) lines.push("", "UTM:", utm);
+
+  return lines.join("\n");
+}
+
+function getGhlConfig() {
+  const token = process.env.GHL_PRIVATE_INTEGRATION_TOKEN;
+  const locationId = process.env.GHL_LOCATION_ID;
+
+  if (!token || !locationId) return null;
+
+  return {
+    token,
+    locationId,
+    baseUrl: (process.env.GHL_BASE_URL || DEFAULT_GHL_BASE_URL).replace(/\/+$/, ""),
+    version: process.env.GHL_API_VERSION || DEFAULT_GHL_API_VERSION,
+    assignedUserId: process.env.GHL_ASSIGNED_USER_ID,
+    pipelineId: process.env.GHL_PIPELINE_ID,
+    pipelineStageId: process.env.GHL_PIPELINE_STAGE_ID,
+    workflowId: process.env.GHL_WORKFLOW_ID,
+    source: process.env.GHL_SOURCE || DEFAULT_GHL_SOURCE,
+  };
+}
+
+async function ghlFetch<T>(
+  config: NonNullable<ReturnType<typeof getGhlConfig>>,
+  path: string,
+  options: GhlRequestOptions = {}
+) {
+  const response = await fetch(`${config.baseUrl}${path}`, {
+    method: options.method ?? "POST",
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${config.token}`,
+      "Content-Type": "application/json",
+      Version: config.version,
+    },
+    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+  });
+
+  const text = await response.text();
+  let data: T;
+  try {
+    data = text ? (JSON.parse(text) as T) : ({} as T);
+  } catch {
+    data = { raw: text } as T;
+  }
+
+  if (!response.ok) {
+    throw new Error(`GHL ${response.status} ${path}: ${text}`);
+  }
+
+  return data;
+}
+
+async function optionalGhlStep(label: string, run: () => Promise<unknown>) {
+  try {
+    await run();
+  } catch (error) {
+    console.error(`Optional GHL step failed: ${label}`, error);
+  }
+}
+
+function getLeadNotificationConfig() {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.LEAD_NOTIFICATION_FROM;
+  const to = process.env.LEAD_NOTIFICATION_TO?.split(",").map((value) => value.trim()).filter(Boolean);
+  const bcc = process.env.LEAD_NOTIFICATION_BCC?.split(",").map((value) => value.trim()).filter(Boolean);
+
+  if (!apiKey || !from || !to || to.length === 0) return null;
+
+  return {
+    apiKey,
+    from,
+    to,
+    bcc,
+  };
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function formatHtmlLines(lines: string[]) {
+  return lines
+    .map((line) => {
+      if (!line) return "<br />";
+      const [label, ...rest] = line.split(":");
+      if (rest.length === 0) return `<p>${escapeHtml(line)}</p>`;
+      return `<p><strong>${escapeHtml(label)}:</strong>${escapeHtml(rest.join(":"))}</p>`;
+    })
+    .join("\n");
+}
+
+async function sendLeadNotification(payload: LeadPayload, tags: string[]): Promise<NotificationResult> {
+  const config = getLeadNotificationConfig();
+  if (!config) return { status: "not_configured", error: "RESEND_NOT_CONFIGURED" };
+
+  const resend = new Resend(config.apiKey);
+  const subjectPrefix = payload.leadSegment === "luxury_hospitality" ? "Lead B2B Hospitality" : "Lead TMS";
+  const subject = `${subjectPrefix} - ${payload.firstName} - ${payload.type}`.slice(0, 180);
+  const noteBody = makeNoteBody(payload);
+  const text = [noteBody, "", `Tags: ${tags.join(", ")}`].join("\n");
+  const html = [
+    "<h2>Nouvelle demande Méthode TMS</h2>",
+    formatHtmlLines(noteBody.split("\n")),
+    `<p><strong>Tags:</strong> ${escapeHtml(tags.join(", "))}</p>`,
+  ].join("\n");
+  const replyTo = payload.contact.includes("@") ? payload.contact.toLowerCase() : undefined;
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: config.from,
+      to: config.to,
+      ...(config.bcc && config.bcc.length > 0 ? { bcc: config.bcc } : {}),
+      ...(replyTo ? { replyTo } : {}),
+      subject,
+      text,
+      html,
+    });
+
+    if (error) {
+      return { status: "failed", error: error.message || "RESEND_SEND_FAILED" };
+    }
+
+    return { status: "sent", resendEmailId: data?.id ?? "" };
+  } catch (error) {
+    return {
+      status: "failed",
+      error: error instanceof Error ? error.message.slice(0, 4000) : "RESEND_SEND_FAILED",
+    };
+  }
+}
+
+async function persistNotificationResult(leadSubmissionId: string | null, notification: NotificationResult) {
+  if (notification.status === "sent") {
+    await updateLeadSubmission(leadSubmissionId, {
+      resendEmailId: notification.resendEmailId || null,
+      notificationSentAt: new Date(),
+      notificationError: null,
+    });
+    return;
+  }
+
+  await updateLeadSubmission(leadSubmissionId, {
+    notificationError: notification.error,
+  });
+}
+
+export async function handleLeadRequest(request: Request) {
+  let raw: unknown;
+
+  try {
+    raw = await request.json();
+  } catch {
+    return jsonError(400, "INVALID_JSON");
+  }
+
+  const payload = normalizePayload(raw);
+  if (!payload) return jsonError(400, "INVALID_LEAD");
+
+  const parsedContact = splitContact(payload.contact);
+  if (!parsedContact) return jsonError(400, "INVALID_CONTACT");
+
+  const tags = configuredTags(payload);
+  const leadSubmissionId = await createLeadSubmission(payload, tags);
+  const notification = await sendLeadNotification(payload, tags);
+  await persistNotificationResult(leadSubmissionId, notification);
+
+  if (getLeadMode() === "mock") {
+    await updateLeadSubmission(leadSubmissionId, { status: "MOCKED" });
+    return mockLeadResponse(payload, tags, notification);
+  }
+
+  const config = getGhlConfig();
+  if (!config) {
+    console.error("Missing required GHL environment variables.");
+    await updateLeadSubmission(leadSubmissionId, {
+      status: "FAILED",
+      errorMessage: "GHL_NOT_CONFIGURED",
+    });
+    return jsonError(500, "GHL_NOT_CONFIGURED");
+  }
+
+  try {
+    const contactResponse = await ghlFetch<GhlContactResponse>(config, "/contacts/upsert", {
+      body: {
+        locationId: config.locationId,
+        firstName: payload.firstName,
+        name: payload.firstName,
+        ...parsedContact,
+        source: config.source,
+        ...(config.assignedUserId ? { assignedTo: config.assignedUserId } : {}),
+      },
+    });
+
+    const contactId = contactResponse.contact?.id ?? contactResponse.id;
+    if (!contactId) {
+      throw new Error(`GHL upsert did not return a contact id: ${contactResponse.traceId ?? "no traceId"}`);
+    }
+
+    const noteBody = makeNoteBody(payload);
+    const taskBody = [
+      `Contact souhaité: ${payload.selectedDayLabel ?? "non précisé"} à ${payload.selectedTime}`,
+      `Type: ${payload.type}`,
+      `Contact: ${payload.contact}`,
+      payload.companyName ? `Entreprise: ${payload.companyName}` : "",
+      payload.leadSegment ? `Segment: ${payload.leadSegment}` : "",
+    ].filter(Boolean).join("\n");
+
+    await ghlFetch(config, `/contacts/${contactId}/tags`, {
+      body: { tags },
+    });
+
+    await ghlFetch(config, `/contacts/${contactId}/notes`, {
+      body: {
+        title: "Demande privée - Méthode TMS®",
+        body: noteBody,
+        pinned: false,
+      },
+    });
+
+    await ghlFetch(config, `/contacts/${contactId}/tasks`, {
+      body: {
+        title: "Rappeler - demande privée TMS",
+        body: taskBody,
+        dueDate: payload.selectedDateTime,
+        completed: false,
+        ...(config.assignedUserId ? { assignedTo: config.assignedUserId } : {}),
+      },
+    });
+
+    if (config.pipelineId && config.pipelineStageId) {
+      await optionalGhlStep("create opportunity", () =>
+        ghlFetch(config, "/opportunities/", {
+          body: {
+            pipelineId: config.pipelineId,
+            pipelineStageId: config.pipelineStageId,
+            locationId: config.locationId,
+            name: `Demande privée TMS - ${payload.firstName}`,
+            status: "open",
+            contactId,
+            ...(config.assignedUserId ? { assignedTo: config.assignedUserId } : {}),
+          },
+        })
+      );
+    }
+
+    if (config.workflowId) {
+      await optionalGhlStep("add contact to workflow", () =>
+        ghlFetch(config, `/contacts/${contactId}/workflow/${config.workflowId}`, {
+          body: { eventStartTime: payload.selectedDateTime },
+        })
+      );
+    }
+
+    await updateLeadSubmission(leadSubmissionId, {
+      status: "SENT_TO_GHL",
+      ghlContactId: contactId,
+      errorMessage: null,
+    });
+
+    return Response.json({ ok: true, notification: notification.status });
+  } catch (error) {
+    console.error("GHL lead submission failed", error);
+    await updateLeadSubmission(leadSubmissionId, {
+      status: "FAILED",
+      errorMessage: error instanceof Error ? error.message.slice(0, 4000) : "GHL_SUBMISSION_FAILED",
+    });
+    return jsonError(502, "GHL_SUBMISSION_FAILED");
+  }
+}

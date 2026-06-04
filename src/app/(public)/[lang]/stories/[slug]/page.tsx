@@ -2,7 +2,14 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { absoluteUrl } from "@/lib/seo";
+import {
+  absoluteUrl,
+  createArticleJsonLd,
+  createIdentityJsonLd,
+  createWebPageJsonLd,
+  graphJsonLd,
+  renderJsonLd,
+} from "@/lib/seo";
 import { getArticleCanonicalUrl, getStoriesIndexPath } from "@/lib/routes";
 import { sanitizeHtml } from "@/lib/utils";
 import ArticleContent from "@/components/stories/ArticleContent";
@@ -36,22 +43,6 @@ async function getArticle(slug: string, lang: string) {
   }
 }
 
-export async function generateStaticParams() {
-  try {
-    const articles = await prisma.article.findMany({
-      where: { status: "PUBLISHED" },
-      select: { slug: true, locale: true },
-    });
-    return articles.map((a) => ({
-      lang: a.locale.toLowerCase(),
-      slug: a.slug,
-    }));
-  } catch (error) {
-    console.error("Prisma error during generateStaticParams for [lang]/stories/[slug]:", error);
-    return [];
-  }
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { lang, slug } = await params;
   if (lang !== "fr" && lang !== "en" && lang !== "es") return {};
@@ -71,7 +62,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const noindex = article.seo?.noindex ?? false;
 
   const translations = await prisma.article.findMany({
-    where: { slug: article.slug, status: "PUBLISHED" },
+    where: article.translationGroupId
+      ? { translationGroupId: article.translationGroupId, status: "PUBLISHED" }
+      : { slug: article.slug, status: "PUBLISHED" },
     select: { locale: true, slug: true }
   });
 
@@ -147,43 +140,42 @@ function articleStructuredData(article: NonNullable<Awaited<ReturnType<typeof ge
   const canonical = getArticleCanonicalUrl({ locale: article.locale, slug: article.slug });
   const storiesIndexUrl = absoluteUrl(getStoriesIndexPath(article.locale));
   const langUrl = absoluteUrl(`/${lang}`);
+  const locale = lang as "fr" | "en" | "es";
 
-  return {
-    "@context": "https://schema.org",
-    "@graph": [
+  return graphJsonLd([
+    createIdentityJsonLd(locale),
+    createWebPageJsonLd({
+      locale,
+      routeKey: "stories",
+      title: article.title,
+      description: article.excerpt ?? article.title,
+      aboutId: `${canonical}#article`,
+    }),
+    createArticleJsonLd({
+      locale,
+      url: canonical,
+      title: article.title,
+      description: article.excerpt,
+      image: article.coverImage?.url ? absoluteUrl(article.coverImage.url) : null,
+      datePublished: article.publishedAt?.toISOString(),
+      dateModified: article.updatedAt.toISOString(),
+      wordCount: article.content?.wordCount,
+    }),
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
       {
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: lang.toUpperCase(), item: langUrl },
-          { "@type": "ListItem", position: 2, name: "Stories", item: storiesIndexUrl },
-          { "@type": "ListItem", position: 3, name: article.title, item: canonical },
-        ],
+        "@type": "ListItem",
+        position: 1,
+        name: lang.toUpperCase(),
+        item: langUrl,
       },
-      {
-        "@type": "Article",
-        headline: article.title,
-        description: article.excerpt,
-        url: canonical,
-        image: article.coverImage?.url ? absoluteUrl(article.coverImage.url) : undefined,
-        datePublished: article.publishedAt?.toISOString(),
-        dateModified: article.updatedAt.toISOString(),
-        author: {
-          "@type": "Person",
-          name: "Grégory Tordjman",
-          url: langUrl,
-        },
-        publisher: {
-          "@type": "Organization",
-          name: "Méthode TMS®",
-          url: absoluteUrl(),
-        },
-        mainEntityOfPage: {
-          "@type": "WebPage",
-          "@id": canonical,
-        },
-      },
+      { "@type": "ListItem", position: 2, name: "Stories", item: storiesIndexUrl },
+      { "@type": "ListItem", position: 3, name: article.title, item: canonical },
     ],
-  };
+    },
+  ]);
 }
 
 export default async function ArticlePage({ params }: Props) {
@@ -210,7 +202,7 @@ export default async function ArticlePage({ params }: Props) {
       <script
         type="application/ld+json"
         suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleStructuredData(article, lang)) }}
+        dangerouslySetInnerHTML={{ __html: renderJsonLd(articleStructuredData(article, lang)) }}
       />
 
       <StoriesPageShell lang={lang as "fr" | "en" | "es"}>

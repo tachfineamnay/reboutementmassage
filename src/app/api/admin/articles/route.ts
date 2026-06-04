@@ -89,6 +89,7 @@ export async function POST(req: NextRequest) {
     const created = await tx.article.create({
       data: {
         locale: data.locale,
+        translationGroupId: data.translationGroupId ?? null,
         slug: data.slug,
         title: data.title,
         excerpt: data.excerpt ?? null,
