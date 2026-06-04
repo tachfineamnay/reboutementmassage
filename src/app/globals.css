@@ -5925,3 +5925,374 @@ html[data-palette="forest"] .seances-deroule { background: var(--ink); }
 @media (max-width: 640px) {
   .section-sub { font-size: 15px; }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   STORIES (pages publiques)
+   ══════════════════════════════════════════════════════════════ */
+
+.stories-page {
+  min-height: 100vh;
+  background: var(--cream);
+  color: var(--ink);
+}
+
+.stories-hero {
+  position: relative;
+  padding: 180px 0 100px;
+  background: var(--cream);
+  color: var(--ink);
+  border-bottom: 0.5px solid var(--line);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.stories-hero::before {
+  content: "";
+  position: absolute;
+  top: -80px; left: -80px;
+  width: 360px; height: 360px;
+  border-radius: 50%;
+  background: var(--forest);
+  opacity: 0.04;
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.stories-hero__inner {
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--x-pad);
+  position: relative;
+  z-index: 1;
+}
+
+.stories-hero__h1 {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(38px, 5.2vw, 56px);
+  line-height: 1.1;
+  color: var(--ink);
+  margin-top: 24px;
+  letter-spacing: -0.01em;
+}
+
+.stories-hero__h1 em {
+  font-style: italic;
+  font-weight: 300;
+  color: var(--forest);
+}
+
+.stories-hero__desc {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--mid);
+  max-width: 520px;
+  margin-top: 20px;
+  text-wrap: pretty;
+}
+
+.stories-grid-section {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 56px var(--x-pad) var(--pad-l);
+}
+
+.stories-grid-section__head {
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: 16px;
+  margin-bottom: 40px;
+  border-bottom: 0.5px solid var(--line);
+}
+
+.stories-grid-section__count {
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-muted);
+}
+
+.stories-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px 32px;
+}
+
+.stories-empty {
+  text-align: center;
+  padding: 80px 0;
+  color: var(--mid);
+  font-style: italic;
+  grid-column: 1 / -1;
+}
+
+/* Article card */
+.article-card {
+  background: var(--white);
+  border: 0.5px solid var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.article-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.10);
+}
+
+.article-card__link { text-decoration: none; color: inherit; display: block; }
+
+.article-card__cover {
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  background: var(--ink);
+}
+
+.article-card__cover--placeholder { background: var(--forest-light); }
+
+.article-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.article-card:hover .article-card__img { transform: scale(1.03); }
+
+.article-card__body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.article-card__date {
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.article-card__title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 20px;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.article-card__excerpt {
+  font-size: 13px;
+  color: var(--mid);
+  line-height: 1.65;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.article-card__cta {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--forest);
+  margin-top: 4px;
+  display: inline-block;
+}
+
+/* Article detail */
+.article-page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 120px var(--x-pad) var(--pad-l);
+  min-height: 100vh;
+}
+
+.article-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 32px;
+  font-size: 11px;
+  font-family: var(--sans);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--mid);
+}
+
+.article-breadcrumb__link {
+  color: var(--forest);
+  text-decoration: none;
+  transition: color 0.25s ease;
+}
+
+.article-breadcrumb__link:hover { color: var(--ink); }
+.article-breadcrumb__sep { color: var(--line); }
+
+.article-hero {
+  margin-bottom: 40px;
+  border-radius: 2px;
+  overflow: hidden;
+  aspect-ratio: 16/9;
+  background: var(--ink);
+  border: 0.5px solid var(--line);
+}
+
+.article-hero__img { width: 100%; height: 100%; object-fit: cover; }
+
+.article-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.article-header__date {
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.article-header__title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.15;
+  color: var(--ink);
+}
+
+.article-header__excerpt {
+  font-size: 17px;
+  color: var(--mid);
+  line-height: 1.65;
+  font-style: italic;
+  text-wrap: pretty;
+}
+
+.article-header__meta {
+  font-family: var(--sans);
+  font-size: 11px;
+  color: var(--faint);
+  letter-spacing: 0.04em;
+  margin-top: 4px;
+}
+
+/* Article content (prose) */
+.article-content {
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--ink-light);
+  margin-bottom: 48px;
+}
+
+.article-content h2 {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 26px;
+  margin: 40px 0 16px;
+  color: var(--ink);
+}
+
+.article-content h3 {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 22px;
+  margin: 32px 0 12px;
+  color: var(--ink);
+}
+
+.article-content p { margin-bottom: 20px; }
+
+.article-content ul, .article-content ol {
+  padding-left: 24px;
+  margin-bottom: 20px;
+}
+
+.article-content li { margin-bottom: 6px; }
+
+.article-content blockquote {
+  border-left: 1.5px solid var(--gold);
+  padding: 4px 0 4px 24px;
+  color: var(--mid);
+  font-style: italic;
+  margin: 32px 0;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.article-content a { color: var(--forest); text-decoration: underline; }
+.article-content hr { border: none; border-top: 0.5px solid var(--line); margin: 40px 0; }
+
+.article-content__empty { color: var(--mid); font-style: italic; }
+
+.article-footer {
+  padding-top: 40px;
+  border-top: 0.5px solid var(--line);
+}
+
+.article-footer__back {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.2s, gap 0.2s;
+}
+
+.article-footer__back:hover { color: var(--ink); gap: 12px; }
+
+/* ─── Responsive stories ─── */
+@media (max-width: 920px) {
+  .stories-hero { padding: 130px 0 80px; }
+  .stories-hero__inner { padding: 0 40px; }
+  .stories-grid-section { padding: 60px 40px 80px; }
+  .stories-grid { grid-template-columns: 1fr 1fr; }
+  .article-page { padding: 100px 32px 80px; }
+}
+
+@media (max-width: 640px) {
+  .stories-hero { padding: 110px 0 60px; }
+  .stories-hero__inner { padding: 0 24px; }
+  .stories-grid { grid-template-columns: 1fr; }
+  .stories-grid-section { padding: 40px 24px 60px; }
+  .article-card__body { padding: 24px; }
+  .article-page { padding: 90px 24px 80px; }
+}
+
+/* ──────────────────────────────────────────────────────────
+   Cream layout overrides for stories
+   ────────────────────────────────────────────────────────── */
+html[data-layout="cream"] .stories-page {
+  background: var(--cream);
+  color: var(--ink);
+}
+html[data-layout="cream"] .stories-hero {
+  background: var(--cream);
+  color: var(--ink);
+  padding: 180px 0 100px;
+}
+html[data-layout="cream"] .stories-hero::after {
+  background: linear-gradient(90deg, transparent, rgba(30,77,58,0.2), transparent);
+}
+html[data-layout="cream"] .stories-hero__h1 {
+  color: var(--ink);
+}
+html[data-layout="cream"] .stories-hero__h1 em {
+  color: var(--forest);
+}
+html[data-layout="cream"] .stories-hero__desc {
+  color: var(--mid);
+}
