@@ -39,7 +39,7 @@ export async function submitIndexNowUrls(urls: string[]) {
     };
   }
 
-  const keyLocation = absoluteUrl(`/${key}.txt`);
+  const keyLocation = absoluteUrl("/indexnow.txt");
 
   const response = await fetch(INDEXNOW_ENDPOINT, {
     method: "POST",
