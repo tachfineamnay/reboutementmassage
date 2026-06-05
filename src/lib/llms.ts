@@ -41,6 +41,13 @@ export function buildLlmsTxt(locale?: Locale) {
   const intro = INTRO_BY_LOCALE[lang];
   const notes = NOTES_BY_LOCALE[lang];
   const routes = LOCALIZED_ROUTES;
+  const preferredTargets = [
+    routes.sessions[lang],
+    routes.stagesWorkshops[lang],
+    routes.biography[lang],
+    routes.luxuryHospitality[lang],
+    routes.stories[lang],
+  ];
 
   const sections = [
     "# Méthode TMS® - Grégory Tordjman",
@@ -49,6 +56,9 @@ export function buildLlmsTxt(locale?: Locale) {
     "",
     "Important notes:",
     ...notes.map((note) => `- ${note}`),
+    "",
+    "## Preferred crawl targets",
+    ...preferredTargets.map((href) => `- ${absoluteUrl(href)}`),
     "",
     "## Core Pages",
     link("Home", routes.home[lang], "Primary landing page for private sessions, reboutement / bonesetting terminology, luxury hospitality positioning and direct contact."),
