@@ -24,13 +24,24 @@ const STATIC_ROUTES: Array<{
   { key: "luxuryHospitality", changeFrequency: "monthly", priority: 0.9 },
 ];
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const lastModified = new Date();
+const STATIC_ROUTE_LASTMOD: Record<LocalizedRouteKey, string> = {
+  home: "2026-06-05",
+  stories: "2026-06-05",
+  biography: "2026-06-05",
+  sessions: "2026-06-05",
+  stagesWorkshops: "2026-06-05",
+  luxuryHospitality: "2026-06-05",
+};
 
+function staticLastModified(routeKey: LocalizedRouteKey) {
+  return new Date(`${STATIC_ROUTE_LASTMOD[routeKey]}T00:00:00.000Z`);
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = STATIC_ROUTES.flatMap((route) =>
     LOCALES.map((locale) => ({
       url: absoluteUrl(LOCALIZED_ROUTES[route.key][locale]),
-      lastModified,
+      lastModified: staticLastModified(route.key),
       changeFrequency: route.changeFrequency,
       priority: locale === "fr" ? route.priority : Math.max(route.priority - 0.05, 0.5),
       alternates: {
