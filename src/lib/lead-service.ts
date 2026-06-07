@@ -43,6 +43,22 @@ type GhlContactResponse = {
   traceId?: string;
 };
 
+type GhlCustomField = {
+  id: string;
+  name: string;
+  fieldKey?: string;
+  model?: string;
+};
+
+type GhlCustomFieldsResponse = {
+  customFields?: GhlCustomField[];
+};
+
+type GhlContactCustomField = {
+  id: string;
+  fieldValue: string;
+};
+
 type GhlRequestOptions = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
@@ -65,6 +81,21 @@ const GHL_INTENT_LABELS: Record<string, string> = {
   partnership: "Partenariat",
   other: "Demande générale site",
 };
+const GHL_CUSTOM_FIELD_NAMES = {
+  intent: "GT - Intention",
+  channel: "GT - Canal",
+  segment: "GT - Segment",
+  needType: "GT - Besoin principal",
+  urgency: "GT - Urgence / période",
+  location: "GT - Lieu actuel / destination",
+  bookingFormat: "GT - Format choisi",
+  duration: "GT - Durée",
+  companyName: "GT - Établissement / société",
+  jobTitle: "GT - Fonction",
+  propertyType: "GT - Type établissement",
+  participantCount: "GT - Nombre participants",
+} as const;
+const ghlCustomFieldCache = new Map<string, Promise<Map<string, string>>>();
 
 const LeadRequestSchema = z
   .object({
@@ -379,6 +410,102 @@ function branchNumber(branchData: Record<string, unknown>, key: string) {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+function normalizeCustomFieldName(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+async function getGhlContactCustomFieldIds(
+  config: NonNullable<ReturnType<typeof getGhlConfig>>
+) {
+  const cacheKey = `${config.baseUrl}:${config.locationId}`;
+  const cached = ghlCustomFieldCache.get(cacheKey);
+  if (cached) return cached;
+
+  const request = ghlFetch<GhlCustomFieldsResponse>(
+    config,
+    `/locations/${config.locationId}/customFields?model=contact`,
+    { method: "GET" }
+  )
+    .then((response) => {
+      const fields = response.customFields ?? [];
+      return new Map(
+        fields
+          .filter((field) => field.id && field.name && field.model !== "opportunity")
+          .map((field) => [normalizeCustomFieldName(field.name), field.id])
+      );
+    })
+    .catch((error) => {
+      ghlCustomFieldCache.delete(cacheKey);
+      throw error;
+    });
+
+  ghlCustomFieldCache.set(cacheKey, request);
+  return request;
+}
+
+async function makeGhlCustomFields(
+  config: NonNullable<ReturnType<typeof getGhlConfig>>,
+  payload: LeadPayload
+): Promise<GhlContactCustomField[]> {
+  const branchData = getBranchData(payload);
+  const bookingFormat = branchText(branchData, "bookingFormat");
+  const durationMinutes = branchNumber(branchData, "durationMinutes");
+  const values = new Map<string, string | null>([
+    [GHL_CUSTOM_FIELD_NAMES.intent, payload.intent],
+    [GHL_CUSTOM_FIELD_NAMES.channel, payload.preferredChannel],
+    [GHL_CUSTOM_FIELD_NAMES.segment, payload.leadSegment],
+    [GHL_CUSTOM_FIELD_NAMES.needType, payload.needType],
+    [GHL_CUSTOM_FIELD_NAMES.urgency, payload.urgency],
+    [
+      GHL_CUSTOM_FIELD_NAMES.location,
+      payload.currentLocation || payload.destination,
+    ],
+    [GHL_CUSTOM_FIELD_NAMES.bookingFormat, bookingFormat],
+    [
+      GHL_CUSTOM_FIELD_NAMES.duration,
+      durationMinutes === null ? null : `${durationMinutes} min`,
+    ],
+    [GHL_CUSTOM_FIELD_NAMES.companyName, payload.companyName],
+    [GHL_CUSTOM_FIELD_NAMES.jobTitle, payload.jobTitle],
+    [GHL_CUSTOM_FIELD_NAMES.propertyType, payload.propertyType],
+    [GHL_CUSTOM_FIELD_NAMES.participantCount, payload.participantCount],
+  ]);
+
+  let fieldIds: Map<string, string>;
+  try {
+    fieldIds = await getGhlContactCustomFieldIds(config);
+  } catch (error) {
+    console.error("GHL custom field lookup failed", error);
+    return [];
+  }
+
+  const customFields: GhlContactCustomField[] = [];
+  const missingFields: string[] = [];
+
+  for (const [name, value] of values) {
+    if (!value) continue;
+
+    const id = fieldIds.get(normalizeCustomFieldName(name));
+    if (!id) {
+      missingFields.push(name);
+      continue;
+    }
+
+    customFields.push({ id, fieldValue: value });
+  }
+
+  if (missingFields.length > 0) {
+    console.warn("GHL custom fields not found", { fields: missingFields });
+  }
+
+  return customFields;
+}
+
 function getTaskTitle(intent: string | null) {
   switch (intent) {
     case "private_session":
@@ -661,6 +788,7 @@ export async function handleLeadRequest(request: Request) {
   }
 
   try {
+    const customFields = await makeGhlCustomFields(config, payload);
     const contactResponse = await ghlFetch<GhlContactResponse>(config, "/contacts/upsert", {
       body: {
         locationId: config.locationId,
@@ -668,6 +796,7 @@ export async function handleLeadRequest(request: Request) {
         name: payload.firstName,
         ...parsedContact,
         source: config.source,
+        ...(customFields.length > 0 ? { customFields } : {}),
         ...(config.assignedUserId ? { assignedTo: config.assignedUserId } : {}),
       },
     });
