@@ -1750,17 +1750,6 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   gap: 14px;
   margin-top: 8px;
 }
-.sf-confirm__wa {
-  font-family: var(--sans);
-  font-weight: 300;
-  font-size: 13px;
-  color: var(--mid);
-  border-bottom: 0.5px solid var(--gold);
-  padding-bottom: 1px;
-  transition: color 0.25s ease;
-}
-.sf-confirm__wa:hover { color: var(--forest); }
-
 /* ── Embedded training/workshop booking ── */
 .container--booking {
   max-width: 1180px;

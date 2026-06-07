@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import {
+  formatLeadChannel,
   formatLeadSlot,
   formatSourcePage,
   isEmailContact,
@@ -88,19 +89,9 @@ export default async function DemandeDetailPage({ params }: Props) {
         </div>
         <div className="admin-page__actions">
           {phone && (
-            <>
-              <a href={`tel:${phone.tel}`} className="admin-btn admin-btn--primary">
-                Appeler
-              </a>
-              <a
-                href={`https://wa.me/${phone.whatsapp}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="admin-btn admin-btn--ghost"
-              >
-                WhatsApp
-              </a>
-            </>
+            <a href={`tel:${phone.tel}`} className="admin-btn admin-btn--primary">
+              Appeler
+            </a>
           )}
           {isEmail && (
             <a href={`mailto:${lead.contact}`} className="admin-btn admin-btn--primary">
@@ -135,7 +126,7 @@ export default async function DemandeDetailPage({ params }: Props) {
           )}
           <DetailItem label="Page d'origine" value={formatSourcePage(lead.pageUrl)} />
           <DetailItem
-            label="Statut"
+            label="Statut GHL"
             value={
               <span className={LEAD_STATUS_CLASSES[lead.status]}>
                 {LEAD_STATUS_LABELS[lead.status]}
@@ -148,7 +139,7 @@ export default async function DemandeDetailPage({ params }: Props) {
           {lead.destination && <DetailItem label="Destination" value={lead.destination} />}
 
           {lead.intent && <DetailItem label="Intention" value={lead.intent} />}
-          {lead.preferredChannel && <DetailItem label="Canal préféré" value={lead.preferredChannel} />}
+          <DetailItem label="Canal" value={formatLeadChannel(lead.preferredChannel)} />
           {lead.routedToUrl && (
             <DetailItem
               label="Redirigé vers"
@@ -165,7 +156,7 @@ export default async function DemandeDetailPage({ params }: Props) {
           {lead.participantCount && <DetailItem label="Participants" value={lead.participantCount} />}
           {lead.currentLocation && <DetailItem label="Lieu actuel" value={lead.currentLocation} />}
 
-          <DetailItem label="Contact GHL" value={lead.ghlContactId ?? "—"} />
+          <DetailItem label="ID contact GHL" value={lead.ghlContactId ?? "—"} />
           <DetailItem label="Créée le" value={dateFmt.format(lead.createdAt)} />
           <DetailItem label="Mise à jour le" value={dateFmt.format(lead.updatedAt)} />
         </div>
@@ -191,7 +182,7 @@ export default async function DemandeDetailPage({ params }: Props) {
           <pre className="lead-detail-code">{stringifyJson(lead.utm)}</pre>
         </div>
         <div className="admin-panel">
-          <h2 className="admin-panel__title">Tags</h2>
+          <h2 className="admin-panel__title">Tags GHL</h2>
           {lead.tags.length > 0 ? (
             <div className="lead-tags">
               {lead.tags.map((tag) => (
@@ -208,7 +199,7 @@ export default async function DemandeDetailPage({ params }: Props) {
 
       {(lead.errorMessage || lead.status === "FAILED") && (
         <section className="admin-section">
-          <h2 className="admin-section__title">Erreur éventuelle</h2>
+          <h2 className="admin-section__title">Erreur GHL éventuelle</h2>
           <div className="admin-alert admin-alert--error">{lead.errorMessage || "Erreur GHL sans détail."}</div>
         </section>
       )}

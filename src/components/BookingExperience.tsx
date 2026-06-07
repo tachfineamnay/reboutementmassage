@@ -9,7 +9,6 @@ import {
   type BookingSlot,
 } from "@/lib/booking-slots";
 import { createGoogleCalendarUrl } from "@/lib/calendar-link";
-import { getBookingWhatsAppUrl } from "@/config/conversionRoutes";
 
 export type BookingQualificationData = {
   destination?: string | null;
@@ -182,10 +181,10 @@ const TEXT = {
     error: "La demande n'a pas pu être enregistrée. Merci de réessayer.",
     confirmedTitle: "Votre demande est bien transmise",
     confirmed:
-      "Votre demande de créneau a bien été transmise. Grégory ou son équipe confirmera personnellement ce rendez-vous.",
+      "Votre demande de créneau a bien été transmise. Ce créneau reste sous réserve de confirmation par l’équipe.",
     calendar: "Ajouter à Google Calendar",
-    whatsapp: "Envoyer un message WhatsApp",
     pending: "Créneau demandé, sous réserve de confirmation",
+    transmitted: "Demande transmise à l’équipe",
     training: "Formation",
     workshop: "Workshop",
     back: "Retour",
@@ -210,10 +209,10 @@ const TEXT = {
     error: "Your request could not be saved. Please try again.",
     confirmedTitle: "Your request has been submitted",
     confirmed:
-      "Your time request has been sent. Grégory or his team will personally confirm this appointment.",
+      "Your time request has been submitted. This time remains subject to confirmation by the team.",
     calendar: "Add to Google Calendar",
-    whatsapp: "Send a WhatsApp message",
     pending: "Requested time, pending confirmation",
+    transmitted: "Request submitted to the team",
     training: "Training",
     workshop: "Workshop",
     back: "Back",
@@ -238,10 +237,10 @@ const TEXT = {
     error: "No se pudo guardar la solicitud. Inténtelo de nuevo.",
     confirmedTitle: "Su solicitud ha sido enviada",
     confirmed:
-      "Su solicitud de horario ha sido transmitida. Grégory o su equipo confirmará personalmente esta cita.",
+      "Su solicitud de horario ha sido enviada. Este horario queda sujeto a confirmación por el equipo.",
     calendar: "Añadir a Google Calendar",
-    whatsapp: "Enviar un mensaje por WhatsApp",
     pending: "Horario solicitado, pendiente de confirmación",
+    transmitted: "Solicitud enviada al equipo",
     training: "Formación",
     workshop: "Workshop",
     back: "Atrás",
@@ -357,14 +356,6 @@ export default function BookingExperience({
       details: copy.pending,
       location: destination || undefined,
     });
-    const whatsappUrl = getBookingWhatsAppUrl(
-      lang,
-      firstName,
-      intent,
-      confirmed.selectedDayLabel,
-      confirmed.selectedTime,
-      confirmed.timezone
-    );
 
     return (
       <div className="sf-confirm booking-confirm">
@@ -384,6 +375,7 @@ export default function BookingExperience({
           <span>{confirmed.selectedTime}</span>
           <small>{confirmed.timezone}</small>
         </div>
+        <p className="sf-confirm__therapist">{copy.transmitted}</p>
         <p className="sf-confirm__sms">{copy.pending}</p>
         <div className="sf-confirm__actions booking-confirm__actions">
           <a
@@ -393,14 +385,6 @@ export default function BookingExperience({
             className="sf-btn sf-btn--calendar"
           >
             {copy.calendar}
-          </a>
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="sf-confirm__wa"
-          >
-            {copy.whatsapp}
           </a>
         </div>
       </div>

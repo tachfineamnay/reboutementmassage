@@ -40,10 +40,33 @@ export function normalizePhoneContact(contact: string) {
   if (!phoneLike) return null;
 
   const tel = trimmed.replace(/[^\d+]/g, "");
-  const whatsapp = tel.replace(/[^\d]/g, "");
-  if (whatsapp.length < 7) return null;
+  if (tel.replace(/[^\d]/g, "").length < 7) return null;
 
-  return { tel, whatsapp };
+  return { tel };
+}
+
+export function formatLeadChannel(channel: string | null) {
+  if (channel === "internal_booking") return "GHL · Réservation interne";
+  if (channel === "callback") return "GHL · Rappel demandé";
+  return "GHL";
+}
+
+export function formatBookingFormat(branchData: unknown) {
+  if (!branchData || typeof branchData !== "object" || Array.isArray(branchData)) {
+    return "—";
+  }
+
+  const data = branchData as Record<string, unknown>;
+  const format =
+    typeof data.bookingFormat === "string" && data.bookingFormat.trim()
+      ? data.bookingFormat.trim()
+      : null;
+  const duration =
+    typeof data.durationMinutes === "number" && Number.isFinite(data.durationMinutes)
+      ? `${data.durationMinutes} min`
+      : null;
+
+  return [format, duration].filter(Boolean).join(" · ") || "—";
 }
 
 export function formatLeadSlot(lead: {

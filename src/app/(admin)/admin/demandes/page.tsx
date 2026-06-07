@@ -3,6 +3,8 @@ import type { Locale, Prisma } from "@prisma/client";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import {
+  formatBookingFormat,
+  formatLeadChannel,
   formatLeadSlot,
   formatSourcePage,
   isEmailContact,
@@ -112,6 +114,10 @@ export default async function DemandesPage({ searchParams }: PageProps) {
         firstName: true,
         contact: true,
         type: true,
+        intent: true,
+        preferredChannel: true,
+        leadSegment: true,
+        branchData: true,
         locale: true,
         selectedDayLabel: true,
         selectedTime: true,
@@ -208,9 +214,13 @@ export default async function DemandesPage({ searchParams }: PageProps) {
                 <th>Prénom</th>
                 <th>Contact</th>
                 <th>Type</th>
+                <th>Intention</th>
+                <th>Canal</th>
+                <th>Segment</th>
+                <th>Format</th>
                 <th>Langue</th>
                 <th>Créneau choisi</th>
-                <th>Statut</th>
+                <th>Statut GHL</th>
                 <th>Source / page</th>
                 <th>Action</th>
               </tr>
@@ -232,6 +242,10 @@ export default async function DemandesPage({ searchParams }: PageProps) {
                     </td>
                     <td className="admin-table__contact">{lead.contact}</td>
                     <td>{lead.type}</td>
+                    <td>{lead.intent ?? "—"}</td>
+                    <td>{formatLeadChannel(lead.preferredChannel)}</td>
+                    <td>{lead.leadSegment ?? "—"}</td>
+                    <td>{formatBookingFormat(lead.branchData)}</td>
                     <td>
                       <span className="badge badge--locale">{lead.locale}</span>
                     </td>
@@ -247,19 +261,9 @@ export default async function DemandesPage({ searchParams }: PageProps) {
                         Détail
                       </Link>
                       {phone && (
-                        <>
-                          <a href={`tel:${phone.tel}`} className="admin-action">
-                            Appeler
-                          </a>
-                          <a
-                            href={`https://wa.me/${phone.whatsapp}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="admin-action admin-action--view"
-                          >
-                            WhatsApp
-                          </a>
-                        </>
+                        <a href={`tel:${phone.tel}`} className="admin-action">
+                          Appeler
+                        </a>
                       )}
                       {isEmail && (
                         <a href={`mailto:${lead.contact}`} className="admin-action">

@@ -57,6 +57,14 @@ const DEFAULT_GHL_BASE_URL = "https://services.leadconnectorhq.com";
 const DEFAULT_GHL_API_VERSION = "2021-07-28";
 const DEFAULT_TAGS = ["landing-tms", "demande-privee", "source-landing-page"];
 const DEFAULT_GHL_SOURCE = "Landing Méthode TMS";
+const GHL_INTENT_LABELS: Record<string, string> = {
+  private_session: "Demande privée Méthode TMS",
+  hospitality_partner: "Partenaire hospitality",
+  training: "Formation TMS",
+  workshop: "Workshop TMS",
+  partnership: "Partenariat",
+  other: "Demande générale site",
+};
 
 const LeadRequestSchema = z
   .object({
@@ -184,7 +192,7 @@ function normalizePayload(raw: unknown): LeadPayload | null {
     propertyType: nullableText(data.propertyType),
     destination: nullableText(data.destination),
     intent: nullableText(data.intent),
-    preferredChannel: nullableText(data.preferredChannel),
+    preferredChannel: nullableText(data.preferredChannel) ?? "ghl",
     routedToUrl: nullableText(data.routedToUrl),
     urgency: nullableText(data.urgency),
     needType: nullableText(data.needType),
@@ -236,9 +244,12 @@ function configuredTags(payload: LeadPayload) {
     payload.propertyType ? `property ${payload.propertyType}` : "",
     payload.destination ? `destination ${payload.destination}` : "",
     payload.intent ? `intent ${payload.intent}` : "",
+    payload.preferredChannel ? `channel ${payload.preferredChannel}` : "channel ghl",
     payload.preferredChannel === "internal_booking" ? "internal booking" : "",
+    "channel ghl",
     "source site premium",
     payload.intent === "hospitality_partner" ? "segment b2b" : "",
+    payload.intent === "hospitality_partner" ? "hospitality premium" : "",
     payload.intent === "training" ? "training premium" : "",
     payload.intent === "workshop" ? "workshop premium" : "",
   ];
@@ -366,6 +377,28 @@ function branchText(branchData: Record<string, unknown>, key: string) {
 function branchNumber(branchData: Record<string, unknown>, key: string) {
   const value = branchData[key];
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function getTaskTitle(intent: string | null) {
+  switch (intent) {
+    case "private_session":
+      return "Traiter demande privée — Méthode TMS";
+    case "hospitality_partner":
+      return "Qualifier établissement / partenaire";
+    case "training":
+      return "Confirmer le créneau — Formation TMS";
+    case "workshop":
+      return "Confirmer le créneau — Workshop TMS";
+    case "partnership":
+      return "Analyser demande de partenariat";
+    default:
+      return "Traiter demande générale site";
+  }
+}
+
+function getIntentLabel(intent: string | null) {
+  if (!intent) return "Demande site Méthode TMS";
+  return GHL_INTENT_LABELS[intent] ?? `Demande ${intent}`;
 }
 
 function makeNoteBody(payload: LeadPayload) {
@@ -663,12 +696,7 @@ export async function handleLeadRequest(request: Request) {
       payload.destination ? `Destination: ${payload.destination}` : "",
       payload.context ? `Contexte:\n${payload.context}` : "",
     ].filter(Boolean).join("\n");
-    const taskTitle =
-      payload.intent === "training"
-        ? "Confirmer le créneau — Formation TMS"
-        : payload.intent === "workshop"
-          ? "Confirmer le créneau — Workshop TMS"
-          : "Rappeler — demande privée TMS";
+    const taskTitle = getTaskTitle(payload.intent);
 
     await ghlFetch(config, `/contacts/${contactId}/tags`, {
       body: { tags },
@@ -693,11 +721,7 @@ export async function handleLeadRequest(request: Request) {
         },
       });
 
-    if (payload.selectedDateTime) {
-      await createTask();
-    } else {
-      await optionalGhlStep("create task without due date", createTask);
-    }
+    await createTask();
 
     if (config.pipelineId && config.pipelineStageId) {
       await optionalGhlStep("create opportunity", () =>
@@ -706,7 +730,7 @@ export async function handleLeadRequest(request: Request) {
             pipelineId: config.pipelineId,
             pipelineStageId: config.pipelineStageId,
             locationId: config.locationId,
-            name: `Demande privée TMS - ${payload.firstName}`,
+            name: `${getIntentLabel(payload.intent)} - ${payload.firstName}`,
             status: "open",
             contactId,
             ...(config.assignedUserId ? { assignedTo: config.assignedUserId } : {}),
@@ -715,10 +739,12 @@ export async function handleLeadRequest(request: Request) {
       );
     }
 
-    if (config.workflowId && payload.selectedDateTime) {
+    if (config.workflowId) {
       await optionalGhlStep("add contact to workflow", () =>
         ghlFetch(config, `/contacts/${contactId}/workflow/${config.workflowId}`, {
-          body: { eventStartTime: payload.selectedDateTime },
+          body: payload.selectedDateTime
+            ? { eventStartTime: payload.selectedDateTime }
+            : {},
         })
       );
     }

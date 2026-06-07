@@ -7,12 +7,7 @@ import BookingExperience, {
   type BookingConfirmationPayload,
 } from "@/components/BookingExperience";
 import { createGoogleCalendarUrl } from "@/lib/calendar-link";
-import {
-  getWhatsAppUrl,
-  getCalendlyUrl,
-  INTENT_LABELS,
-  ConversionIntent,
-} from "@/config/conversionRoutes";
+import { INTENT_LABELS, ConversionIntent } from "@/config/conversionRoutes";
 
 /* ─────────────────────────────────────────────────────────────
    HandLogo SVG
@@ -191,7 +186,7 @@ type ContactFormState = {
   currentLocation: string;
   needType: string;
   urgency: string;
-  preferredChannel: "whatsapp" | "callback" | "redirection" | "";
+  preferredChannel: "ghl" | "callback" | "";
 
   // hospitality_partner specific
   companyName: string;
@@ -252,15 +247,20 @@ const EXTRA_TEXTS = {
     chooseIntent: "Sélectionnez votre demande",
     chooseIntentSub: "Nous vous orientons instantanément vers le bon parcours.",
     intentQuestion: "Quelle est votre demande ?",
-    channelQuestion: "Comment préférez-vous finaliser votre demande ?",
-    channelWhatsApp: "Contacter via WhatsApp (Direct)",
-    channelCallback: "Planifier un appel téléphonique",
+    channelQuestion: "Comment souhaitez-vous transmettre votre demande ?",
+    privateSubmit: "Transmettre ma demande privée",
+    channelCallback: "Demander un rappel prioritaire",
     confirmSubmit: "Transmettre ma demande",
-    calendlyRedirect: "Prendre rendez-vous dans l'agenda",
+    hospitalityTitle: "Finalisez votre demande partenaire",
+    hospitalitySubmit: "Transmettre ma demande partenaire",
+    hospitalityCallback: "Demander un rappel",
+    finalTitle: "Finalisez votre demande",
     submitting: "Transmission en cours...",
     requiredField: "Ce champ est requis.",
-    whatsappRedirected: "Redirection vers WhatsApp en cours...",
-    calendlyRedirected: "Ouverture de l'agenda en cours...",
+    privateConfirmation:
+      "Votre demande privée a bien été transmise. Grégory ou son équipe reviendra vers vous personnellement.",
+    requestConfirmation:
+      "Votre demande a bien été transmise. Grégory ou son équipe l’analysera personnellement et reviendra vers vous.",
     steps: ["Intention", "Identité", "Qualification", "Finalisation", "Agenda", "Confirmé"],
     fields: {
       currentLocation: "Lieu actuel ou destination",
@@ -300,15 +300,20 @@ const EXTRA_TEXTS = {
     chooseIntent: "Select your request",
     chooseIntentSub: "We will route you instantly to the appropriate path.",
     intentQuestion: "What is your request?",
-    channelQuestion: "How would you prefer to finalize your request?",
-    channelWhatsApp: "Contact via WhatsApp (Direct)",
-    channelCallback: "Schedule a phone callback",
+    channelQuestion: "How would you like to submit your request?",
+    privateSubmit: "Submit my private request",
+    channelCallback: "Request a priority callback",
     confirmSubmit: "Submit my request",
-    calendlyRedirect: "Schedule meeting on Calendly",
+    hospitalityTitle: "Finalize your partner request",
+    hospitalitySubmit: "Submit my partner request",
+    hospitalityCallback: "Request a callback",
+    finalTitle: "Finalize your request",
     submitting: "Submitting...",
     requiredField: "This field is required.",
-    whatsappRedirected: "Redirecting to WhatsApp...",
-    calendlyRedirected: "Opening calendar...",
+    privateConfirmation:
+      "Your private request has been submitted. Grégory or his team will personally get back to you.",
+    requestConfirmation:
+      "Your request has been submitted. Grégory or his team will personally review it and get back to you.",
     steps: ["Intent", "Identity", "Qualification", "Finalize", "Scheduler", "Confirmed"],
     fields: {
       currentLocation: "Current location or destination",
@@ -348,15 +353,20 @@ const EXTRA_TEXTS = {
     chooseIntent: "Seleccione su solicitud",
     chooseIntentSub: "Le orientaremos instantáneamente hacia la ruta correcta.",
     intentQuestion: "¿Cuál es su solicitud?",
-    channelQuestion: "¿Cómo prefiere finalizar su solicitud?",
-    channelWhatsApp: "Contactar por WhatsApp (Directo)",
-    channelCallback: "Programar una llamada telefónica",
+    channelQuestion: "¿Cómo desea enviar su solicitud?",
+    privateSubmit: "Enviar mi solicitud privada",
+    channelCallback: "Solicitar una llamada prioritaria",
     confirmSubmit: "Enviar mi solicitud",
-    calendlyRedirect: "Programar cita en Calendly",
+    hospitalityTitle: "Finalice su solicitud de colaboración",
+    hospitalitySubmit: "Enviar mi solicitud de colaboración",
+    hospitalityCallback: "Solicitar una llamada",
+    finalTitle: "Finalice su solicitud",
     submitting: "Enviando...",
     requiredField: "Este campo es obligatorio.",
-    whatsappRedirected: "Redirigiendo a WhatsApp...",
-    calendlyRedirected: "Abriendo la agenda...",
+    privateConfirmation:
+      "Su solicitud privada ha sido enviada. Grégory o su equipo se pondrá en contacto personalmente.",
+    requestConfirmation:
+      "Su solicitud ha sido enviada. Grégory o su equipo la revisará personalmente y se pondrá en contacto.",
     steps: ["Solicitud", "Identidad", "Calificación", "Finalización", "Cita", "Confirmado"],
     fields: {
       currentLocation: "Ubicación actual o destino",
@@ -441,15 +451,6 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
         if (form.intent === "partnership" && !form.companyName) return s;
       }
 
-      // Step 4 finalization routes
-      if (s === 4) {
-        if (form.intent === "private_session" && !form.preferredChannel) return s;
-        
-        // If B2B/Partner, or training, or workshop redirects instantly on Step 4 click, 
-        // we trigger form saving first inside click handler. We shouldn't advance step 
-        // manually unless we skip to Step 5 (scheduler) or Step 6 (confirm).
-      }
-
       if (s === 5 && !form.selectedTime) return s;
 
       return Math.min(s + 1, 6);
@@ -458,9 +459,7 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
 
   function goBack() {
     setStep((s) => {
-      // Skip step 5 if we went straight from 4 to 6 via redirection
-      if (s === 6 && form.intent !== "private_session" && form.intent !== "hospitality_partner") return 3;
-      if (s === 6 && form.intent === "private_session" && form.preferredChannel === "whatsapp") return 4;
+      if (s === 6 && form.preferredChannel !== "callback") return 4;
       return Math.max(s - 1, 1);
     });
   }
@@ -514,12 +513,10 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
   };
 
   async function submitLead({
-    redirectUrl = null,
     preferredChannel,
     booking,
   }: {
-    redirectUrl?: string | null;
-    preferredChannel: "whatsapp" | "redirection" | "callback" | "internal_booking";
+    preferredChannel: "ghl" | "callback" | "internal_booking";
     booking?: BookingConfirmationPayload;
   }) {
     const searchParams = new URLSearchParams(window.location.search);
@@ -568,7 +565,7 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
         branchData,
         intent: form.intent,
         preferredChannel,
-        routedToUrl: redirectUrl,
+        routedToUrl: null,
         urgency: form.urgency || null,
         needType: form.needType || null,
         volumePotential: form.volumePotential || null,
@@ -596,24 +593,17 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
   }
 
   async function handleFinalSubmit(
-    redirectUrl?: string | null,
-    overrideChannel?: "whatsapp" | "redirection" | "callback"
+    overrideChannel?: "ghl" | "callback"
   ) {
     setLoading(true);
     setSubmitError(null);
+    const preferredChannel = overrideChannel || form.preferredChannel || "ghl";
+    setForm((current) => ({ ...current, preferredChannel }));
+
     try {
       await submitLead({
-        redirectUrl,
-        preferredChannel:
-          overrideChannel ||
-          form.preferredChannel ||
-          (redirectUrl ? "redirection" : "callback"),
+        preferredChannel,
       });
-
-      if (redirectUrl) {
-        window.location.assign(redirectUrl);
-        return;
-      }
 
       setStep(6);
     } catch (error) {
@@ -1031,27 +1021,23 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
               </div>
             )}
 
-            {/* STEP 4: Redirection / Preferred Channel Selection */}
+            {/* STEP 4: GHL finalization or embedded booking */}
             {step === 4 && (
               <div className="sf-slide is-active">
                 
-                {/* Branch A: Private Session Channel selection */}
+                {/* Branch A: Private Session */}
                 {form.intent === "private_session" && (
                   <div>
                     <p className="sf-step__title">{ext.channelQuestion}</p>
                     <div style={{ display: "flex", flexDirection: "column", gap: "16px", margin: "30px 0" }}>
                       <button
                         className="sf-btn sf-btn--cta"
-                        onClick={() => {
-                          setForm((f) => ({ ...f, preferredChannel: "whatsapp" }));
-                          const whatsappUrl = getWhatsAppUrl(lang, form.firstName);
-                          handleFinalSubmit(whatsappUrl, "whatsapp");
-                        }}
+                        onClick={() => handleFinalSubmit("ghl")}
                         disabled={loading}
                         type="button"
                         style={{ justifyContent: "center", padding: "18px" }}
                       >
-                        {loading ? <span className="sf-spinner" /> : <span>{ext.channelWhatsApp}</span>}
+                        {loading ? <span className="sf-spinner" /> : <span>{ext.privateSubmit}</span>}
                       </button>
                       
                       <button
@@ -1072,53 +1058,28 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
                 {/* Branch B: Hospitality Partner final choices */}
                 {form.intent === "hospitality_partner" && (
                   <div>
-                    <p className="sf-step__title">Finalisez votre demande de partenariat</p>
+                    <p className="sf-step__title">{ext.hospitalityTitle}</p>
                     <div style={{ display: "flex", flexDirection: "column", gap: "16px", margin: "30px 0" }}>
-                      {getCalendlyUrl("b2b", lang) ? (
-                        <>
-                          <button
-                            className="sf-btn sf-btn--cta"
-                            onClick={() => {
-                              const b2bCalendly = getCalendlyUrl("b2b", lang);
-                              handleFinalSubmit(b2bCalendly, "redirection");
-                            }}
-                            disabled={loading}
-                            type="button"
-                            style={{ justifyContent: "center", padding: "18px" }}
-                          >
-                            {loading ? <span className="sf-spinner" /> : <span>{ext.calendlyRedirect}</span>}
-                          </button>
-                          <button
-                            className="sf-btn sf-btn--ghost"
-                            onClick={() => handleFinalSubmit(null, "callback")}
-                            disabled={loading}
-                            type="button"
-                            style={{ padding: "18px" }}
-                          >
-                            {ext.confirmSubmit}
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            className="sf-btn sf-btn--cta"
-                            onClick={() => setStep(5)}
-                            type="button"
-                            style={{ justifyContent: "center", padding: "18px" }}
-                          >
-                            <span>Planifier un rappel téléphonique</span>
-                          </button>
-                          <button
-                            className="sf-btn sf-btn--ghost"
-                            onClick={() => handleFinalSubmit(null, "callback")}
-                            disabled={loading}
-                            type="button"
-                            style={{ padding: "18px" }}
-                          >
-                            {loading ? <span className="sf-spinner" /> : <span>{ext.confirmSubmit}</span>}
-                          </button>
-                        </>
-                      )}
+                      <button
+                        className="sf-btn sf-btn--cta"
+                        onClick={() => handleFinalSubmit("ghl")}
+                        disabled={loading}
+                        type="button"
+                        style={{ justifyContent: "center", padding: "18px" }}
+                      >
+                        {loading ? <span className="sf-spinner" /> : <span>{ext.hospitalitySubmit}</span>}
+                      </button>
+                      <button
+                        className="sf-btn sf-btn--ghost"
+                        onClick={() => {
+                          setForm((f) => ({ ...f, preferredChannel: "callback" }));
+                          setStep(5);
+                        }}
+                        type="button"
+                        style={{ padding: "18px", border: "1px solid var(--forest)" }}
+                      >
+                        {ext.hospitalityCallback}
+                      </button>
                     </div>
                   </div>
                 )}
@@ -1150,11 +1111,11 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
                 {/* Branch E & F: Partnership & Other Submit flow */}
                 {(form.intent === "partnership" || form.intent === "other") && (
                   <div>
-                    <p className="sf-step__title">Finalisez votre demande</p>
+                    <p className="sf-step__title">{ext.finalTitle}</p>
                     <div style={{ display: "flex", flexDirection: "column", gap: "16px", margin: "30px 0" }}>
                       <button
                         className="sf-btn sf-btn--cta"
-                        onClick={() => handleFinalSubmit(null, "callback")}
+                        onClick={() => handleFinalSubmit("ghl")}
                         disabled={loading}
                         type="button"
                         style={{ justifyContent: "center", padding: "18px" }}
@@ -1219,7 +1180,7 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
                   <button className="sf-btn sf-btn--back" onClick={() => setStep(4)} type="button">←</button>
                   <button
                     className={`sf-btn sf-btn--cta ${loading ? "is-loading" : ""}`}
-                    onClick={() => handleFinalSubmit(null)}
+                    onClick={() => handleFinalSubmit("callback")}
                     disabled={!form.selectedTime || loading}
                     type="button"
                   >
@@ -1244,15 +1205,7 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
                     />
                   </div>
                   
-                  {form.preferredChannel === "redirection" ? (
-                    <>
-                      <h3 className="sf-confirm__headline">{tc.step4.headline}</h3>
-                      <p className="sf-confirm__call" style={{ margin: "20px 0" }}>
-                        Vous avez été redirigé vers l&apos;agenda ou la messagerie dédiée. 
-                        Grégory Tordjman prendra connaissance de votre profil et reviendra vers vous sous 12h.
-                      </p>
-                    </>
-                  ) : selectedSlotStart ? (
+                  {selectedSlotStart ? (
                     <>
                       <h3 className="sf-confirm__headline">{tc.step4.headline}</h3>
                       <p className="sf-confirm__call">
@@ -1279,8 +1232,9 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
                     <>
                       <h3 className="sf-confirm__headline">{tc.step4.headline}</h3>
                       <p className="sf-confirm__call" style={{ margin: "20px 0" }}>
-                        Votre demande a été transmise avec succès. Grégory ou son équipe l&apos;analysera personnellement.
-                        Vous recevrez une réponse sous 12h.
+                        {form.intent === "private_session"
+                          ? ext.privateConfirmation
+                          : ext.requestConfirmation}
                       </p>
                     </>
                   )}
