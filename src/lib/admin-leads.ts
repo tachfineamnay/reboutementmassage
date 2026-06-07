@@ -48,7 +48,7 @@ export function normalizePhoneContact(contact: string) {
 
 export function formatLeadSlot(lead: {
   selectedDayLabel: string | null;
-  selectedTime: string;
+  selectedTime: string | null;
   timezone: string | null;
 }) {
   const parts = [lead.selectedDayLabel, lead.selectedTime].filter(Boolean);

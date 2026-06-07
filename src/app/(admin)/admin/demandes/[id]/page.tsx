@@ -28,6 +28,20 @@ function stringifyJson(value: unknown) {
   return JSON.stringify(value, null, 2);
 }
 
+function jsonRecord(value: unknown) {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function jsonText(value: unknown) {
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+function jsonNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const lead = await prisma.leadSubmission.findUnique({
@@ -51,6 +65,9 @@ export default async function DemandeDetailPage({ params }: Props) {
 
   const phone = normalizePhoneContact(lead.contact);
   const isEmail = isEmailContact(lead.contact);
+  const branchData = jsonRecord(lead.branchData);
+  const bookingFormat = jsonText(branchData.bookingFormat);
+  const durationMinutes = jsonNumber(branchData.durationMinutes);
 
   return (
     <div className="admin-page">
@@ -108,7 +125,14 @@ export default async function DemandeDetailPage({ params }: Props) {
           <DetailItem label="Type de demande" value={lead.type} />
           <DetailItem label="Langue" value={lead.locale} />
           <DetailItem label="Créneau choisi" value={formatLeadSlot(lead)} />
-          <DetailItem label="Date sélectionnée" value={dateFmt.format(lead.selectedAt)} />
+          <DetailItem
+            label="Date sélectionnée"
+            value={lead.selectedAt ? dateFmt.format(lead.selectedAt) : "—"}
+          />
+          {bookingFormat && <DetailItem label="Format choisi" value={bookingFormat} />}
+          {durationMinutes && (
+            <DetailItem label="Durée" value={`${durationMinutes} minutes`} />
+          )}
           <DetailItem label="Page d'origine" value={formatSourcePage(lead.pageUrl)} />
           <DetailItem
             label="Statut"
@@ -151,6 +175,13 @@ export default async function DemandeDetailPage({ params }: Props) {
         <h2 className="admin-section__title">Contexte complet</h2>
         <div className="admin-panel">
           <p className="lead-detail-text">{lead.context || "—"}</p>
+        </div>
+      </section>
+
+      <section className="admin-section">
+        <h2 className="admin-section__title">Données de branche</h2>
+        <div className="admin-panel">
+          <pre className="lead-detail-code">{stringifyJson(lead.branchData)}</pre>
         </div>
       </section>
 

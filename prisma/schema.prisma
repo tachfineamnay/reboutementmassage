@@ -74,19 +74,19 @@ model AdminUser {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model LeadSubmission {
-  id               String     @id @default(cuid())
-  firstName        String
-  contact          String
-  type             String
-  context          String?    @db.Text
-  locale           Locale     @default(FR)
+  id        String  @id @default(cuid())
+  firstName String
+  contact   String
+  type      String
+  context   String? @db.Text
+  locale    Locale  @default(FR)
 
   // Qualification B2B / hospitality
-  companyName      String?
-  jobTitle         String?
-  propertyType     String?
-  destination      String?
-  leadSegment      String?
+  companyName  String?
+  jobTitle     String?
+  propertyType String?
+  destination  String?
+  leadSegment  String?
 
   // Qualification conditionnelle additionnelle
   intent           String?
@@ -99,24 +99,25 @@ model LeadSubmission {
   currentLocation  String?
 
   selectedDayLabel String?
-  selectedTime     String
-  selectedAt       DateTime
+  selectedTime     String?
+  selectedAt       DateTime?
   timezone         String?
   pageUrl          String?
 
-  utm              Json       @default("{}")
-  tags             String[]   @default([])
+  utm        Json     @default("{}")
+  branchData Json     @default("{}")
+  tags       String[] @default([])
 
-  status           LeadStatus @default(CAPTURED)
-  ghlContactId     String?
-  errorMessage     String?    @db.Text
+  status       LeadStatus @default(CAPTURED)
+  ghlContactId String?
+  errorMessage String?    @db.Text
 
-  resendEmailId    String?
+  resendEmailId      String?
   notificationSentAt DateTime?
   notificationError  String?   @db.Text
 
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([status])
   @@index([locale, createdAt])
@@ -130,22 +131,22 @@ model LeadSubmission {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model MediaAsset {
-  id           String   @id @default(cuid())
-  filename     String   @unique        // UUID + extension ex: a1b2c3.webp
-  originalName String                  // Nom original du fichier uploadé
-  mimeType     String                  // image/webp, image/jpeg …
-  url          String                  // URL publique ex: /api/uploads/a1b2c3.webp
-  localPath    String                  // Chemin absolu ex: /app/storage/uploads/a1b2c3.webp
+  id           String @id @default(cuid())
+  filename     String @unique // UUID + extension ex: a1b2c3.webp
+  originalName String // Nom original du fichier uploadé
+  mimeType     String // image/webp, image/jpeg …
+  url          String // URL publique ex: /api/uploads/a1b2c3.webp
+  localPath    String // Chemin absolu ex: /app/storage/uploads/a1b2c3.webp
   width        Int?
   height       Int?
-  size         Int                     // Taille en octets
+  size         Int // Taille en octets
 
   // Textes alt multilingues
-  altFr        String?
-  altEn        String?
-  altEs        String?
+  altFr String?
+  altEn String?
+  altEs String?
 
-  createdAt    DateTime @default(now())
+  createdAt DateTime @default(now())
 
   // Relations inverses
   articles        Article[]        @relation("ArticleCover")
@@ -160,32 +161,32 @@ model MediaAsset {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Article {
-  id          String        @id @default(cuid())
-  locale      Locale        @default(FR)
+  id                 String        @id @default(cuid())
+  locale             Locale        @default(FR)
   translationGroupId String?
-  slug        String
-  title       String
-  excerpt     String?
-  status      ArticleStatus @default(DRAFT)
+  slug               String
+  title              String
+  excerpt            String?
+  status             ArticleStatus @default(DRAFT)
 
   // Image de couverture
   coverImageId String?
   coverImage   MediaAsset? @relation("ArticleCover", fields: [coverImageId], references: [id], onDelete: SetNull)
 
   // Relations 1-1
-  content      ArticleContent?
-  seo          ArticleSeo?
+  content ArticleContent?
+  seo     ArticleSeo?
 
   // Relations 1-N
   metrics         ArticleMetric[]
   pageSpeedAudits ArticlePageSpeedAudit[]
   urlInspections  ArticleUrlInspection[]
-  transcreations   ArticleTranscreation[]
-  audioAssets      ArticleAudioAsset[]
+  transcreations  ArticleTranscreation[]
+  audioAssets     ArticleAudioAsset[]
 
-  publishedAt  DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Un slug est unique par locale
   @@unique([locale, slug])
@@ -201,11 +202,11 @@ model Article {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model ArticleContent {
-  id          String  @id @default(cuid())
-  articleId   String  @unique
-  article     Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  articleId String  @unique
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
-  editorJson  Json?   // Document ProseMirror/Tiptap brut
+  editorJson  Json? // Document ProseMirror/Tiptap brut
   html        String? // HTML rendu (cache serveur)
   plainText   String? // Texte brut pour recherche / preview
   wordCount   Int     @default(0)
@@ -219,33 +220,33 @@ model ArticleContent {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model ArticleSeo {
-  id          String  @id @default(cuid())
-  articleId   String  @unique
-  article     Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  articleId String  @unique
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
-  focusKeyword   String?
-  seoTitle       String?
+  focusKeyword    String?
+  seoTitle        String?
   metaDescription String?
-  canonical      String?
+  canonical       String?
 
   // Open Graph
-  ogTitle        String?
-  ogDescription  String?
-  ogImageId      String?
-  ogImage        MediaAsset? @relation("ArticleOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+  ogTitle       String?
+  ogDescription String?
+  ogImageId     String?
+  ogImage       MediaAsset? @relation("ArticleOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
 
-  noindex        Boolean @default(false)
+  noindex Boolean @default(false)
 
   // Score calculé (0-100) et liste d'issues JSON
-  score          Int     @default(0)
-  issues         Json    @default("[]")
+  score  Int  @default(0)
+  issues Json @default("[]")
 
   // Score AEO/GEO calculé depuis le contenu visible
-  llmReadabilityScore Int      @default(0)
-  atomicAnswerPresent Boolean  @default(false)
-  schemaValidation    Json     @default("{}")
-  geoChecklist        Json     @default("[]")
-  answerCoverageScore Int      @default(0)
+  llmReadabilityScore Int       @default(0)
+  atomicAnswerPresent Boolean   @default(false)
+  schemaValidation    Json      @default("{}")
+  geoChecklist        Json      @default("[]")
+  answerCoverageScore Int       @default(0)
   lastGeoAuditAt      DateTime?
 
   @@map("article_seo")
@@ -256,9 +257,9 @@ model ArticleSeo {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model ArticleTranscreation {
-  id          String  @id @default(cuid())
-  articleId   String
-  article     Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
   sourceLocale Locale
   targetLocale Locale
@@ -293,12 +294,12 @@ model ArticleAudioAsset {
   article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
   locale          Locale
-  provider        AudioProvider @default(ELEVENLABS)
+  provider        AudioProvider       @default(ELEVENLABS)
   providerVoiceId String?
   voiceName       String?
   audioUrl        String
   durationSeconds Int?
-  transcript      String? @db.Text
+  transcript      String?             @db.Text
   status          TranscreationStatus @default(AI_GENERATED)
 
   createdAt DateTime @default(now())
@@ -314,23 +315,23 @@ model ArticleAudioAsset {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model ArticleMetric {
-  id               String   @id @default(cuid())
-  articleId        String
-  article          Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
-  date             DateTime @db.Date
+  date DateTime @db.Date
 
   // Search Console
-  clicks           Int      @default(0)
-  impressions      Int      @default(0)
-  ctr              Float    @default(0) // 0.0 → 1.0
-  position         Float    @default(0)
+  clicks      Int   @default(0)
+  impressions Int   @default(0)
+  ctr         Float @default(0) // 0.0 → 1.0
+  position    Float @default(0)
 
   // GA4
-  organicSessions  Int      @default(0)
-  storyViews       Int      @default(0)
-  ctaClicks        Int      @default(0)
-  leads            Int      @default(0)
+  organicSessions Int @default(0)
+  storyViews      Int @default(0)
+  ctaClicks       Int @default(0)
+  leads           Int @default(0)
 
   // Un seul enregistrement par article par jour
   @@unique([articleId, date])
@@ -344,12 +345,12 @@ model ArticleMetric {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model ArticlePageSpeedAudit {
-  id                 String   @id @default(cuid())
-  articleId          String
-  article            Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
   url                String
-  strategy           String   @default("mobile")
+  strategy           String  @default("mobile")
   performanceScore   Int
   seoScore           Int
   accessibilityScore Int
@@ -357,7 +358,7 @@ model ArticlePageSpeedAudit {
   cls                String?
   raw                Json?
 
-  auditedAt          DateTime @default(now())
+  auditedAt DateTime @default(now())
 
   @@index([articleId, auditedAt])
   @@index([auditedAt])
@@ -369,9 +370,9 @@ model ArticlePageSpeedAudit {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model ArticleUrlInspection {
-  id              String   @id @default(cuid())
-  articleId       String
-  article         Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
   url             String
   indexStatus     String?
@@ -382,7 +383,7 @@ model ArticleUrlInspection {
   googleCanonical String?
   raw             Json?
 
-  inspectedAt     DateTime @default(now())
+  inspectedAt DateTime @default(now())
 
   @@index([articleId, inspectedAt])
   @@index([inspectedAt])
@@ -395,25 +396,25 @@ model ArticleUrlInspection {
 
 model LandingSection {
   id        String               @id @default(cuid())
-  type      String               // "hero" | "about" | "testimonial" | "cta" …
+  type      String // "hero" | "about" | "testimonial" | "cta" …
   locale    Locale               @default(FR)
   status    LandingSectionStatus @default(DRAFT)
   placement Int                  @default(0) // Ordre d'affichage
 
   // Contenu éditorial
-  title     String?
-  subtitle  String?
-  body      String?
-  ctaLabel  String?
-  ctaHref   String?
+  title    String?
+  subtitle String?
+  body     String?
+  ctaLabel String?
+  ctaHref  String?
 
   // Image associée
-  imageId   String?
-  image     MediaAsset? @relation("SectionImage", fields: [imageId], references: [id], onDelete: SetNull)
+  imageId String?
+  image   MediaAsset? @relation("SectionImage", fields: [imageId], references: [id], onDelete: SetNull)
 
   // Planification
-  startAt   DateTime?
-  endAt     DateTime?
+  startAt DateTime?
+  endAt   DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

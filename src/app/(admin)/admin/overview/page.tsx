@@ -50,7 +50,7 @@ type CallbackLead = {
   firstName: string;
   contact: string;
   selectedDayLabel: string | null;
-  selectedTime: string;
+  selectedTime: string | null;
   timezone: string | null;
   status: "CAPTURED" | "MOCKED" | "SENT_TO_GHL" | "FAILED" | "ARCHIVED";
 };

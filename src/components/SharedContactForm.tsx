@@ -3,6 +3,10 @@
 import Image from "next/image";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { COPY, Language } from "@/data/copy";
+import BookingExperience, {
+  type BookingConfirmationPayload,
+} from "@/components/BookingExperience";
+import { createGoogleCalendarUrl } from "@/lib/calendar-link";
 import {
   getWhatsAppUrl,
   getCalendlyUrl,
@@ -398,7 +402,7 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
      1: Intent selection
      2: Identity & Contact (Prénom + Contact)
      3: Intent-specific details (Lieu, besoin, etc.)
-     4: Redirection / Preferred channel (WhatsApp choice, Calendly route, etc.)
+     4: Finalization or embedded booking experience
      5: Callback Scheduler (Date/time picker - only for private session callback / B2B callback)
      6: Success confirmation
   */
@@ -503,6 +507,94 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
     return "Autre";
   }, [form.intent, form.propertyType]);
 
+  type LeadApiResult = {
+    ok?: boolean;
+    error?: string;
+    ghlStatus?: "sent" | "failed" | "mocked";
+  };
+
+  async function submitLead({
+    redirectUrl = null,
+    preferredChannel,
+    booking,
+  }: {
+    redirectUrl?: string | null;
+    preferredChannel: "whatsapp" | "redirection" | "callback" | "internal_booking";
+    booking?: BookingConfirmationPayload;
+  }) {
+    const searchParams = new URLSearchParams(window.location.search);
+    const utm = Object.fromEntries(
+      Array.from(searchParams.entries()).filter(([key]) =>
+        key.toLowerCase().startsWith("utm_")
+      )
+    );
+    const selectedDateTime =
+      booking?.selectedDateTime ?? selectedSlotStart?.toISOString() ?? null;
+    const branchData = booking
+      ? {
+          bookingFormat: booking.bookingFormat,
+          bookingInternalType: booking.bookingInternalType,
+          durationMinutes: booking.durationMinutes,
+          timezone: booking.timezone,
+          selectedDate: booking.selectedDate,
+          selectedTime: booking.selectedTime,
+          selectedDateTime: booking.selectedDateTime,
+          trainingProfile: form.profile || null,
+          trainingLevel: form.level || null,
+          trainingGoal: form.goal || null,
+          targetLang: form.targetLang || null,
+          workshopType: form.needType || null,
+          participantCount: form.participantCount || null,
+          periodPreference: form.urgency || null,
+        }
+      : {};
+
+    const response = await fetch("/api/lead", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName: form.firstName.trim(),
+        contact: form.contact.trim(),
+        type: mappedType,
+        context: compiledContext || null,
+        lang,
+        selectedDayLabel: booking?.selectedDayLabel ?? (selectedDayLabel || null),
+        selectedTime: booking?.selectedTime ?? (form.selectedTime || null),
+        selectedDateTime,
+        timezone:
+          booking?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
+        pageUrl: window.location.href,
+        utm,
+        branchData,
+        intent: form.intent,
+        preferredChannel,
+        routedToUrl: redirectUrl,
+        urgency: form.urgency || null,
+        needType: form.needType || null,
+        volumePotential: form.volumePotential || null,
+        participantCount: form.participantCount || null,
+        currentLocation: form.currentLocation || form.destination || null,
+        companyName: form.companyName.trim() || null,
+        jobTitle: form.jobTitle.trim() || null,
+        propertyType: form.propertyType || null,
+        destination: form.destination.trim() || null,
+      }),
+    });
+
+    const result = (await response.json().catch(() => null)) as LeadApiResult | null;
+    if (!response.ok || !result?.ok) {
+      if (result?.error === "INVALID_CONTACT") {
+        throw new Error("INVALID_CONTACT");
+      }
+      throw new Error("Lead submission failed");
+    }
+
+    return {
+      ok: true,
+      ghlStatus: result.ghlStatus,
+    };
+  }
+
   async function handleFinalSubmit(
     redirectUrl?: string | null,
     overrideChannel?: "whatsapp" | "redirection" | "callback"
@@ -510,67 +602,40 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
     setLoading(true);
     setSubmitError(null);
     try {
-      const searchParams = new URLSearchParams(window.location.search);
-      const utm = Object.fromEntries(Array.from(searchParams.entries()).filter(([k]) => k.toLowerCase().startsWith("utm_")));
-      
-      const payloadDateTime = selectedSlotStart ? selectedSlotStart.toISOString() : new Date().toISOString();
-
-      const response = await fetch("/api/lead", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName: form.firstName.trim(),
-          contact: form.contact.trim(),
-          type: mappedType,
-          context: compiledContext || null,
-          lang,
-          selectedDayLabel: selectedDayLabel || null,
-          selectedTime: form.selectedTime || "00:00",
-          selectedDateTime: payloadDateTime,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          pageUrl: window.location.href,
-          utm,
-
-          // Conditional qualification fields
-          intent: form.intent,
-          preferredChannel: overrideChannel || form.preferredChannel || (redirectUrl ? "redirection" : "callback"),
-          routedToUrl: redirectUrl || null,
-          urgency: form.urgency || null,
-          needType: form.needType || null,
-          volumePotential: form.volumePotential || null,
-          participantCount: form.participantCount || null,
-          currentLocation: form.currentLocation || form.destination || null,
-
-          companyName: form.companyName.trim() || null,
-          jobTitle: form.jobTitle.trim() || null,
-          propertyType: form.propertyType || null,
-          destination: form.destination.trim() || null,
-        }),
+      await submitLead({
+        redirectUrl,
+        preferredChannel:
+          overrideChannel ||
+          form.preferredChannel ||
+          (redirectUrl ? "redirection" : "callback"),
       });
 
-      const result = (await response.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
-      if (!response.ok || !result?.ok) {
-        if (result?.error === "INVALID_CONTACT") { setLoading(false); setSubmitError(tc.step1.contactError); return; }
-        throw new Error("Lead submission failed");
+      if (redirectUrl) {
+        window.location.assign(redirectUrl);
+        return;
       }
 
+      setStep(6);
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error && error.message === "INVALID_CONTACT"
+          ? tc.step1.contactError
+          : tc.submitError
+      );
+    } finally {
       setLoading(false);
-      
-      // Perform redirect if requested
-      if (redirectUrl) {
-        window.open(redirectUrl, "_blank", "noopener,noreferrer");
-      }
-      
-      setStep(6); // Go to final confirmation slide
-    } catch {
-      setLoading(false);
-      setSubmitError(tc.submitError);
     }
+  }
+
+  async function handleBookingConfirm(booking: BookingConfirmationPayload) {
+    return submitLead({
+      preferredChannel: "internal_booking",
+      booking,
+    });
   }
 
   const availableCount = days.reduce((a, d) => a + d.slots.filter((s) => !s.taken).length, 0);
   
-  const canProceed1 = form.intent !== "";
   const canProceed2 = isValidFirstName(form.firstName) && isValidContactValue(form.contact);
   
   const canProceed3 = useMemo(() => {
@@ -587,9 +652,11 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
 
   const calendarLink = useMemo(() => {
     if (!selectedSlotStart) return "#";
-    const end = new Date(selectedSlotStart); end.setMinutes(end.getMinutes() + 30);
-    const fmt = (dt: Date) => dt.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("Méthode TMS® — Consultation privée")}&dates=${fmt(selectedSlotStart)}/${fmt(end)}`;
+    return createGoogleCalendarUrl({
+      title: "Méthode TMS® — Consultation privée",
+      startDateTime: selectedSlotStart,
+      durationMinutes: 30,
+    });
   }, [selectedSlotStart]);
 
   const arrow = (
@@ -617,7 +684,13 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
 
   return (
     <section className="contact" id={id}>
-      <div className="container container--form">
+      <div
+        className={`container container--form ${
+          step === 4 && (form.intent === "training" || form.intent === "workshop")
+            ? "container--booking"
+            : ""
+        }`}
+      >
         {/* Header */}
         <div className="contact-head">
           <Reveal><span className="eyebrow eyebrow--gold">{tc.label}</span></Reveal>
@@ -1050,79 +1123,28 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
                   </div>
                 )}
 
-                {/* Branch C: Training redirection flow */}
-                {form.intent === "training" && (
-                  <div>
-                    <p className="sf-step__title">Planifiez votre entretien de formation</p>
-                    <p className="contact-sub" style={{ marginBottom: "20px" }}>
-                      Nous allons vous rediriger pour réserver votre entretien avec Grégory ou un membre de son équipe.
-                    </p>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "16px", margin: "30px 0" }}>
-                      {getCalendlyUrl("training", lang) ? (
-                        <button
-                          className="sf-btn sf-btn--cta"
-                          onClick={() => {
-                            const trainingUrl = getCalendlyUrl("training", lang);
-                            handleFinalSubmit(trainingUrl, "redirection");
-                          }}
-                          disabled={loading}
-                          type="button"
-                          style={{ justifyContent: "center", padding: "18px" }}
-                        >
-                          {loading ? <span className="sf-spinner" /> : <span>{ext.calendlyRedirect}</span>}
-                        </button>
-                      ) : (
-                        <button
-                          className="sf-btn sf-btn--cta"
-                          onClick={() => handleFinalSubmit(null, "callback")}
-                          disabled={loading}
-                          type="button"
-                          style={{ justifyContent: "center", padding: "18px" }}
-                        >
-                          {loading ? <span className="sf-spinner" /> : <span>{ext.confirmSubmit}</span>}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Branch D: Workshop redirection flow */}
-                {form.intent === "workshop" && (
-                  <div>
-                    <p className="sf-step__title">Planifiez votre atelier workshop</p>
-                    <p className="contact-sub" style={{ marginBottom: "20px" }}>
-                      Planifiez un créneau d&apos;échange pour organiser cet atelier.
-                    </p>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "16px", margin: "30px 0" }}>
-                      {getCalendlyUrl("workshop", lang) ? (
-                        <button
-                          className="sf-btn sf-btn--cta"
-                          onClick={() => {
-                            const workshopUrl = getCalendlyUrl("workshop", lang);
-                            handleFinalSubmit(workshopUrl, "redirection");
-                          }}
-                          disabled={loading}
-                          type="button"
-                          style={{ justifyContent: "center", padding: "18px" }}
-                        >
-                          {loading ? <span className="sf-spinner" /> : <span>{ext.calendlyRedirect}</span>}
-                        </button>
-                      ) : (
-                        <button
-                          className="sf-btn sf-btn--cta"
-                          onClick={() => {
-                            const whatsappUrl = getWhatsAppUrl(lang, form.firstName);
-                            handleFinalSubmit(whatsappUrl, "whatsapp");
-                          }}
-                          disabled={loading}
-                          type="button"
-                          style={{ justifyContent: "center", padding: "18px" }}
-                        >
-                          {loading ? <span className="sf-spinner" /> : <span>Contacter via WhatsApp</span>}
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                {/* Branch C & D: Embedded training/workshop booking */}
+                {(form.intent === "training" || form.intent === "workshop") && (
+                  <BookingExperience
+                    lang={lang}
+                    intent={form.intent}
+                    firstName={form.firstName}
+                    contact={form.contact}
+                    qualificationData={{
+                      destination: form.destination,
+                      currentLocation: form.currentLocation,
+                      context: form.context,
+                      trainingProfile: form.profile,
+                      trainingLevel: form.level,
+                      trainingGoal: form.goal,
+                      targetLang: form.targetLang,
+                      workshopType: form.needType,
+                      participantCount: form.participantCount,
+                      periodPreference: form.urgency,
+                    }}
+                    onConfirmBooking={handleBookingConfirm}
+                    onBack={goBack}
+                  />
                 )}
 
                 {/* Branch E & F: Partnership & Other Submit flow */}
@@ -1143,9 +1165,11 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
                   </div>
                 )}
 
-                <div className="sf-nav">
-                  <button className="sf-btn sf-btn--back" onClick={goBack} type="button">←</button>
-                </div>
+                {form.intent !== "training" && form.intent !== "workshop" && (
+                  <div className="sf-nav">
+                    <button className="sf-btn sf-btn--back" onClick={goBack} type="button">←</button>
+                  </div>
+                )}
                 {submitError && <p className="sf-error" role="alert" aria-live="polite">{submitError}</p>}
               </div>
             )}

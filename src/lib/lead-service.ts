@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { Prisma } from "@prisma/client";
 import { Resend } from "resend";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
@@ -13,11 +14,12 @@ type LeadPayload = {
   context: string | null;
   lang: string;
   selectedDayLabel: string | null;
-  selectedTime: string;
-  selectedDateTime: string;
+  selectedTime: string | null;
+  selectedDateTime: string | null;
   timezone: string | null;
   pageUrl: string | null;
   utm: Record<string, string>;
+  branchData: unknown;
   companyName: string | null;
   jobTitle: string | null;
   propertyType: string | null;
@@ -56,34 +58,62 @@ const DEFAULT_GHL_API_VERSION = "2021-07-28";
 const DEFAULT_TAGS = ["landing-tms", "demande-privee", "source-landing-page"];
 const DEFAULT_GHL_SOURCE = "Landing Méthode TMS";
 
-const LeadRequestSchema = z.object({
-  firstName: z.string().trim().min(2).max(120),
-  contact: z.string().trim().min(3).max(255),
-  type: z.string().trim().min(2).max(255),
-  context: z.string().trim().max(4000).optional().nullable(),
-  lang: z.string().trim().max(8).optional().default("FR"),
-  selectedDayLabel: z.string().trim().max(120).optional().nullable(),
-  selectedTime: z.string().trim().min(1).max(20),
-  selectedDateTime: z.string().trim().refine((value) => !Number.isNaN(Date.parse(value)), {
-    message: "Invalid selectedDateTime",
-  }),
-  timezone: z.string().trim().max(120).optional().nullable(),
-  pageUrl: z.string().trim().max(1000).optional().nullable(),
-  utm: z.unknown().optional(),
-  companyName: z.string().trim().max(180).optional().nullable(),
-  jobTitle: z.string().trim().max(180).optional().nullable(),
-  propertyType: z.string().trim().max(180).optional().nullable(),
-  destination: z.string().trim().max(180).optional().nullable(),
-  leadSegment: z.string().trim().max(80).optional().nullable(),
-  intent: z.string().trim().max(100).optional().nullable(),
-  preferredChannel: z.string().trim().max(50).optional().nullable(),
-  routedToUrl: z.string().trim().max(1000).optional().nullable(),
-  urgency: z.string().trim().max(100).optional().nullable(),
-  needType: z.string().trim().max(255).optional().nullable(),
-  volumePotential: z.string().trim().max(100).optional().nullable(),
-  participantCount: z.string().trim().max(100).optional().nullable(),
-  currentLocation: z.string().trim().max(255).optional().nullable(),
-});
+const LeadRequestSchema = z
+  .object({
+    firstName: z.string().trim().min(2).max(120),
+    contact: z.string().trim().min(3).max(255),
+    type: z.string().trim().min(2).max(255),
+    context: z.string().trim().max(4000).optional().nullable(),
+    lang: z.string().trim().max(8).optional().default("FR"),
+    selectedDayLabel: z.string().trim().max(120).optional().nullable(),
+    selectedTime: z.string().trim().min(1).max(20).optional().nullable(),
+    selectedDateTime: z
+      .string()
+      .trim()
+      .refine((value) => !Number.isNaN(Date.parse(value)), {
+        message: "Invalid selectedDateTime",
+      })
+      .optional()
+      .nullable(),
+    timezone: z.string().trim().max(120).optional().nullable(),
+    pageUrl: z.string().trim().max(1000).optional().nullable(),
+    utm: z.unknown().optional(),
+    branchData: z.unknown().optional(),
+    companyName: z.string().trim().max(180).optional().nullable(),
+    jobTitle: z.string().trim().max(180).optional().nullable(),
+    propertyType: z.string().trim().max(180).optional().nullable(),
+    destination: z.string().trim().max(180).optional().nullable(),
+    leadSegment: z.string().trim().max(80).optional().nullable(),
+    intent: z.string().trim().max(100).optional().nullable(),
+    preferredChannel: z.string().trim().max(50).optional().nullable(),
+    routedToUrl: z.string().trim().max(1000).optional().nullable(),
+    urgency: z.string().trim().max(100).optional().nullable(),
+    needType: z.string().trim().max(255).optional().nullable(),
+    volumePotential: z.string().trim().max(100).optional().nullable(),
+    participantCount: z.string().trim().max(100).optional().nullable(),
+    currentLocation: z.string().trim().max(255).optional().nullable(),
+  })
+  .superRefine((data, context) => {
+    const isInternalBooking =
+      (data.intent === "training" || data.intent === "workshop") &&
+      data.preferredChannel === "internal_booking";
+
+    if (isInternalBooking && !data.selectedDateTime) {
+      context.addIssue({
+        code: "custom",
+        path: ["selectedDateTime"],
+        message: "selectedDateTime is required for internal bookings",
+      });
+    }
+
+    if (isInternalBooking && !data.selectedTime) {
+      context.addIssue({
+        code: "custom",
+        path: ["selectedTime"],
+        message: "selectedTime is required for internal bookings",
+      });
+    }
+  });
 
 function jsonError(status: number, error: string) {
   return Response.json({ ok: false, error }, { status });
@@ -143,11 +173,12 @@ function normalizePayload(raw: unknown): LeadPayload | null {
     context: nullableText(data.context),
     lang: data.lang,
     selectedDayLabel: nullableText(data.selectedDayLabel),
-    selectedTime: data.selectedTime,
-    selectedDateTime: data.selectedDateTime,
+    selectedTime: nullableText(data.selectedTime),
+    selectedDateTime: nullableText(data.selectedDateTime),
     timezone: nullableText(data.timezone),
     pageUrl: nullableText(data.pageUrl),
     utm: parseUtm(data.utm),
+    branchData: data.branchData ?? {},
     companyName: nullableText(data.companyName),
     jobTitle: nullableText(data.jobTitle),
     propertyType: nullableText(data.propertyType),
@@ -205,6 +236,7 @@ function configuredTags(payload: LeadPayload) {
     payload.propertyType ? `property ${payload.propertyType}` : "",
     payload.destination ? `destination ${payload.destination}` : "",
     payload.intent ? `intent ${payload.intent}` : "",
+    payload.preferredChannel === "internal_booking" ? "internal booking" : "",
     "source site premium",
     payload.intent === "hospitality_partner" ? "segment b2b" : "",
     payload.intent === "training" ? "training premium" : "",
@@ -244,10 +276,11 @@ async function createLeadSubmission(payload: LeadPayload, tags: string[]) {
         currentLocation: payload.currentLocation,
         selectedDayLabel: payload.selectedDayLabel,
         selectedTime: payload.selectedTime,
-        selectedAt: new Date(payload.selectedDateTime),
+        selectedAt: payload.selectedDateTime ? new Date(payload.selectedDateTime) : null,
         timezone: payload.timezone,
         pageUrl: payload.pageUrl,
         utm: payload.utm,
+        branchData: (payload.branchData ?? {}) as Prisma.InputJsonValue,
         tags,
         status: "CAPTURED",
       },
@@ -302,7 +335,13 @@ function mockLeadResponse(payload: LeadPayload, tags: string[], notification: No
     notificationStatus: notification.status,
   });
 
-  return Response.json({ ok: true, mode: "mock", tags, notification: notification.status });
+  return Response.json({
+    ok: true,
+    mode: "mock",
+    ghlStatus: "mocked",
+    tags,
+    notification: notification.status,
+  });
 }
 
 function makeQualificationLines(payload: LeadPayload) {
@@ -315,11 +354,28 @@ function makeQualificationLines(payload: LeadPayload) {
   ].filter(Boolean);
 }
 
+function getBranchData(payload: LeadPayload) {
+  return isRecord(payload.branchData) ? payload.branchData : {};
+}
+
+function branchText(branchData: Record<string, unknown>, key: string) {
+  const value = branchData[key];
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function branchNumber(branchData: Record<string, unknown>, key: string) {
+  const value = branchData[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
 function makeNoteBody(payload: LeadPayload) {
   const utm = Object.entries(payload.utm)
     .map(([key, value]) => `${key}: ${value}`)
     .join("\n");
   const qualification = makeQualificationLines(payload);
+  const branchData = getBranchData(payload);
+  const bookingFormat = branchText(branchData, "bookingFormat");
+  const durationMinutes = branchNumber(branchData, "durationMinutes");
 
   const lines = [
     "Demande transmise depuis le site Méthode TMS®.",
@@ -330,13 +386,30 @@ function makeNoteBody(payload: LeadPayload) {
     payload.intent ? `Intention: ${payload.intent}` : "",
     payload.preferredChannel ? `Canal préféré: ${payload.preferredChannel}` : "",
     payload.routedToUrl ? `Redirigé vers: ${payload.routedToUrl}` : "",
-    `Créneau souhaité: ${payload.selectedDayLabel ?? "non précisé"} à ${payload.selectedTime}`,
-    `Date ISO: ${payload.selectedDateTime}`,
+    bookingFormat ? `Format choisi: ${bookingFormat}` : "",
+    durationMinutes ? `Durée: ${durationMinutes} minutes` : "",
+    payload.selectedTime
+      ? `Créneau souhaité: ${payload.selectedDayLabel ?? "date non précisée"} à ${payload.selectedTime}`
+      : "Créneau souhaité: non précisé",
+    payload.selectedDateTime ? `Date ISO: ${payload.selectedDateTime}` : "",
     `Langue: ${payload.lang || "non précisée"}`,
     `Fuseau horaire: ${payload.timezone || "non précisé"}`,
   ];
 
   const specificLines: string[] = [];
+  const trainingProfile = branchText(branchData, "trainingProfile");
+  const trainingLevel = branchText(branchData, "trainingLevel");
+  const trainingGoal = branchText(branchData, "trainingGoal");
+  const targetLang = branchText(branchData, "targetLang");
+  const workshopType = branchText(branchData, "workshopType");
+  const periodPreference = branchText(branchData, "periodPreference");
+
+  if (trainingProfile) specificLines.push(`Profil formation: ${trainingProfile}`);
+  if (trainingLevel) specificLines.push(`Niveau formation: ${trainingLevel}`);
+  if (trainingGoal) specificLines.push(`Objectif formation: ${trainingGoal}`);
+  if (targetLang) specificLines.push(`Langue de formation: ${targetLang}`);
+  if (workshopType) specificLines.push(`Type workshop: ${workshopType}`);
+  if (periodPreference) specificLines.push(`Période souhaitée: ${periodPreference}`);
   if (payload.currentLocation) specificLines.push(`Lieu actuel / Destination: ${payload.currentLocation}`);
   if (payload.urgency) specificLines.push(`Urgence: ${payload.urgency}`);
   if (payload.needType) specificLines.push(`Besoin principal: ${payload.needType}`);
@@ -530,6 +603,8 @@ export async function handleLeadRequest(request: Request) {
 
   const tags = configuredTags(payload);
   const leadSubmissionId = await createLeadSubmission(payload, tags);
+  if (!leadSubmissionId) return jsonError(500, "LEAD_PERSISTENCE_FAILED");
+
   const notification = await sendLeadNotification(payload, tags);
   await persistNotificationResult(leadSubmissionId, notification);
 
@@ -545,7 +620,11 @@ export async function handleLeadRequest(request: Request) {
       status: "FAILED",
       errorMessage: "GHL_NOT_CONFIGURED",
     });
-    return jsonError(500, "GHL_NOT_CONFIGURED");
+    return Response.json({
+      ok: true,
+      ghlStatus: "failed",
+      notification: notification.status,
+    });
   }
 
   try {
@@ -566,13 +645,30 @@ export async function handleLeadRequest(request: Request) {
     }
 
     const noteBody = makeNoteBody(payload);
+    const branchData = getBranchData(payload);
+    const bookingFormat = branchText(branchData, "bookingFormat");
+    const durationMinutes = branchNumber(branchData, "durationMinutes");
     const taskBody = [
-      `Contact souhaité: ${payload.selectedDayLabel ?? "non précisé"} à ${payload.selectedTime}`,
+      payload.selectedTime
+        ? `Créneau demandé: ${payload.selectedDayLabel ?? "date non précisée"} à ${payload.selectedTime}`
+        : "Créneau demandé: non précisé",
+      payload.timezone ? `Fuseau horaire: ${payload.timezone}` : "",
+      bookingFormat ? `Format: ${bookingFormat}` : "",
+      durationMinutes ? `Durée: ${durationMinutes} minutes` : "",
       `Type: ${payload.type}`,
+      payload.intent ? `Intention: ${payload.intent}` : "",
       `Contact: ${payload.contact}`,
       payload.companyName ? `Entreprise: ${payload.companyName}` : "",
       payload.leadSegment ? `Segment: ${payload.leadSegment}` : "",
+      payload.destination ? `Destination: ${payload.destination}` : "",
+      payload.context ? `Contexte:\n${payload.context}` : "",
     ].filter(Boolean).join("\n");
+    const taskTitle =
+      payload.intent === "training"
+        ? "Confirmer le créneau — Formation TMS"
+        : payload.intent === "workshop"
+          ? "Confirmer le créneau — Workshop TMS"
+          : "Rappeler — demande privée TMS";
 
     await ghlFetch(config, `/contacts/${contactId}/tags`, {
       body: { tags },
@@ -586,15 +682,22 @@ export async function handleLeadRequest(request: Request) {
       },
     });
 
-    await ghlFetch(config, `/contacts/${contactId}/tasks`, {
-      body: {
-        title: "Rappeler - demande privée TMS",
-        body: taskBody,
-        dueDate: payload.selectedDateTime,
-        completed: false,
-        ...(config.assignedUserId ? { assignedTo: config.assignedUserId } : {}),
-      },
-    });
+    const createTask = () =>
+      ghlFetch(config, `/contacts/${contactId}/tasks`, {
+        body: {
+          title: taskTitle,
+          body: taskBody,
+          ...(payload.selectedDateTime ? { dueDate: payload.selectedDateTime } : {}),
+          completed: false,
+          ...(config.assignedUserId ? { assignedTo: config.assignedUserId } : {}),
+        },
+      });
+
+    if (payload.selectedDateTime) {
+      await createTask();
+    } else {
+      await optionalGhlStep("create task without due date", createTask);
+    }
 
     if (config.pipelineId && config.pipelineStageId) {
       await optionalGhlStep("create opportunity", () =>
@@ -612,7 +715,7 @@ export async function handleLeadRequest(request: Request) {
       );
     }
 
-    if (config.workflowId) {
+    if (config.workflowId && payload.selectedDateTime) {
       await optionalGhlStep("add contact to workflow", () =>
         ghlFetch(config, `/contacts/${contactId}/workflow/${config.workflowId}`, {
           body: { eventStartTime: payload.selectedDateTime },
@@ -626,13 +729,21 @@ export async function handleLeadRequest(request: Request) {
       errorMessage: null,
     });
 
-    return Response.json({ ok: true, notification: notification.status });
+    return Response.json({
+      ok: true,
+      ghlStatus: "sent",
+      notification: notification.status,
+    });
   } catch (error) {
     console.error("GHL lead submission failed", error);
     await updateLeadSubmission(leadSubmissionId, {
       status: "FAILED",
       errorMessage: error instanceof Error ? error.message.slice(0, 4000) : "GHL_SUBMISSION_FAILED",
     });
-    return jsonError(502, "GHL_SUBMISSION_FAILED");
+    return Response.json({
+      ok: true,
+      ghlStatus: "failed",
+      notification: notification.status,
+    });
   }
 }
