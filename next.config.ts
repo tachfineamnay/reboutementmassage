@@ -10,8 +10,18 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: "/stories/:locale(fr|en|es)/:slug",
-        destination: "/:locale/stories/:slug",
+        source: "/stories/fr/:slug",
+        destination: "/fr/stories/:slug",
+        permanent: true,
+      },
+      {
+        source: "/stories/en/:slug",
+        destination: "/en/stories/:slug",
+        permanent: true,
+      },
+      {
+        source: "/stories/es/:slug",
+        destination: "/es/stories/:slug",
         permanent: true,
       },
     ];
