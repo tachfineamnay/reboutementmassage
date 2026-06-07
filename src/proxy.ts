@@ -6,6 +6,35 @@ import { getCanonicalLocalizedPath, isLocale, type Locale } from "@/lib/seo";
 const PUBLIC_ROUTES = ["/admin/login"];
 const SUPPORTED_LOCALES: Locale[] = ["fr", "en", "es"];
 
+function normalizeHost(value: string) {
+  return value
+    .replace(/^https?:\/\//i, "")
+    .replace(/\/.*$/, "")
+    .replace(/:\d+$/, "")
+    .toLowerCase();
+}
+
+function getCanonicalHostRedirectUrl(request: NextRequest) {
+  const canonicalHost = process.env.CANONICAL_HOST
+    ? normalizeHost(process.env.CANONICAL_HOST.trim())
+    : "";
+
+  if (!canonicalHost) return null;
+
+  const currentHost = normalizeHost(
+    request.headers.get("host") ?? request.nextUrl.hostname
+  );
+
+  if (currentHost === canonicalHost) return null;
+
+  const url = request.nextUrl.clone();
+  url.protocol = "https:";
+  url.hostname = canonicalHost;
+  url.port = "";
+
+  return url;
+}
+
 function detectPreferredLocale(request: NextRequest): Locale {
   const cookieLocale =
     request.cookies.get("NEXT_LOCALE")?.value ??
@@ -27,6 +56,12 @@ function detectPreferredLocale(request: NextRequest): Locale {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // ── 0. Domaine canonique SEO ───────────────────────────────────────────────
+  const canonicalHostRedirectUrl = getCanonicalHostRedirectUrl(request);
+  if (canonicalHostRedirectUrl) {
+    return NextResponse.redirect(canonicalHostRedirectUrl, 308);
+  }
 
   // ── 1. Routes admin UI ────────────────────────────────────────────────────
   if (pathname.startsWith("/admin")) {
@@ -80,7 +115,7 @@ export async function proxy(request: NextRequest) {
   if (canonicalPath) {
     const url = request.nextUrl.clone();
     url.pathname = canonicalPath;
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(url, 308);
   }
 
   return NextResponse.next();
