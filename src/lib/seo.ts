@@ -37,7 +37,7 @@ export const META_BY_LOCALE: Record<Locale, { title: string; description: string
   es: {
     title: "Grégory Tordjman — Método TMS® | Terapia manual privada",
     description:
-      "Solicitud privada de Terapia manual TMS®, inspirada en el reboutement tradicional francés, la lectura corporal y el masaje terapéutico profundo. Intervención discreta para hoteles, villas, yates, equipos y clientes privados.",
+      "Solicitud privada de Terapia manual TMS®, inspirada en el reboutement tradicional francés, la lectura corporal y el masaje terapéutico profundo. Intervención discreta para hoteles, villas, yates, equipos et clients privés.",
   },
 };
 
@@ -80,9 +80,21 @@ export function isLocale(value: string): value is Locale {
   return LOCALES.includes(value as Locale);
 }
 
+function normalizeSiteUrl(value: string) {
+  const trimmed = value.trim().replace(/\/+$/, "");
+  if (!trimmed) return "";
+
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
+
 export function getSiteUrl() {
-  const raw = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-  return raw.replace(/\/+$/, "");
+  const raw =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.SITE_URL ||
+    process.env.CANONICAL_HOST ||
+    "http://localhost:3000";
+
+  return normalizeSiteUrl(raw);
 }
 
 export function localePath(locale: Locale) {
@@ -152,14 +164,13 @@ export function createIdentityJsonLd(locale: Locale): JsonLd {
         publisher: { "@id": entityId("organization") },
       },
       {
-        "@type": ["Organization", "LocalBusiness"],
+        "@type": "Organization",
         "@id": entityId("organization"),
         name: "Méthode TMS®",
         legalName: "Grégory Tordjman - Méthode TMS®",
         url: absoluteUrl(),
         logo: { "@type": "ImageObject", url: logoUrl },
         image: imageUrl,
-        priceRange: "$$$",
         areaServed: ["France", "Caribbean", "Mexico", "International"],
         founder: { "@id": entityId("gregory-tordjman") },
       },
@@ -219,7 +230,7 @@ export function createProfessionalServiceJsonLd(params: {
   const url = absoluteUrl(localizedPath(params.routeKey, params.locale));
   return {
     "@context": "https://schema.org",
-    "@type": "ProfessionalService",
+    "@type": "Service",
     "@id": `${url}#service`,
     name: params.name,
     description: params.description,
@@ -276,7 +287,12 @@ export function createCourseJsonLd(locale: Locale): JsonLd {
     description:
       "Manual therapy training for therapists, spa practitioners and hospitality teams, with body reading, reboutement-inspired precision and therapeutic bodywork protocols.",
     url,
-    provider: { "@id": entityId("gregory-tordjman") },
+    provider: {
+      "@type": "Person",
+      "@id": entityId("gregory-tordjman"),
+      name: "Grégory Tordjman",
+      url: absoluteUrl(localizedPath("home", locale)),
+    },
     teaches: [
       "Manual assessment",
       "Reboutement TMS®",
@@ -286,6 +302,12 @@ export function createCourseJsonLd(locale: Locale): JsonLd {
       "Guest-centered relief techniques",
     ],
     audience: { "@type": "BusinessAudience", audienceType: "Therapists, spa teams and hospitality professionals" },
+    offers: {
+      "@type": "Offer",
+      url,
+      availability: "https://schema.org/InStock",
+      businessFunction: "http://purl.org/goodrelations/v1#ProvideService",
+    },
     hasCourseInstance: [
       { "@type": "CourseInstance", name: "Online foundation training", courseMode: "online", inLanguage: locale },
       { "@type": "CourseInstance", name: "On-site hospitality workshop", courseMode: "onsite", inLanguage: locale },
