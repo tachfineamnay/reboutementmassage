@@ -23,6 +23,14 @@ type LeadPayload = {
   propertyType: string | null;
   destination: string | null;
   leadSegment: string | null;
+  intent: string | null;
+  preferredChannel: string | null;
+  routedToUrl: string | null;
+  urgency: string | null;
+  needType: string | null;
+  volumePotential: string | null;
+  participantCount: string | null;
+  currentLocation: string | null;
 };
 
 type GhlContactResponse = {
@@ -67,6 +75,14 @@ const LeadRequestSchema = z.object({
   propertyType: z.string().trim().max(180).optional().nullable(),
   destination: z.string().trim().max(180).optional().nullable(),
   leadSegment: z.string().trim().max(80).optional().nullable(),
+  intent: z.string().trim().max(100).optional().nullable(),
+  preferredChannel: z.string().trim().max(50).optional().nullable(),
+  routedToUrl: z.string().trim().max(1000).optional().nullable(),
+  urgency: z.string().trim().max(100).optional().nullable(),
+  needType: z.string().trim().max(255).optional().nullable(),
+  volumePotential: z.string().trim().max(100).optional().nullable(),
+  participantCount: z.string().trim().max(100).optional().nullable(),
+  currentLocation: z.string().trim().max(255).optional().nullable(),
 });
 
 function jsonError(status: number, error: string) {
@@ -114,7 +130,10 @@ function inferLeadSegment(payload: Omit<LeadPayload, "leadSegment">, explicitSeg
 
 function normalizePayload(raw: unknown): LeadPayload | null {
   const parsed = LeadRequestSchema.safeParse(raw);
-  if (!parsed.success) return null;
+  if (!parsed.success) {
+    console.error("Lead validation failed", parsed.error);
+    return null;
+  }
 
   const data = parsed.data;
   const payloadWithoutSegment = {
@@ -133,6 +152,14 @@ function normalizePayload(raw: unknown): LeadPayload | null {
     jobTitle: nullableText(data.jobTitle),
     propertyType: nullableText(data.propertyType),
     destination: nullableText(data.destination),
+    intent: nullableText(data.intent),
+    preferredChannel: nullableText(data.preferredChannel),
+    routedToUrl: nullableText(data.routedToUrl),
+    urgency: nullableText(data.urgency),
+    needType: nullableText(data.needType),
+    volumePotential: nullableText(data.volumePotential),
+    participantCount: nullableText(data.participantCount),
+    currentLocation: nullableText(data.currentLocation),
   };
 
   return {
@@ -177,6 +204,11 @@ function configuredTags(payload: LeadPayload) {
     payload.leadSegment ? `segment ${payload.leadSegment}` : "",
     payload.propertyType ? `property ${payload.propertyType}` : "",
     payload.destination ? `destination ${payload.destination}` : "",
+    payload.intent ? `intent ${payload.intent}` : "",
+    "source site premium",
+    payload.intent === "hospitality_partner" ? "segment b2b" : "",
+    payload.intent === "training" ? "training premium" : "",
+    payload.intent === "workshop" ? "workshop premium" : "",
   ];
 
   return Array.from(
@@ -202,6 +234,14 @@ async function createLeadSubmission(payload: LeadPayload, tags: string[]) {
         propertyType: payload.propertyType,
         destination: payload.destination,
         leadSegment: payload.leadSegment,
+        intent: payload.intent,
+        preferredChannel: payload.preferredChannel,
+        routedToUrl: payload.routedToUrl,
+        urgency: payload.urgency,
+        needType: payload.needType,
+        volumePotential: payload.volumePotential,
+        participantCount: payload.participantCount,
+        currentLocation: payload.currentLocation,
         selectedDayLabel: payload.selectedDayLabel,
         selectedTime: payload.selectedTime,
         selectedAt: new Date(payload.selectedDateTime),
@@ -282,19 +322,33 @@ function makeNoteBody(payload: LeadPayload) {
   const qualification = makeQualificationLines(payload);
 
   const lines = [
-    "Demande privée transmise depuis la landing Méthode TMS®.",
+    "Demande transmise depuis le site Méthode TMS®.",
     "",
     `Prénom: ${payload.firstName}`,
     `Contact: ${payload.contact}`,
     `Type de demande: ${payload.type}`,
+    payload.intent ? `Intention: ${payload.intent}` : "",
+    payload.preferredChannel ? `Canal préféré: ${payload.preferredChannel}` : "",
+    payload.routedToUrl ? `Redirigé vers: ${payload.routedToUrl}` : "",
     `Créneau souhaité: ${payload.selectedDayLabel ?? "non précisé"} à ${payload.selectedTime}`,
     `Date ISO: ${payload.selectedDateTime}`,
     `Langue: ${payload.lang || "non précisée"}`,
     `Fuseau horaire: ${payload.timezone || "non précisé"}`,
   ];
 
+  const specificLines: string[] = [];
+  if (payload.currentLocation) specificLines.push(`Lieu actuel / Destination: ${payload.currentLocation}`);
+  if (payload.urgency) specificLines.push(`Urgence: ${payload.urgency}`);
+  if (payload.needType) specificLines.push(`Besoin principal: ${payload.needType}`);
+  if (payload.volumePotential) specificLines.push(`Volume potentiel B2B: ${payload.volumePotential}`);
+  if (payload.participantCount) specificLines.push(`Nombre de participants: ${payload.participantCount}`);
+
+  if (specificLines.length > 0) {
+    lines.push("", "Qualification spécifique:", ...specificLines);
+  }
+
   if (qualification.length > 0) {
-    lines.push("", "Qualification B2B:", ...qualification);
+    lines.push("", "Qualification B2B standard:", ...qualification);
   }
 
   lines.push(

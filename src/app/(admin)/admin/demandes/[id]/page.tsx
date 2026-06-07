@@ -118,6 +118,29 @@ export default async function DemandeDetailPage({ params }: Props) {
               </span>
             }
           />
+          {lead.companyName && <DetailItem label="Établissement / Société" value={lead.companyName} />}
+          {lead.jobTitle && <DetailItem label="Fonction / Poste" value={lead.jobTitle} />}
+          {lead.propertyType && <DetailItem label="Type d'établissement" value={lead.propertyType} />}
+          {lead.destination && <DetailItem label="Destination" value={lead.destination} />}
+
+          {lead.intent && <DetailItem label="Intention" value={lead.intent} />}
+          {lead.preferredChannel && <DetailItem label="Canal préféré" value={lead.preferredChannel} />}
+          {lead.routedToUrl && (
+            <DetailItem
+              label="Redirigé vers"
+              value={
+                <a href={lead.routedToUrl} target="_blank" rel="noopener noreferrer" className="admin-table__title-link" style={{ textDecoration: "underline" }}>
+                  Lien redirection
+                </a>
+              }
+            />
+          )}
+          {lead.urgency && <DetailItem label="Urgence" value={lead.urgency} />}
+          {lead.needType && <DetailItem label="Besoin" value={lead.needType} />}
+          {lead.volumePotential && <DetailItem label="Volume" value={lead.volumePotential} />}
+          {lead.participantCount && <DetailItem label="Participants" value={lead.participantCount} />}
+          {lead.currentLocation && <DetailItem label="Lieu actuel" value={lead.currentLocation} />}
+
           <DetailItem label="Contact GHL" value={lead.ghlContactId ?? "—"} />
           <DetailItem label="Créée le" value={dateFmt.format(lead.createdAt)} />
           <DetailItem label="Mise à jour le" value={dateFmt.format(lead.updatedAt)} />

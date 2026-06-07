@@ -88,6 +88,16 @@ model LeadSubmission {
   destination      String?
   leadSegment      String?
 
+  // Qualification conditionnelle additionnelle
+  intent           String?
+  preferredChannel String?
+  routedToUrl      String?
+  urgency          String?
+  needType         String?
+  volumePotential  String?
+  participantCount String?
+  currentLocation  String?
+
   selectedDayLabel String?
   selectedTime     String
   selectedAt       DateTime
