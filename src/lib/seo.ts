@@ -25,19 +25,19 @@ export const LOCALE_LABELS: Record<Language, string> = {
 
 export const META_BY_LOCALE: Record<Locale, { title: string; description: string }> = {
   fr: {
-    title: "Grégory Tordjman — Méthode TMS® | Reboutement & thérapie manuelle",
+    title: "Grégory Tordjman — Méthode TMS® | Reboutement de précision",
     description:
-      "Demande privée pour reboutement TMS®, thérapie manuelle de précision et massage thérapeutique avec Grégory Tordjman. Intervention discrète pour hôtels, villas, yachts, équipes et clients privés.",
+      "Site officiel de Grégory Tordjman, créateur de la Méthode TMS®. Accompagnement manuel premium inspiré du reboutement pour clients privés, hôtels, villas, yachts, conciergeries et équipes spa.",
   },
   en: {
-    title: "Grégory Tordjman — TMS® Manual Therapy | French Bonesetting",
+    title: "Grégory Tordjman — Méthode TMS® | Precise Manual Bodywork",
     description:
-      "Private request for TMS® Manual Therapy, a precise hands-on approach inspired by traditional French bonesetting, therapeutic bodywork and deep body reading. Discreet support for hotels, villas, yachts, teams and private clients.",
+      "Official website of Grégory Tordjman, creator of the Méthode TMS®. Premium hands-on support inspired by French reboutement for private clients, hotels, villas, yachts, concierge teams and spa teams.",
   },
   es: {
-    title: "Grégory Tordjman — Método TMS® | Terapia manual privada",
+    title: "Grégory Tordjman — Método TMS® | Reboutement de precisión",
     description:
-      "Solicitud privada de Terapia manual TMS®, inspirada en el reboutement tradicional francés, la lectura corporal y el masaje terapéutico profundo. Intervención discreta para hoteles, villas, yates, equipos et clients privés.",
+      "Sitio oficial de Grégory Tordjman, creador del Método TMS®. Acompañamiento manual premium inspirado en el reboutement para clientes privados, hoteles, villas, yates, conserjerías y equipos spa.",
   },
 };
 
@@ -158,7 +158,7 @@ export function createIdentityJsonLd(locale: Locale): JsonLd {
       {
         "@type": "WebSite",
         "@id": entityId("website"),
-        name: "Méthode TMS®",
+        name: "Méthode TMS® - Grégory Tordjman",
         url: absoluteUrl(),
         inLanguage: locale,
         publisher: { "@id": entityId("organization") },
@@ -168,11 +168,17 @@ export function createIdentityJsonLd(locale: Locale): JsonLd {
         "@id": entityId("organization"),
         name: "Méthode TMS®",
         legalName: "Grégory Tordjman - Méthode TMS®",
+        alternateName: ["Reboutement TMS®", "Reboutement et Massage", "Formation Reboutement"],
         url: absoluteUrl(),
         logo: { "@type": "ImageObject", url: logoUrl },
         image: imageUrl,
         areaServed: ["France", "Caribbean", "Mexico", "International"],
         founder: { "@id": entityId("gregory-tordjman") },
+        sameAs: [
+          "https://formationreboutement.fr/",
+          "https://reboutementmassage.fr/",
+          "https://go.formationreboutement.fr/",
+        ],
       },
       {
         "@type": "Person",
@@ -180,18 +186,17 @@ export function createIdentityJsonLd(locale: Locale): JsonLd {
         name: "Grégory Tordjman",
         url: homeUrl,
         image: imageUrl,
-        jobTitle: "Manual therapy practitioner and creator of the Méthode TMS®",
+        jobTitle: "Creator of the Méthode TMS® and manual bodywork practitioner",
         brand: { "@id": entityId("organization") },
         knowsAbout: [
           "Méthode TMS®",
           "Reboutement TMS®",
           "Reboutement",
-          "Traditional French bonesetting",
-          "TMS® Manual Therapy",
-          "Terapia manual TMS®",
-          "Manual therapy",
-          "Therapeutic massage",
+          "Traditional French reboutement",
+          "Manual bodywork",
+          "Body reading",
           "Luxury hospitality",
+          "Private client sessions",
           "Spa team training",
         ],
       },
@@ -273,16 +278,16 @@ export function createB2BServiceJsonLd(locale: Locale): JsonLd {
     "@context": "https://schema.org",
     "@type": "Service",
     "@id": `${url}#b2b-service`,
-    name: "Luxury hospitality manual therapy and spa team training",
+    name: "Luxury hospitality manual bodywork and spa team training",
     description:
-      "Bespoke Méthode TMS® support for luxury hotels, five-star spas, villas, yachts, concierge teams and VIP guests.",
+      "Bespoke Méthode TMS® support for luxury hotels, spas, villas, yachts, concierge teams and VIP guests.",
     url,
     provider: { "@id": entityId("gregory-tordjman") },
-    serviceType: ["Hospitality training", "Spa team workshops", "VIP manual therapy sessions", "On-site private consultations"],
+    serviceType: ["Hospitality training", "Spa team workshops", "VIP guest sessions", "On-site private consultations"],
     areaServed: ["Caribbean", "Mexico", "Europe", "International"],
     audience: {
       "@type": "BusinessAudience",
-      audienceType: "Luxury hotels, five-star spas, villas, yachts and concierge teams",
+      audienceType: "Luxury hotels, spas, villas, yachts and concierge teams",
       geographicArea: ["Caribbean", "Mexico", "International"],
     },
     hasOfferCatalog: {
@@ -305,7 +310,7 @@ export function createCourseJsonLd(locale: Locale): JsonLd {
     "@id": `${url}#course`,
     name: "Formation Méthode TMS®",
     description:
-      "Manual therapy training for therapists, spa practitioners and hospitality teams, with body reading, reboutement-inspired precision and therapeutic bodywork protocols.",
+      "Manual training for practitioners, spa teams and hospitality professionals, with body reading, reboutement-inspired precision and responsible guest-centered practice.",
     url,
     provider: {
       "@type": "Person",
@@ -314,14 +319,14 @@ export function createCourseJsonLd(locale: Locale): JsonLd {
       url: absoluteUrl(localizedPath("home", locale)),
     },
     teaches: [
-      "Manual assessment",
+      "Body reading",
       "Reboutement TMS®",
-      "Traditional French bonesetting principles",
-      "Therapeutic bodywork",
+      "Traditional French reboutement principles",
+      "Manual precision",
       "Spa team intervention protocols",
-      "Guest-centered relief techniques",
+      "Guest-centered practice",
     ],
-    audience: { "@type": "BusinessAudience", audienceType: "Therapists, spa teams and hospitality professionals" },
+    audience: { "@type": "BusinessAudience", audienceType: "Practitioners, spa teams and hospitality professionals" },
     offers: {
       "@type": "Offer",
       url,
@@ -343,13 +348,13 @@ export function createEducationEventJsonLd(locale: Locale): JsonLd {
     "@id": `${url}#education-event`,
     name: "Méthode TMS® hospitality workshop",
     description:
-      "On-site training event for spa teams and therapists working with high-end guests, focused on manual therapy, body reading and reboutement-inspired precision.",
+      "On-site training event for spa teams and practitioners working with high-end guests, focused on body reading, manual precision and reboutement-inspired practice.",
     url,
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     eventStatus: "https://schema.org/EventScheduled",
     organizer: { "@id": entityId("gregory-tordjman") },
     audience: { "@type": "BusinessAudience", audienceType: "Spa and hospitality teams" },
-    teaches: "Méthode TMS® manual therapy protocols",
+    teaches: "Méthode TMS® manual practice protocols",
     inLanguage: locale,
   };
 }
