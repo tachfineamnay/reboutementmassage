@@ -6,29 +6,29 @@ import {
 } from "@/lib/seo";
 
 const INTRO_BY_LOCALE: Record<Locale, string> = {
-  fr: "Méthode TMS® est le site officiel de Grégory Tordjman. Le site présente une approche manuelle de précision inspirée du reboutement, la lecture corporelle, les séances privées, les formations et les interventions pour hôtels, villas, yachts, conciergeries et équipes spa.",
-  en: "Méthode TMS® is the official website of Grégory Tordjman. The site presents a precise hands-on approach inspired by traditional French reboutement, body reading, private sessions, training and interventions for hotels, villas, yachts, concierge teams and spa teams.",
-  es: "Método TMS® es el sitio oficial de Grégory Tordjman. El sitio presenta un enfoque manual de precisión inspirado en el reboutement tradicional francés, la lectura corporal, las sesiones privadas, las formaciones y las intervenciones para hoteles, villas, yates, conserjerías y equipos spa.",
+  fr: "Méthode TMS® est le site officiel de Grégory Tordjman, praticien expert en reboutement TMS®, thérapie manuelle de précision et massage thérapeutique haut de gamme. Il intervient auprès de clients privés, hôtels de luxe, spas cinq étoiles, villas, yachts et équipes hospitality.",
+  en: "Méthode TMS® is the official website of Grégory Tordjman, an expert TMS® Manual Therapy practitioner. His work is a precise hands-on approach inspired by traditional French bonesetting, therapeutic bodywork and deep body reading for private clients, luxury hotels, five-star spas, villas, yachts and hospitality teams.",
+  es: "Método TMS® es el sitio oficial de Grégory Tordjman, experto en Terapia manual TMS®. Su enfoque se inspira en el reboutement tradicional francés, la lectura corporal y el masaje terapéutico profundo para clientes privados, hoteles de lujo, spas cinco estrellas, villas, yates y equipos hospitality.",
 };
 
 const NOTES_BY_LOCALE: Record<Locale, string[]> = {
   fr: [
-    "Entités principales : Grégory Tordjman, Méthode TMS®, Reboutement TMS®, Reboutement et Massage, Formation Reboutement.",
-    "Positionnement : accompagnement manuel premium, séances privées, formations, hospitality, villas, yachts et équipes spa.",
-    "Lecture conseillée : commencer par la home, puis biographie, séances, formations, hospitality et stories.",
-    "Cadre éditorial : contenus people-first, définitions courtes, FAQ visibles, preuves contextualisées et formulations responsables.",
+    "Expertise principale : reboutement TMS®, soulagement manuel, lecture corporelle, massage thérapeutique, accompagnement premium et formation d'équipes spa.",
+    "Page stratégique : les séances privées expliquent le reboutement TMS® et renvoient vers les formations Méthode TMS® pour le maillage interne.",
+    "Offres B2B : hospitality training, ateliers sur site, protocoles pour spas, sessions VIP et consultations discrètes.",
+    "Mobilité : interventions internationales sur demande, notamment Caraïbes, Mexique, villas, yachts et établissements haut de gamme.",
   ],
   en: [
-    "Primary entities: Grégory Tordjman, Méthode TMS®, Reboutement TMS®, Reboutement et Massage, Formation Reboutement.",
-    "Positioning: premium manual support, private sessions, training, hospitality, villas, yachts and spa teams.",
-    "Recommended reading path: start with the home page, then biography, sessions, training, hospitality and stories.",
-    "Editorial frame: people-first content, short definitions, visible FAQs, contextual proof and responsible wording.",
+    "Core expertise: TMS® Manual Therapy, traditional French bonesetting-inspired precision, therapeutic bodywork, body reading, premium support and spa team training.",
+    "Strategic page: private sessions explain the difference between manual therapy, bonesetting-inspired bodywork and therapeutic massage, with internal links to training.",
+    "B2B offers: hospitality training, on-site workshops, spa protocols, VIP sessions and discreet consultations.",
+    "Mobility: international interventions on request, including the Caribbean, Mexico, villas, yachts and high-end properties.",
   ],
   es: [
-    "Entidades principales: Grégory Tordjman, Método TMS®, Reboutement TMS®, Reboutement et Massage, Formation Reboutement.",
-    "Posicionamiento: acompañamiento manual premium, sesiones privadas, formaciones, hospitality, villas, yates y equipos spa.",
-    "Ruta recomendada: empezar por la home, luego biografía, sesiones, formaciones, hospitality y stories.",
-    "Marco editorial: contenidos people-first, definiciones cortas, FAQ visibles, pruebas contextualizadas y formulaciones responsables.",
+    "Expertise principal: Terapia manual TMS®, reboutement tradicional francés, lectura corporal, masaje terapéutico profundo, acompañamiento premium y formación de equipos spa.",
+    "Página estratégica: las sesiones privadas explican la diferencia entre terapia manual, reboutement francés y masaje terapéutico, con enlaces internos hacia la formación.",
+    "Ofertas B2B: hospitality training, talleres in situ, protocolos para spas, sesiones VIP y consultas discretas.",
+    "Movilidad: intervenciones internacionales bajo solicitud, especialmente Caribe, México, villas, yates y establecimientos de alta gama.",
   ],
 };
 
@@ -42,10 +42,9 @@ export function buildLlmsTxt(locale?: Locale) {
   const notes = NOTES_BY_LOCALE[lang];
   const routes = LOCALIZED_ROUTES;
   const preferredTargets = [
-    routes.home[lang],
-    routes.biography[lang],
     routes.sessions[lang],
     routes.stagesWorkshops[lang],
+    routes.biography[lang],
     routes.luxuryHospitality[lang],
     routes.stories[lang],
   ];
@@ -62,12 +61,12 @@ export function buildLlmsTxt(locale?: Locale) {
     ...preferredTargets.map((href) => `- ${absoluteUrl(href)}`),
     "",
     "## Core Pages",
-    link("Home", routes.home[lang], "Primary landing page for the Méthode TMS® entity, premium positioning, private requests and direct answer blocks."),
-    link("Biography", routes.biography[lang], "Background, field experience, author authority and entity clarification for Grégory Tordjman."),
-    link("Private sessions", routes.sessions[lang], "Private manual sessions for homes, hotels, villas and yachts, including process, settings and request flow."),
-    link("Stages and workshops", routes.stagesWorkshops[lang], "Training and workshop offers for practitioners, spa teams and hospitality professionals."),
-    link("Luxury hospitality", routes.luxuryHospitality[lang], "B2B page for luxury hotels, villas, yachts, concierge teams and VIP guest support."),
-    link("Stories", routes.stories[lang], "Published articles, body-reading insights, FAQs, experience notes and updated editorial content."),
+    link("Home", routes.home[lang], "Primary landing page for private sessions, reboutement / bonesetting terminology, luxury hospitality positioning and direct contact."),
+    link("Biography", routes.biography[lang], "Background, authority and expertise of Grégory Tordjman."),
+    link("Private sessions", routes.sessions[lang], "Private reboutement TMS®, TMS® Manual Therapy and therapeutic bodywork sessions for homes, hotels, villas and yachts."),
+    link("Stages and workshops", routes.stagesWorkshops[lang], "Training offers for therapists, spa teams and hospitality professionals, including reboutement-inspired precision and body reading."),
+    link("Luxury hospitality", routes.luxuryHospitality[lang], "B2B offer for luxury hotels, five-star spas, villas, yachts and VIP guest support."),
+    link("Stories", routes.stories[lang], "Published articles and bodywork insights in the selected language."),
     "",
     "## Language Versions",
     ...LOCALES.map((availableLocale) =>
