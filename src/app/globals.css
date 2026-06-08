@@ -206,6 +206,7 @@ html, body {
   text-rendering: optimizeLegibility;
 }
 
+html { scroll-padding-top: 92px; }
 body { overflow-x: hidden; }
 
 img { display: block; max-width: 100%; height: auto; }
@@ -347,6 +348,10 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .shared-header--light .nav-divider { background: rgba(107,94,82,0.3); }
 /* Hamburger on cream */
 .shared-header--light .hamburger__bar { background: var(--ink); }
+.shared-header--menu-open .header-inner,
+.shared-header--menu-open .brand { color: var(--cream); }
+.shared-header--menu-open .brand-logo { border-color: rgba(201,169,90,0.38); }
+.shared-header--menu-open .hamburger__bar { background: var(--cream); }
 
 /* ─────────── Header right group ─────────── */
 .header-right {
@@ -2118,9 +2123,6 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   .header-inner .lang-switch { display: none; }
   .header-cta { display: none; }
 
-  /* Hamburger visible on mobile */
-  .hamburger { display: flex; }
-
   .header-right { gap: 12px; }
 
   /* Hero CTA — stack */
@@ -2252,8 +2254,8 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   justify-content: center;
   align-items: center;
   gap: 5px;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   background: none;
   border: none;
   cursor: pointer;
@@ -2264,6 +2266,10 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   /* Default: light bars for dark hero */
 }
 .hamburger:hover { background: rgba(250,248,243,0.08); }
+.hamburger:focus-visible {
+  outline: 1px solid var(--gold);
+  outline-offset: 3px;
+}
 .hamburger__bar {
   display: block;
   width: 22px;
@@ -2319,12 +2325,12 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   top: 0;
   right: 0;
   bottom: 0;
-  width: min(320px, 88vw);
+  width: min(340px, 88vw);
   background: var(--ink);
   border-left: 0.5px solid rgba(201,169,90,0.15);
   display: flex;
   flex-direction: column;
-  padding: 100px 36px 48px;
+  padding: calc(96px + env(safe-area-inset-top, 0px)) 36px max(32px, env(safe-area-inset-bottom, 0px));
   gap: 0;
   animation: mbDrawerIn .32s cubic-bezier(.25,.1,.25,1) both;
   overflow-y: auto;
@@ -2355,6 +2361,12 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   border-bottom: 0.5px solid rgba(201,169,90,0.14);
   transition: color .2s ease;
   text-decoration: none;
+}
+.mobile-menu__link:focus-visible,
+.mobile-menu__cta:focus-visible,
+.mobile-menu__lang:focus-visible {
+  outline: 1px solid var(--gold);
+  outline-offset: 4px;
 }
 .mobile-menu__link:hover,
 .mobile-menu__link.is-active {
@@ -2393,6 +2405,7 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   transition: background .25s ease, transform .2s ease;
   margin-bottom: 32px;
   white-space: nowrap;
+  justify-content: space-between;
 }
 .mobile-menu__cta:hover { background: #25593f; transform: scale(1.02); }
 .mobile-menu__cta svg { transition: transform .3s ease; }
@@ -2420,6 +2433,38 @@ textarea.sf-field__input::placeholder { font-style: normal; }
 }
 .mobile-menu__lang:hover { color: var(--cream); }
 .mobile-menu__lang.is-active { color: var(--gold); }
+
+@media (max-width: 920px) {
+  .hamburger { display: flex; }
+}
+
+@media (max-width: 480px) {
+  .mobile-menu__drawer {
+    width: min(100%, 340px);
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .mobile-menu__list { margin-bottom: 28px; }
+  .mobile-menu__link { font-size: 24px; padding: 15px 0; }
+  .mobile-menu__cta {
+    width: 100%;
+    padding: 13px 18px;
+    margin-bottom: 20px;
+    white-space: normal;
+  }
+}
+
+@media (max-height: 680px) and (max-width: 920px) {
+  .mobile-menu__drawer {
+    padding-top: calc(82px + env(safe-area-inset-top, 0px));
+    padding-bottom: max(20px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .mobile-menu__list { margin-bottom: 20px; }
+  .mobile-menu__link { font-size: 22px; padding: 12px 0; }
+  .mobile-menu__cta { margin-bottom: 12px; }
+}
 
 /* Ensure desktop never shows hamburger */
 @media (min-width: 921px) {
