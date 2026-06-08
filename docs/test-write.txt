@@ -1,1 +1,0 @@
-Editorial note: repository write access verified; main AEO GEO updates were applied in src/lib/llms.ts and src/lib/seo.ts.
