@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -7,7 +8,8 @@ const globalForPrisma = globalThis as unknown as {
 
 function createPrismaClient() {
   const url = process.env.DATABASE_URL || "postgresql://dummy:dummy@localhost:5432/dummy";
-  const adapter = new PrismaPg({ connectionString: url });
+  const pool = new Pool({ connectionString: url });
+  const adapter = new PrismaPg(pool);
   return new PrismaClient({
     adapter,
     log:
