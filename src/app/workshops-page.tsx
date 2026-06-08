@@ -8,15 +8,6 @@ import SharedFooter from "@/components/SharedFooter";
 import SharedContactForm from "@/components/SharedContactForm";
 
 /* ──────────────────────────────────────────────────────────
-   Constants
-   ────────────────────────────────────────────────────────── */
-const LANGUAGE_ROUTES: Record<Language, string> = {
-  FR: "/fr",
-  EN: "/en",
-  ES: "/es",
-};
-
-/* ──────────────────────────────────────────────────────────
    Reveal-on-scroll
    ────────────────────────────────────────────────────────── */
 function useReveal() {
@@ -92,7 +83,7 @@ function WsHero({ lang }: { lang: Language }) {
       sub: "Des formations pratiques et exigeantes pour les thérapeutes, praticiens spa et équipes qui veulent intégrer la Méthode TMS® à leur pratique.",
       cta: "Demander une place",
       ctaSec: "Voir les formats",
-      metaLabel: "230+ thérapeutes formés · Depuis 2014",
+      metaLabel: "Transmission professionnelle · Pratique depuis 2006",
     },
     EN: {
       eyebrow: "Stages & Workshops · Méthode TMS®",
@@ -100,7 +91,7 @@ function WsHero({ lang }: { lang: Language }) {
       sub: "Practical and demanding training for therapists, spa practitioners and teams who want to integrate the Méthode TMS® into their practice.",
       cta: "Request a place",
       ctaSec: "View formats",
-      metaLabel: "230+ therapists trained · Since 2014",
+      metaLabel: "Professional transmission · Practising since 2006",
     },
     ES: {
       eyebrow: "Stages & Workshops · Método TMS®",
@@ -108,7 +99,7 @@ function WsHero({ lang }: { lang: Language }) {
       sub: "Formaciones prácticas y exigentes para terapeutas, profesionales spa y equipos que quieren integrar el Método TMS® en su práctica.",
       cta: "Solicitar una plaza",
       ctaSec: "Ver formatos",
-      metaLabel: "230+ terapeutas formados · Desde 2014",
+      metaLabel: "Transmisión profesional · Práctica desde 2006",
     },
   }[lang];
 
@@ -178,13 +169,13 @@ function WsPourQui({ lang }: { lang: Language }) {
   const t = {
     FR: {
       eyebrow: "01 — Pour qui",
-      title: "Une transmission pour ceux qui traitent.",
-      sub: "Les formations Méthode TMS® s'adressent aux professionnels du corps — pas aux curieux.",
+      title: "À qui s'adressent les workshops Méthode TMS® ?",
+      sub: "Des formats pratiques pour professionnels du geste, équipes spa et projets de reconversion sérieusement cadrés.",
       items: [
         {
           num: "01",
           italic: "Thérapeutes manuels.",
-          note: "Ostéopathes, kinésithérapeutes, rebouteux, praticiens en massage thérapeutique. Approfondir la lecture du corps et le geste de libération.",
+          note: "Professionnels souhaitant approfondir l'observation corporelle, la qualité du toucher et l'adaptation du geste à leur propre champ de compétence.",
         },
         {
           num: "02",
@@ -199,19 +190,19 @@ function WsPourQui({ lang }: { lang: Language }) {
         {
           num: "04",
           italic: "Praticiens en reconversion.",
-          note: "Professionnels en transition qui cherchent une méthode manuelle rigoureuse, transmissible et immédiatement applicable.",
+          note: "Professionnels en transition qui cherchent un apprentissage manuel rigoureux, avec des limites d'usage clairement posées.",
         },
       ],
     },
     EN: {
       eyebrow: "01 — For whom",
-      title: "A transmission for those who treat.",
-      sub: "Méthode TMS® training is designed for body professionals — not for the curious.",
+      title: "Who are Méthode TMS® workshops for?",
+      sub: "Practical formats for hands-on professionals, spa teams and carefully framed career-transition projects.",
       items: [
         {
           num: "01",
           italic: "Manual therapists.",
-          note: "Osteopaths, physiotherapists, bonesetters, therapeutic massage practitioners. Deepen body reading and the gesture of release.",
+          note: "Professionals seeking to deepen body observation, quality of touch and adaptation of gesture within their own scope of practice.",
         },
         {
           num: "02",
@@ -226,19 +217,19 @@ function WsPourQui({ lang }: { lang: Language }) {
         {
           num: "04",
           italic: "Practitioners in transition.",
-          note: "Professionals seeking a rigorous, transmissible and immediately applicable manual method.",
+          note: "Professionals in transition seeking rigorous hands-on learning with clearly stated boundaries of use.",
         },
       ],
     },
     ES: {
       eyebrow: "01 — Para quién",
-      title: "Una transmisión para quienes tratan.",
-      sub: "Las formaciones Método TMS® están dirigidas a profesionales del cuerpo — no a curiosos.",
+      title: "¿A quién se dirigen los workshops del Método TMS®?",
+      sub: "Formatos prácticos para profesionales del gesto, equipos spa y proyectos de reconversión bien definidos.",
       items: [
         {
           num: "01",
           italic: "Terapeutas manuales.",
-          note: "Osteópatas, fisioterapeutas, hueseros, practicantes de masaje terapéutico. Profundizar en la lectura corporal y el gesto de liberación.",
+          note: "Profesionales que desean profundizar en la observación corporal, la calidad del tacto y la adaptación del gesto a su propio ámbito profesional.",
         },
         {
           num: "02",
@@ -253,7 +244,7 @@ function WsPourQui({ lang }: { lang: Language }) {
         {
           num: "04",
           italic: "Practicantes en reconversión.",
-          note: "Profesionales en transición que buscan un método manual riguroso, transmisible e inmediatamente aplicable.",
+          note: "Profesionales en transición que buscan un aprendizaje manual riguroso con límites de uso claramente definidos.",
         },
       ],
     },
@@ -319,19 +310,19 @@ function WsPedagogie({ lang }: { lang: Language }) {
           tag: "01",
           label: "Le geste de précision",
           title: "Lecture manuelle du corps",
-          body: "Identifier les blocages structurels, musculaires et fasciaux. Développer une palpation fine et une réponse juste — adaptée à chaque corps, à chaque histoire.",
+          body: "Observer la posture, la mobilité et les réactions au toucher. Développer une palpation attentive et un geste adapté — sans sortir de son champ de compétence.",
         },
         {
           tag: "02",
           label: "L'approche globale",
           title: "Corps entier · Plusieurs niveaux",
-          body: "Intégrer la dimension posturale, nerveuse, respiratoire et émotionnelle dans la pratique. Traiter la cause, pas seulement le symptôme.",
+          body: "Relier posture, respiration, rythme et contexte exprimé. Formuler des observations utiles sans transformer la pratique en diagnostic.",
         },
         {
           tag: "03",
           label: "L'application terrain",
           title: "Protocoles · Contextes · Éthique",
-          body: "Appliquer la méthode dans des environnements exigeants : hôtel, villa, yacht, espace spa. Maîtriser la posture professionnelle, la discrétion et le soin personnalisé.",
+          body: "Adapter l'intervention aux environnements exigeants : hôtel, villa, yacht, espace spa. Travailler la posture professionnelle, le consentement, les limites et la discrétion.",
         },
       ],
     },
@@ -344,19 +335,19 @@ function WsPedagogie({ lang }: { lang: Language }) {
           tag: "01",
           label: "The precise gesture",
           title: "Manual body reading",
-          body: "Identify structural, muscular and fascial blockages. Develop refined palpation and a precise response — adapted to each body, each history.",
+          body: "Observe posture, mobility and responses to touch. Develop attentive palpation and an adapted gesture without exceeding one's professional scope.",
         },
         {
           tag: "02",
           label: "The global approach",
           title: "Whole body · Multiple levels",
-          body: "Integrate postural, nervous, respiratory and emotional dimensions into practice. Treat the cause, not just the symptom.",
+          body: "Connect posture, breathing, rhythm and the context expressed by the person. Form useful observations without turning practice into diagnosis.",
         },
         {
           tag: "03",
           label: "Field application",
           title: "Protocols · Contexts · Ethics",
-          body: "Apply the method in demanding environments: hotel, villa, yacht, spa space. Master professional posture, discretion and personalised care.",
+          body: "Adapt the intervention to demanding settings: hotel, villa, yacht or spa. Work on professional conduct, consent, boundaries and discretion.",
         },
       ],
     },
@@ -369,19 +360,19 @@ function WsPedagogie({ lang }: { lang: Language }) {
           tag: "01",
           label: "El gesto de precisión",
           title: "Lectura manual del cuerpo",
-          body: "Identificar bloqueos estructurales, musculares y fasciales. Desarrollar una palpación refinada y una respuesta precisa — adaptada a cada cuerpo, cada historia.",
+          body: "Observar la postura, la movilidad y las respuestas al tacto. Desarrollar una palpación atenta y un gesto adaptado sin exceder el propio ámbito profesional.",
         },
         {
           tag: "02",
           label: "El enfoque global",
           title: "Cuerpo entero · Múltiples niveles",
-          body: "Integrar las dimensiones postural, nerviosa, respiratoria y emocional en la práctica. Tratar la causa, no solo el síntoma.",
+          body: "Relacionar postura, respiración, ritmo y contexto expresado. Formular observaciones útiles sin convertir la práctica en diagnóstico.",
         },
         {
           tag: "03",
           label: "Aplicación en terreno",
           title: "Protocolos · Contextos · Ética",
-          body: "Aplicar el método en entornos exigentes: hotel, villa, yate, espacio spa. Dominar la postura profesional, la discreción y el cuidado personalizado.",
+          body: "Adaptar la intervención a entornos exigentes: hotel, villa, yate o spa. Trabajar la conducta profesional, el consentimiento, los límites y la discreción.",
         },
       ],
     },
@@ -475,15 +466,8 @@ function WsFormats({ lang }: { lang: Language }) {
           num: "03",
           name: "Formation équipe spa",
           duration: "Sur mesure",
-          desc: "Formation dédiée aux équipes hospitality, spas d'hôtels ou de resorts. Contenu adapté à votre cadre, vos profils clients et votre offre de soins.",
+          desc: "Formation dédiée aux équipes hospitality, spas d'hôtels ou de resorts. Contenu adapté à votre cadre, vos profils clients et votre offre de prestations.",
           detail: "Déplacement possible · Intra-établissement · Devis sur demande",
-        },
-        {
-          num: "04",
-          name: "Certification TMS®",
-          duration: "Programme long",
-          desc: "Parcours complet pour les praticiens qui souhaitent intégrer la Méthode TMS® à leur identité professionnelle. Plusieurs modules. Évaluation finale. Mention officielle.",
-          detail: "Dates à venir · Places limitées · Sur sélection",
         },
       ],
       cta: "Demander le programme complet",
@@ -511,15 +495,8 @@ function WsFormats({ lang }: { lang: Language }) {
           num: "03",
           name: "Spa team training",
           duration: "Tailored",
-          desc: "Training dedicated to hospitality teams, hotel or resort spas. Content adapted to your setting, client profiles and treatment offering.",
+          desc: "Training dedicated to hospitality teams, hotel or resort spas. Content adapted to your setting, guest profiles and service offering.",
           detail: "On-site possible · In-house · Quote on request",
-        },
-        {
-          num: "04",
-          name: "TMS® Certification",
-          duration: "Extended programme",
-          desc: "Complete course for practitioners who want to integrate the Méthode TMS® into their professional identity. Several modules. Final assessment. Official mention.",
-          detail: "Dates to come · Limited places · By selection",
         },
       ],
       cta: "Request the full programme",
@@ -547,15 +524,8 @@ function WsFormats({ lang }: { lang: Language }) {
           num: "03",
           name: "Formación equipo spa",
           duration: "A medida",
-          desc: "Formación dedicada a equipos de hospitality, spas de hoteles o resorts. Contenido adaptado a su entorno, perfiles de clientes y oferta de tratamientos.",
+          desc: "Formación dedicada a equipos de hospitality, spas de hoteles o resorts. Contenido adaptado a su entorno, perfiles de huéspedes y oferta de servicios.",
           detail: "Desplazamiento posible · In-house · Presupuesto a petición",
-        },
-        {
-          num: "04",
-          name: "Certificación TMS®",
-          duration: "Programa largo",
-          desc: "Recorrido completo para los profesionales que desean integrar el Método TMS® en su identidad profesional. Varios módulos. Evaluación final. Mención oficial.",
-          detail: "Fechas próximas · Plazas limitadas · Por selección",
         },
       ],
       cta: "Solicitar el programa completo",
@@ -607,111 +577,71 @@ function WsFormats({ lang }: { lang: Language }) {
 /* ──────────────────────────────────────────────────────────
    05 — Chiffres (trust-bar style, dark)
    ────────────────────────────────────────────────────────── */
-function WsStats({ lang }: { lang: Language }) {
-  const stats = {
-    FR: [
-      { value: "230+", label: "Thérapeutes formés" },
-      { value: "465", label: "Workshops animés" },
-      { value: "12+", label: "Pays représentés" },
-      { value: "2014", label: "Depuis" },
-    ],
-    EN: [
-      { value: "230+", label: "Therapists trained" },
-      { value: "465", label: "Workshops delivered" },
-      { value: "12+", label: "Countries represented" },
-      { value: "2014", label: "Since" },
-    ],
-    ES: [
-      { value: "230+", label: "Terapeutas formados" },
-      { value: "465", label: "Workshops realizados" },
-      { value: "12+", label: "Países representados" },
-      { value: "2014", label: "Desde" },
-    ],
-  }[lang];
-
-  return (
-    <section className="trust-bar ws-stats">
-      <div className="container">
-        <Reveal>
-          <div className="trust-bar__stats">
-            {stats.map((s, i) => (
-              <div className="trust-bar__stat" key={i}>
-                <span className="trust-bar__value">{s.value}</span>
-                <span className="trust-bar__label">{s.label}</span>
-              </div>
-            ))}
-          </div>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
-
 /* ──────────────────────────────────────────────────────────
    06 — Citations (voix de praticiens)
    ────────────────────────────────────────────────────────── */
-function WsCitations({ lang }: { lang: Language }) {
+function WsFramework({ lang }: { lang: Language }) {
   const t = {
     FR: {
-      eyebrow: "04 — Témoignages",
-      title: "Ceux qui ont appris.",
+      eyebrow: "04 — Cadre de transmission",
+      title: "Ce que la formation pose clairement.",
       items: [
         {
-          quote: "Ce n'est pas une formation de plus. C'est une façon de voir le corps qui ne vous quitte plus.",
-          author: "Praticienne en massage thérapeutique",
-          location: "Lyon, France",
+          quote: "La Méthode TMS® enrichit une pratique existante. Elle ne confère aucun titre médical et ne remplace pas la formation réglementaire propre à chaque métier.",
+          author: "Champ professionnel",
+          location: "Responsabilité",
         },
         {
-          quote: "Grégory transmet avec une précision rare. Après le stage, ma pratique n'était plus la même.",
-          author: "Ostéopathe",
-          location: "Genève, Suisse",
+          quote: "Le consentement, les contre-indications, la capacité à interrompre un geste et l'orientation vers un professionnel de santé font partie de l'apprentissage.",
+          author: "Limites",
+          location: "Sécurité",
         },
         {
-          quote: "La formation équipe spa a transformé notre approche du soin. Nos clients le ressentent immédiatement.",
-          author: "Directrice spa",
-          location: "Hôtel 5*, Côte d'Azur",
+          quote: "Chaque format précise les objectifs, le public, la durée et les conditions d'application avant toute inscription ou intervention en établissement.",
+          author: "Programme",
+          location: "Transparence",
         },
       ],
     },
     EN: {
-      eyebrow: "04 — Testimonials",
-      title: "Those who have learned.",
+      eyebrow: "04 — Training scope",
+      title: "What the training states clearly.",
       items: [
         {
-          quote: "This is not just another training. It's a way of seeing the body that never leaves you.",
-          author: "Therapeutic massage practitioner",
-          location: "Lyon, France",
+          quote: "The Méthode TMS® enriches an existing practice. It grants no medical title and does not replace the regulated training required for each profession.",
+          author: "Professional scope",
+          location: "Responsibility",
         },
         {
-          quote: "Grégory transmits with rare precision. After the stage, my practice was never the same.",
-          author: "Osteopath",
-          location: "Geneva, Switzerland",
+          quote: "Consent, contraindications, knowing when to stop a gesture and referring to healthcare professionals are part of the learning process.",
+          author: "Boundaries",
+          location: "Safety",
         },
         {
-          quote: "The spa team training transformed our approach to care. Our clients feel it immediately.",
-          author: "Spa Director",
-          location: "5* Hotel, French Riviera",
+          quote: "Each format specifies objectives, audience, duration and conditions of application before enrolment or an on-site intervention.",
+          author: "Programme",
+          location: "Transparency",
         },
       ],
     },
     ES: {
-      eyebrow: "04 — Testimonios",
-      title: "Los que han aprendido.",
+      eyebrow: "04 — Marco de transmisión",
+      title: "Lo que la formación establece claramente.",
       items: [
         {
-          quote: "No es una formación más. Es una forma de ver el cuerpo que nunca te abandona.",
-          author: "Practicante de masaje terapéutico",
-          location: "Lyon, Francia",
+          quote: "El Método TMS® enriquece una práctica existente. No concede ningún título médico ni sustituye la formación reglamentaria propia de cada profesión.",
+          author: "Ámbito profesional",
+          location: "Responsabilidad",
         },
         {
-          quote: "Grégory transmite con una precisión poco común. Después del stage, mi práctica cambió por completo.",
-          author: "Osteópata",
-          location: "Ginebra, Suiza",
+          quote: "El consentimiento, las contraindicaciones, saber detener un gesto y orientar hacia profesionales sanitarios forman parte del aprendizaje.",
+          author: "Límites",
+          location: "Seguridad",
         },
         {
-          quote: "La formación del equipo spa transformó nuestro enfoque del cuidado. Nuestros clientes lo sienten de inmediato.",
-          author: "Directora de spa",
-          location: "Hotel 5*, Costa Azul",
+          quote: "Cada formato precisa objetivos, público, duración y condiciones de aplicación antes de la inscripción o intervención en un establecimiento.",
+          author: "Programa",
+          location: "Transparencia",
         },
       ],
     },
@@ -755,7 +685,7 @@ function WsComment({ lang }: { lang: Language }) {
     FR: {
       eyebrow: "Comment ça se passe",
       steps: [
-        { word: "Demande.", sub: "Envoyez votre profil et le format souhaité. Grégory répond personnellement sous 48h." },
+        { word: "Demande.", sub: "Envoyez votre profil, votre contexte et le format souhaité pour une étude personnelle." },
         { word: "Échange.", sub: "Un appel court pour valider le niveau, les attentes et le contexte de votre pratique." },
         { word: "Formation.", sub: "Immersion pratique avec Grégory. Petit groupe. Feedback individuel. Contenu transmissible le lendemain." },
       ],
@@ -763,7 +693,7 @@ function WsComment({ lang }: { lang: Language }) {
     EN: {
       eyebrow: "How it works",
       steps: [
-        { word: "Request.", sub: "Send your profile and preferred format. Grégory replies personally within 48h." },
+        { word: "Request.", sub: "Send your profile, context and preferred format for personal review." },
         { word: "Exchange.", sub: "A brief call to validate level, expectations and the context of your practice." },
         { word: "Training.", sub: "Hands-on immersion with Grégory. Small group. Individual feedback. Content transmissible from the next day." },
       ],
@@ -771,7 +701,7 @@ function WsComment({ lang }: { lang: Language }) {
     ES: {
       eyebrow: "Cómo funciona",
       steps: [
-        { word: "Solicitud.", sub: "Envíe su perfil y el formato deseado. Grégory responde personalmente en 48h." },
+        { word: "Solicitud.", sub: "Envíe su perfil, contexto y formato deseado para una revisión personal." },
         { word: "Intercambio.", sub: "Una breve llamada para validar el nivel, las expectativas y el contexto de su práctica." },
         { word: "Formación.", sub: "Inmersión práctica con Grégory. Grupo pequeño. Feedback individual. Contenido transmisible al día siguiente." },
       ],
@@ -805,28 +735,28 @@ function WsComment({ lang }: { lang: Language }) {
 function WsCta({ lang }: { lang: Language }) {
   const t = {
     FR: {
-      eyebrow: "Méthode TMS® · Formation · Depuis 2014",
+      eyebrow: "Méthode TMS® · Transmission · Pratique depuis 2006",
       title: "Prêt à intégrer\nla Méthode TMS®?",
       sub: "Grégory répond personnellement à chaque demande. Sélection sur profil.",
       cta: "Envoyer une demande",
       phone: "+33 6 65 51 77 35",
-      note: "Réponse sous 48h",
+      note: "Programme et conditions sur demande",
     },
     EN: {
-      eyebrow: "Méthode TMS® · Training · Since 2014",
+      eyebrow: "Méthode TMS® · Training · Practising since 2006",
       title: "Ready to integrate\nthe Méthode TMS®?",
       sub: "Grégory replies personally to every request. Selection based on profile.",
       cta: "Send a request",
       phone: "+33 6 65 51 77 35",
-      note: "Reply within 48h",
+      note: "Programme and conditions on request",
     },
     ES: {
-      eyebrow: "Método TMS® · Formación · Desde 2014",
+      eyebrow: "Método TMS® · Formación · Práctica desde 2006",
       title: "¿Listo para integrar\nel Método TMS®?",
       sub: "Grégory responde personalmente a cada solicitud. Selección por perfil.",
       cta: "Enviar una solicitud",
       phone: "+33 6 65 51 77 35",
-      note: "Respuesta en 48h",
+      note: "Programa y condiciones bajo solicitud",
     },
   }[lang];
 
@@ -899,8 +829,7 @@ export default function WorkshopsPage({ initialLang }: { initialLang: Language }
         <WsPourQui lang={lang} />
         <WsPedagogie lang={lang} />
         <WsFormats lang={lang} />
-        <WsStats lang={lang} />
-        <WsCitations lang={lang} />
+        <WsFramework lang={lang} />
         <WsComment lang={lang} />
         <WsCta lang={lang} />
         <SharedContactForm lang={lang} id="inscription" />

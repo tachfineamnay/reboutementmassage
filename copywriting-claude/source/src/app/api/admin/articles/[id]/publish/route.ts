@@ -1,0 +1,43 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
+
+type Params = { params: Promise<{ id: string }> };
+
+/**
+ * POST /api/admin/articles/[id]/publish
+ *
+ * Passe l'article en PUBLISHED et enregistre publishedAt si absent.
+ */
+export async function POST(_req: NextRequest, { params }: Params) {
+  const session = await getSession();
+  if (!session)
+    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+
+  const { id } = await params;
+
+  const article = await prisma.article.findUnique({
+    where: { id },
+    select: { id: true, status: true, publishedAt: true },
+  });
+  if (!article)
+    return NextResponse.json({ error: "Article non trouvé" }, { status: 404 });
+
+  if (article.status === "ARCHIVED") {
+    return NextResponse.json(
+      { error: "Un article archivé ne peut pas être publié directement. Remettez-le en brouillon d'abord." },
+      { status: 409 }
+    );
+  }
+
+  const updated = await prisma.article.update({
+    where: { id },
+    data: {
+      status: "PUBLISHED",
+      publishedAt: article.publishedAt ?? new Date(),
+    },
+    select: { id: true, status: true, publishedAt: true, updatedAt: true },
+  });
+
+  return NextResponse.json(updated);
+}

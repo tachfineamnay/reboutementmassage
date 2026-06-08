@@ -89,7 +89,7 @@ function structuredData(locale: Locale) {
       serviceType: [
         "Private manual therapy",
         "Reboutement",
-        "Therapeutic massage",
+        "Personalised hands-on body support",
         "On-site support for hotels, villas and yachts",
       ],
     }),

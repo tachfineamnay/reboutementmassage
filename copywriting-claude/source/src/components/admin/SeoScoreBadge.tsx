@@ -1,0 +1,58 @@
+type SeoScoreBadgeProps = {
+  score: number; // 0-100
+  aeoScore?: number;
+  geoScore?: number;
+  atomicAnswerPresent?: boolean;
+  showLabel?: boolean;
+};
+
+function getScoreConfig(score: number) {
+  if (score >= 80) return { label: "Bon", className: "seo-score seo-score--good" };
+  if (score >= 50) return { label: "Moyen", className: "seo-score seo-score--medium" };
+  return { label: "Faible", className: "seo-score seo-score--low" };
+}
+
+export default function SeoScoreBadge({
+  score,
+  aeoScore,
+  geoScore,
+  atomicAnswerPresent,
+  showLabel = true,
+}: SeoScoreBadgeProps) {
+  const { label, className } = getScoreConfig(score);
+  const aeoConfig = typeof aeoScore === "number" ? getScoreConfig(aeoScore) : null;
+  const geoConfig = typeof geoScore === "number" ? getScoreConfig(geoScore) : null;
+
+  if (aeoConfig || geoConfig) {
+    return (
+      <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+        <span className={className} title={`Score SEO : ${score}/100`}>
+          <span className="seo-score__value">{score}</span>
+          {showLabel && <span className="seo-score__label">SEO</span>}
+        </span>
+        {aeoConfig && (
+          <span
+            className={aeoConfig.className}
+            title={`Score AEO : ${aeoScore}/100${atomicAnswerPresent ? " - réponse directe présente" : ""}`}
+          >
+            <span className="seo-score__value">{aeoScore}</span>
+            {showLabel && <span className="seo-score__label">AEO</span>}
+          </span>
+        )}
+        {geoConfig && (
+          <span className={geoConfig.className} title={`Score GEO : ${geoScore}/100`}>
+            <span className="seo-score__value">{geoScore}</span>
+            {showLabel && <span className="seo-score__label">GEO</span>}
+          </span>
+        )}
+      </span>
+    );
+  }
+
+  return (
+    <span className={className} title={`Score SEO : ${score}/100`}>
+      <span className="seo-score__value">{score}</span>
+      {showLabel && <span className="seo-score__label">{label}</span>}
+    </span>
+  );
+}

@@ -6,19 +6,19 @@ import { Language } from "@/data/copy";
 const FOOTER_DATA: Record<Language, string[]> = {
   FR: [
     "Grégory Tordjman · Méthode TMS®",
-    "Reboutement TMS® · Thérapie manuelle de soulagement · Formation · Hospitality · Villas · Yachting",
+    "Reboutement TMS® · Accompagnement manuel · Workshops · Hospitality · Villas · Yachting",
     "+33 6 65 51 77 35 · contact@reboutementmassage.fr",
     "International sur demande",
   ],
   EN: [
     "Grégory Tordjman · Méthode TMS®",
-    "TMS® Manual Therapy · Traditional French bonesetting · Training · Hospitality · Villas · Yachting",
+    "TMS® hands-on support · French bonesetting inspiration · Workshops · Hospitality · Villas · Yachting",
     "+33 6 65 51 77 35 · contact@reboutementmassage.fr",
     "International on request",
   ],
   ES: [
     "Grégory Tordjman · Método TMS®",
-    "Terapia manual TMS® · Reboutement tradicional francés · Formación · Hospitality · Villas · Yachting",
+    "Acompañamiento manual TMS® · Reboutement tradicional francés · Workshops · Hospitality · Villas · Yachting",
     "+33 6 65 51 77 35 · contact@reboutementmassage.fr",
     "Internacional bajo solicitud",
   ],
@@ -54,7 +54,7 @@ export default function SharedFooter({ lang }: { lang: Language }) {
             src="/logo--reboutement-tgrégory-tordjman.png"
             alt={
               lang === "FR"
-                ? "Thérapie manuelle, reboutement et massage thérapeutique par Grégory Tordjman"
+                ? "Méthode TMS® et reboutement TMS® par Grégory Tordjman"
                 : lang === "EN"
                 ? "TMS® Manual Therapy inspired by traditional French bonesetting by Grégory Tordjman"
                 : "Terapia manual TMS® inspirada en el reboutement tradicional francés por Grégory Tordjman"

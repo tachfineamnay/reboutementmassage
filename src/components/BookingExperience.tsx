@@ -86,31 +86,17 @@ const FORMATS: Record<BookingIntent, BookingFormat[]> = {
       },
     },
     {
-      internalType: "practitioner_pathway_diagnostic",
+      internalType: "practitioner_pathway_review",
       durationMinutes: 45,
       label: {
-        FR: "Diagnostic parcours praticien",
-        EN: "Practitioner pathway diagnostic",
-        ES: "Diagnóstico de recorrido profesional",
+        FR: "Étude du parcours praticien",
+        EN: "Practitioner pathway review",
+        ES: "Revisión del recorrido profesional",
       },
       description: {
         FR: "Une lecture approfondie de votre profil, niveau et trajectoire.",
         EN: "An in-depth review of your profile, level, and professional path.",
         ES: "Una revisión profunda de su perfil, nivel y trayectoria profesional.",
-      },
-    },
-    {
-      internalType: "certification_support_call",
-      durationMinutes: 60,
-      label: {
-        FR: "Appel certification / accompagnement",
-        EN: "Certification / support call",
-        ES: "Llamada de certificación / acompañamiento",
-      },
-      description: {
-        FR: "Pour construire un parcours complet de certification ou d'accompagnement.",
-        EN: "To shape a complete certification or long-term support pathway.",
-        ES: "Para diseñar un recorrido completo de certificación o acompañamiento.",
       },
     },
   ],

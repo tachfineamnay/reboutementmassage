@@ -4,7 +4,6 @@ import WorkshopsPage from "../../workshops-page";
 import {
   absoluteUrl,
   createCourseJsonLd,
-  createEducationEventJsonLd,
   createIdentityJsonLd,
   createWebPageJsonLd,
   graphJsonLd,
@@ -23,19 +22,19 @@ const WS_META: Record<string, { title: string; description: string; slug: string
   fr: {
     title: "Formation reboutement TMS® — Stages & Workshops | Grégory Tordjman",
     description:
-      "Formations pratiques en Méthode TMS® animées par Grégory Tordjman : reboutement TMS®, lecture corporelle, thérapie manuelle de précision, workshops intensifs et formation équipe spa.",
+      "Workshops pratiques en Méthode TMS® avec Grégory Tordjman : observation corporelle, précision du geste, consentement, limites professionnelles et formation d'équipes spa.",
     slug: "stages-workshops",
   },
   en: {
     title: "TMS® Manual Therapy Training | French Bonesetting Workshops",
     description:
-      "Practical Méthode TMS® training with Grégory Tordjman: traditional French bonesetting-inspired precision, body reading, therapeutic bodywork, spa team training and intensive workshops.",
+      "Practical Méthode TMS® workshops with Grégory Tordjman: body observation, precise gesture, consent, professional boundaries and spa team training.",
     slug: "stages-workshops",
   },
   es: {
     title: "Formación Terapia manual TMS® | Reboutement francés",
     description:
-      "Formaciones prácticas en Método TMS® con Grégory Tordjman: reboutement tradicional francés, lectura corporal, masaje terapéutico profundo, formación equipo spa y workshops intensivos.",
+      "Workshops prácticos del Método TMS® con Grégory Tordjman: observación corporal, precisión del gesto, consentimiento, límites profesionales y formación de equipos spa.",
     slug: "stages-workshops",
   },
 };
@@ -81,7 +80,6 @@ function structuredData(lang: string) {
   return graphJsonLd([
     createIdentityJsonLd(locale),
     createCourseJsonLd(locale),
-    createEducationEventJsonLd(locale),
     createWebPageJsonLd({
       locale,
       routeKey: "stagesWorkshops",

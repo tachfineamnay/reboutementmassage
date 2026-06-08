@@ -7,11 +7,6 @@ import SharedHeader from "@/components/SharedHeader";
 import SharedContactForm from "@/components/SharedContactForm";
 
 type LandingCopy = (typeof COPY)[Language];
-const LANGUAGE_ROUTES: Record<Language, string> = {
-  FR: "/fr",
-  EN: "/en",
-  ES: "/es",
-};
 
 /* ──────────────────────────────────────────────────────────
    Reveal-on-scroll hook (Framer-Motion-style fade-up)
@@ -63,57 +58,6 @@ function Reveal({
     <Tag ref={ref} className={className} style={s} {...rest}>
       {children}
     </Tag>
-  );
-}
-
-/* ──────────────────────────────────────────────────────────
-   HandLogo SVG — the spiral-hand icon used as brand mark
-   ────────────────────────────────────────────────────────── */
-function HandLogo({ size = 46, className = "", color = "currentColor" }: { size?: number; className?: string; color?: string }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 200 200"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      aria-hidden="true"
-    >
-      {/* Outer circle */}
-      <circle cx="100" cy="100" r="94" stroke={color} strokeWidth="5" fill="none" />
-      {/* Hand palm outline */}
-      <path
-        d="M90 52 C90 52, 82 52, 80 64 L74 108 C72 118, 58 120, 56 110 L52 88 C50 78, 62 74, 64 84 L66 96"
-        stroke={color}
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      {/* Fingers */}
-      <line x1="88" y1="52" x2="88" y2="92" stroke={color} strokeWidth="5" strokeLinecap="round" />
-      <line x1="100" y1="46" x2="100" y2="92" stroke={color} strokeWidth="5" strokeLinecap="round" />
-      <line x1="112" y1="50" x2="112" y2="92" stroke={color} strokeWidth="5" strokeLinecap="round" />
-      <line x1="124" y1="58" x2="122" y2="90" stroke={color} strokeWidth="5" strokeLinecap="round" />
-      {/* Palm body */}
-      <path
-        d="M74 108 C74 120, 78 132, 86 140 C94 148, 106 152, 118 148 C130 144, 136 132, 134 118 L126 90"
-        stroke={color}
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      {/* Spiral in palm */}
-      <path
-        d="M100 118 C92 118, 88 112, 88 106 C88 98, 94 94, 100 94 C108 94, 112 100, 112 106 C112 114, 106 120, 98 122 C88 124, 82 118, 80 110 C78 100, 84 90, 96 88"
-        stroke={color}
-        strokeWidth="4.5"
-        strokeLinecap="round"
-        fill="none"
-      />
-    </svg>
   );
 }
 
@@ -259,6 +203,9 @@ function Problem({ t }: { t: LandingCopy }) {
           />
         </div>
         <Reveal>
+          <h2 className="section-title">{t.problemTitle}</h2>
+        </Reveal>
+        <Reveal delay={0.08}>
           <p className="problem-lead">{t.problem[0]}</p>
         </Reveal>
         <Reveal delay={0.1}>

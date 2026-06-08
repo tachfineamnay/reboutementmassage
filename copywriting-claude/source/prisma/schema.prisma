@@ -1,0 +1,440 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Prisma Schema — Méthode TMS® CMS
+// Prisma 7 : pas de `url` dans datasource (géré via prisma.config.ts)
+// ─────────────────────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum Locale {
+  FR
+  EN
+  ES
+}
+
+enum ArticleStatus {
+  DRAFT
+  READY
+  PUBLISHED
+  ARCHIVED
+}
+
+enum LandingSectionStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum LeadStatus {
+  CAPTURED
+  MOCKED
+  SENT_TO_GHL
+  FAILED
+  ARCHIVED
+}
+
+enum TranscreationStatus {
+  DRAFT
+  AI_GENERATED
+  REVIEWED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum AudioProvider {
+  ELEVENLABS
+  OTHER
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AdminUser — authentification admin
+// ─────────────────────────────────────────────────────────────────────────────
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("admin_users")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LeadSubmission — demandes privées reçues depuis la landing page
+// ─────────────────────────────────────────────────────────────────────────────
+
+model LeadSubmission {
+  id        String  @id @default(cuid())
+  firstName String
+  contact   String
+  type      String
+  context   String? @db.Text
+  locale    Locale  @default(FR)
+
+  // Qualification B2B / hospitality
+  companyName  String?
+  jobTitle     String?
+  propertyType String?
+  destination  String?
+  leadSegment  String?
+
+  // Qualification conditionnelle additionnelle
+  intent           String?
+  preferredChannel String?
+  routedToUrl      String?
+  urgency          String?
+  needType         String?
+  volumePotential  String?
+  participantCount String?
+  currentLocation  String?
+
+  selectedDayLabel String?
+  selectedTime     String?
+  selectedAt       DateTime?
+  timezone         String?
+  pageUrl          String?
+
+  utm        Json     @default("{}")
+  branchData Json     @default("{}")
+  tags       String[] @default([])
+
+  status       LeadStatus @default(CAPTURED)
+  ghlContactId String?
+  errorMessage String?    @db.Text
+
+  resendEmailId      String?
+  notificationSentAt DateTime?
+  notificationError  String?   @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([locale, createdAt])
+  @@index([leadSegment])
+  @@index([selectedAt])
+  @@map("lead_submissions")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MediaAsset — images et fichiers uploadés localement
+// ─────────────────────────────────────────────────────────────────────────────
+
+model MediaAsset {
+  id           String @id @default(cuid())
+  filename     String @unique // UUID + extension ex: a1b2c3.webp
+  originalName String // Nom original du fichier uploadé
+  mimeType     String // image/webp, image/jpeg …
+  url          String // URL publique ex: /api/uploads/a1b2c3.webp
+  localPath    String // Chemin absolu ex: /app/storage/uploads/a1b2c3.webp
+  width        Int?
+  height       Int?
+  size         Int // Taille en octets
+
+  // Textes alt multilingues
+  altFr String?
+  altEn String?
+  altEs String?
+
+  createdAt DateTime @default(now())
+
+  // Relations inverses
+  articles        Article[]        @relation("ArticleCover")
+  articlesSeo     ArticleSeo[]     @relation("ArticleOgImage")
+  landingSections LandingSection[] @relation("SectionImage")
+
+  @@map("media_assets")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Article — article de blog multilingue
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Article {
+  id                 String        @id @default(cuid())
+  locale             Locale        @default(FR)
+  translationGroupId String?
+  slug               String
+  title              String
+  excerpt            String?
+  status             ArticleStatus @default(DRAFT)
+
+  // Image de couverture
+  coverImageId String?
+  coverImage   MediaAsset? @relation("ArticleCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+
+  // Relations 1-1
+  content ArticleContent?
+  seo     ArticleSeo?
+
+  // Relations 1-N
+  metrics         ArticleMetric[]
+  pageSpeedAudits ArticlePageSpeedAudit[]
+  urlInspections  ArticleUrlInspection[]
+  transcreations  ArticleTranscreation[]
+  audioAssets     ArticleAudioAsset[]
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Un slug est unique par locale
+  @@unique([locale, slug])
+  @@index([status])
+  @@index([locale, status])
+  @@index([translationGroupId])
+  @@index([publishedAt])
+  @@map("articles")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ArticleContent — corps de l'article (JSON éditeur + HTML + texte)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ArticleContent {
+  id        String  @id @default(cuid())
+  articleId String  @unique
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  editorJson  Json? // Document ProseMirror/Tiptap brut
+  html        String? // HTML rendu (cache serveur)
+  plainText   String? // Texte brut pour recherche / preview
+  wordCount   Int     @default(0)
+  readingTime Int     @default(0) // En minutes
+
+  @@map("article_contents")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ArticleSeo — métadonnées SEO de l'article
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ArticleSeo {
+  id        String  @id @default(cuid())
+  articleId String  @unique
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  focusKeyword    String?
+  seoTitle        String?
+  metaDescription String?
+  canonical       String?
+
+  // Open Graph
+  ogTitle       String?
+  ogDescription String?
+  ogImageId     String?
+  ogImage       MediaAsset? @relation("ArticleOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+
+  noindex Boolean @default(false)
+
+  // Score calculé (0-100) et liste d'issues JSON
+  score  Int  @default(0)
+  issues Json @default("[]")
+
+  // Score AEO/GEO calculé depuis le contenu visible
+  llmReadabilityScore Int       @default(0)
+  atomicAnswerPresent Boolean   @default(false)
+  schemaValidation    Json      @default("{}")
+  geoChecklist        Json      @default("[]")
+  answerCoverageScore Int       @default(0)
+  lastGeoAuditAt      DateTime?
+
+  // Brief éditorial AEO/GEO et signaux de crédibilité visibles
+  primaryQuestion String?
+  answerIntent    String?
+  targetAudience  String?
+  geoLocation     String?
+  businessGoal    String?
+  entityTargets   Json    @default("[]")
+  faqItems        Json    @default("[]")
+  evidenceNotes   Json    @default("{}")
+
+  // Scores spécialisés calculés depuis le contenu visible
+  aeoScore  Int @default(0)
+  geoScore  Int @default(0)
+  eeatScore Int @default(0)
+
+  @@map("article_seo")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ArticleTranscreation — versions transcréées et contrôlées par langue
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ArticleTranscreation {
+  id        String  @id @default(cuid())
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  sourceLocale Locale
+  targetLocale Locale
+  provider     String  @default("GOOGLE_AI_PRO")
+  model        String?
+
+  title      String?
+  excerpt    String? @db.Text
+  editorJson Json?
+  html       String? @db.Text
+  plainText  String? @db.Text
+
+  promptVersion String?
+  reviewStatus  TranscreationStatus @default(AI_GENERATED)
+  reviewedAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([articleId])
+  @@index([targetLocale, reviewStatus])
+  @@map("article_transcreations")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ArticleAudioAsset — pistes audio multilingues générées ou validées
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ArticleAudioAsset {
+  id        String  @id @default(cuid())
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  locale          Locale
+  provider        AudioProvider       @default(ELEVENLABS)
+  providerVoiceId String?
+  voiceName       String?
+  audioUrl        String
+  durationSeconds Int?
+  transcript      String?             @db.Text
+  status          TranscreationStatus @default(AI_GENERATED)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([articleId])
+  @@index([locale, status])
+  @@map("article_audio_assets")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ArticleMetric — métriques journalières (Search Console + GA4)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ArticleMetric {
+  id        String  @id @default(cuid())
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  date DateTime @db.Date
+
+  // Search Console
+  clicks      Int   @default(0)
+  impressions Int   @default(0)
+  ctr         Float @default(0) // 0.0 → 1.0
+  position    Float @default(0)
+
+  // GA4
+  organicSessions Int @default(0)
+  storyViews      Int @default(0)
+  ctaClicks       Int @default(0)
+  leads           Int @default(0)
+
+  // Un seul enregistrement par article par jour
+  @@unique([articleId, date])
+  @@index([articleId])
+  @@index([date])
+  @@map("article_metrics")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ArticlePageSpeedAudit — historique des audits PageSpeed par article
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ArticlePageSpeedAudit {
+  id        String  @id @default(cuid())
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  url                String
+  strategy           String  @default("mobile")
+  performanceScore   Int
+  seoScore           Int
+  accessibilityScore Int
+  lcp                String?
+  cls                String?
+  raw                Json?
+
+  auditedAt DateTime @default(now())
+
+  @@index([articleId, auditedAt])
+  @@index([auditedAt])
+  @@map("article_pagespeed_audits")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ArticleUrlInspection — historique des inspections d'URL Google
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ArticleUrlInspection {
+  id        String  @id @default(cuid())
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  url             String
+  indexStatus     String?
+  verdict         String?
+  coverageState   String?
+  lastCrawlTime   DateTime?
+  userCanonical   String?
+  googleCanonical String?
+  raw             Json?
+
+  inspectedAt DateTime @default(now())
+
+  @@index([articleId, inspectedAt])
+  @@index([inspectedAt])
+  @@map("article_url_inspections")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LandingSection — blocs dynamiques de la landing page
+// ─────────────────────────────────────────────────────────────────────────────
+
+model LandingSection {
+  id        String               @id @default(cuid())
+  type      String // "hero" | "about" | "testimonial" | "cta" …
+  locale    Locale               @default(FR)
+  status    LandingSectionStatus @default(DRAFT)
+  placement Int                  @default(0) // Ordre d'affichage
+
+  // Contenu éditorial
+  title    String?
+  subtitle String?
+  body     String?
+  ctaLabel String?
+  ctaHref  String?
+
+  // Image associée
+  imageId String?
+  image   MediaAsset? @relation("SectionImage", fields: [imageId], references: [id], onDelete: SetNull)
+
+  // Planification
+  startAt DateTime?
+  endAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([locale, status])
+  @@index([type, locale])
+  @@map("landing_sections")
+}

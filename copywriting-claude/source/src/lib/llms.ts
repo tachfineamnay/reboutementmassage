@@ -1,0 +1,95 @@
+import {
+  absoluteUrl,
+  LOCALIZED_ROUTES,
+  LOCALES,
+  type Locale,
+} from "@/lib/seo";
+
+const INTRO_BY_LOCALE: Record<Locale, string> = {
+  fr: "Méthode TMS® est le site officiel de Grégory Tordjman, praticien expert en reboutement TMS®, thérapie manuelle de précision et massage thérapeutique haut de gamme. Il intervient auprès de clients privés, hôtels de luxe, spas cinq étoiles, villas, yachts et équipes hospitality.",
+  en: "Méthode TMS® is the official website of Grégory Tordjman, an expert TMS® Manual Therapy practitioner. His work is a precise hands-on approach inspired by traditional French bonesetting, therapeutic bodywork and deep body reading for private clients, luxury hotels, five-star spas, villas, yachts and hospitality teams.",
+  es: "Método TMS® es el sitio oficial de Grégory Tordjman, experto en Terapia manual TMS®. Su enfoque se inspira en el reboutement tradicional francés, la lectura corporal y el masaje terapéutico profundo para clientes privados, hoteles de lujo, spas cinco estrellas, villas, yates y equipos hospitality.",
+};
+
+const NOTES_BY_LOCALE: Record<Locale, string[]> = {
+  fr: [
+    "Expertise principale : reboutement TMS®, soulagement manuel, lecture corporelle, massage thérapeutique, accompagnement premium et formation d'équipes spa.",
+    "Page stratégique : les séances privées expliquent le reboutement TMS® et renvoient vers les formations Méthode TMS® pour le maillage interne.",
+    "Offres B2B : hospitality training, ateliers sur site, protocoles pour spas, sessions VIP et consultations discrètes.",
+    "Mobilité : interventions internationales sur demande, notamment Caraïbes, Mexique, villas, yachts et établissements haut de gamme.",
+  ],
+  en: [
+    "Core expertise: TMS® Manual Therapy, traditional French bonesetting-inspired precision, therapeutic bodywork, body reading, premium support and spa team training.",
+    "Strategic page: private sessions explain the difference between manual therapy, bonesetting-inspired bodywork and therapeutic massage, with internal links to training.",
+    "B2B offers: hospitality training, on-site workshops, spa protocols, VIP sessions and discreet consultations.",
+    "Mobility: international interventions on request, including the Caribbean, Mexico, villas, yachts and high-end properties.",
+  ],
+  es: [
+    "Expertise principal: Terapia manual TMS®, reboutement tradicional francés, lectura corporal, masaje terapéutico profundo, acompañamiento premium y formación de equipos spa.",
+    "Página estratégica: las sesiones privadas explican la diferencia entre terapia manual, reboutement francés y masaje terapéutico, con enlaces internos hacia la formación.",
+    "Ofertas B2B: hospitality training, talleres in situ, protocolos para spas, sesiones VIP y consultas discretas.",
+    "Movilidad: intervenciones internacionales bajo solicitud, especialmente Caribe, México, villas, yates y establecimientos de alta gama.",
+  ],
+};
+
+function link(title: string, href: string, description: string) {
+  return `- [${title}](${absoluteUrl(href)}): ${description}`;
+}
+
+export function buildLlmsTxt(locale?: Locale) {
+  const lang = locale ?? "fr";
+  const intro = INTRO_BY_LOCALE[lang];
+  const notes = NOTES_BY_LOCALE[lang];
+  const routes = LOCALIZED_ROUTES;
+  const preferredTargets = [
+    routes.sessions[lang],
+    routes.stagesWorkshops[lang],
+    routes.biography[lang],
+    routes.luxuryHospitality[lang],
+    routes.stories[lang],
+  ];
+
+  const sections = [
+    "# Méthode TMS® - Grégory Tordjman",
+    "",
+    `> ${intro}`,
+    "",
+    "Important notes:",
+    ...notes.map((note) => `- ${note}`),
+    "",
+    "## Preferred crawl targets",
+    ...preferredTargets.map((href) => `- ${absoluteUrl(href)}`),
+    "",
+    "## Core Pages",
+    link("Home", routes.home[lang], "Primary landing page for private sessions, reboutement / bonesetting terminology, luxury hospitality positioning and direct contact."),
+    link("Biography", routes.biography[lang], "Background, authority and expertise of Grégory Tordjman."),
+    link("Private sessions", routes.sessions[lang], "Private reboutement TMS®, TMS® Manual Therapy and therapeutic bodywork sessions for homes, hotels, villas and yachts."),
+    link("Stages and workshops", routes.stagesWorkshops[lang], "Training offers for therapists, spa teams and hospitality professionals, including reboutement-inspired precision and body reading."),
+    link("Luxury hospitality", routes.luxuryHospitality[lang], "B2B offer for luxury hotels, five-star spas, villas, yachts and VIP guest support."),
+    link("Stories", routes.stories[lang], "Published articles and bodywork insights in the selected language."),
+    "",
+    "## Language Versions",
+    ...LOCALES.map((availableLocale) =>
+      link(
+        `${availableLocale.toUpperCase()} llms.txt`,
+        `/${availableLocale}/llms.txt`,
+        `Localized AI-readable overview for ${availableLocale.toUpperCase()} content.`
+      )
+    ),
+    "",
+    "## Optional",
+    link("Sitemap", "/sitemap.xml", "Complete crawlable sitemap with localized alternates."),
+    link("Robots", "/robots.txt", "Crawler permissions for search engines and AI crawlers."),
+  ];
+
+  return `${sections.join("\n")}\n`;
+}
+
+export function llmsTxtResponse(locale?: Locale) {
+  return new Response(buildLlmsTxt(locale), {
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "public, max-age=3600, s-maxage=3600",
+    },
+  });
+}

@@ -8,25 +8,6 @@ import SharedFooter from "@/components/SharedFooter";
 import SharedContactForm from "@/components/SharedContactForm";
 
 /* ──────────────────────────────────────────────────────────
-   Types
-   ────────────────────────────────────────────────────────── */
-type BioCopy = {
-  lang: Language;
-};
-
-const LANGUAGE_ROUTES: Record<Language, string> = {
-  FR: "/fr",
-  EN: "/en",
-  ES: "/es",
-};
-
-const BIO_ROUTES: Record<Language, string> = {
-  FR: "/fr/biographie",
-  EN: "/en/biography",
-  ES: "/es/biografia",
-};
-
-/* ──────────────────────────────────────────────────────────
    Reveal-on-scroll (same as landing page)
    ────────────────────────────────────────────────────────── */
 function useReveal() {
@@ -99,7 +80,7 @@ function BioHero({ lang }: { lang: Language }) {
     FR: {
       eyebrow: "Biographie · Méthode TMS®",
       h1: ["Le geste juste,", "au bon endroit."],
-      sub: "Grégory Tordjman est praticien international en thérapie manuelle et créateur de la Méthode TMS® — une approche de précision développée auprès de plus de 9 000 corps.",
+      sub: "Praticien manuel depuis 2006, Grégory Tordjman a développé la Méthode TMS® au contact du terrain — une approche précise, mobile et attentive aux limites de chaque personne.",
       cta: "Demander une consultation privée",
       ctaSec: "Découvrir la Méthode TMS®",
       ctaSecHref: "/fr#contact",
@@ -107,7 +88,7 @@ function BioHero({ lang }: { lang: Language }) {
     EN: {
       eyebrow: "Biography · Méthode TMS®",
       h1: ["The right gesture,", "in the right place."],
-      sub: "Grégory Tordjman is an international manual therapy practitioner and creator of the Méthode TMS® — a precision approach developed across 9,000+ bodies.",
+      sub: "A hands-on practitioner since 2006, Grégory Tordjman developed the Méthode TMS® through field experience — a precise, mobile approach attentive to each person's boundaries.",
       cta: "Request a private consultation",
       ctaSec: "Discover the Méthode TMS®",
       ctaSecHref: "/en#contact",
@@ -115,7 +96,7 @@ function BioHero({ lang }: { lang: Language }) {
     ES: {
       eyebrow: "Biografía · Método TMS®",
       h1: ["El gesto preciso,", "en el lugar justo."],
-      sub: "Grégory Tordjman es un terapeuta manual internacional y creador del Método TMS® — un enfoque de precisión desarrollado a través de más de 9.000 cuerpos.",
+      sub: "Practicante manual desde 2006, Grégory Tordjman desarrolló el Método TMS® desde la experiencia de campo — un enfoque preciso, móvil y atento a los límites de cada persona.",
       cta: "Solicitar una consulta privada",
       ctaSec: "Descubrir el Método TMS®",
       ctaSecHref: "/es#contact",
@@ -161,7 +142,9 @@ function BioHero({ lang }: { lang: Language }) {
             sizes="(max-width: 920px) 100vw, 46vw"
             style={{ objectFit: "cover", objectPosition: "center 20%" }}
           />
-          <span className="bio-hero__cap eyebrow eyebrow--gold">Méthode TMS® · Depuis 2014</span>
+          <span className="bio-hero__cap eyebrow eyebrow--gold">
+            {lang === "FR" ? "Pratique professionnelle · Depuis 2006" : lang === "EN" ? "Professional practice · Since 2006" : "Práctica profesional · Desde 2006"}
+          </span>
         </Reveal>
       </div>
 
@@ -186,7 +169,7 @@ function BioOrigine({ lang }: { lang: Language }) {
       lines: [
         "Suisse, Burkina Faso, Espagne, Guadeloupe. Grégory Tordjman n'a pas suivi une formation linéaire — il a appris par les corps.",
         "Chaque culture a ajouté une couche de lecture. Chaque rencontre a affiné le geste. Ce que d'autres appellent une technique, il l'a construit comme une langue.",
-        "Dix ans de pratique intensive. Plus de 9 000 séances. Une méthode qui ne vient pas d'un manuel, mais du terrain.",
+        "Depuis 2006, la pratique professionnelle affine une même exigence : observer avant d'agir, adapter le geste et savoir ne pas intervenir lorsque le contexte appelle un autre professionnel.",
       ],
     },
     EN: {
@@ -195,7 +178,7 @@ function BioOrigine({ lang }: { lang: Language }) {
       lines: [
         "Switzerland, Burkina Faso, Spain, Guadeloupe. Grégory Tordjman did not follow a linear path — he learned through bodies.",
         "Each culture added a layer of reading. Each encounter refined the gesture. What others call technique, he built as a language.",
-        "Ten years of intensive practice. Over 9,000 sessions. A method that doesn't come from a textbook, but from the field.",
+        "Since 2006, professional practice has refined the same discipline: observe before acting, adapt the gesture and know when not to intervene because another professional should take priority.",
       ],
     },
     ES: {
@@ -204,7 +187,7 @@ function BioOrigine({ lang }: { lang: Language }) {
       lines: [
         "Suiza, Burkina Faso, España, Guadalupe. Grégory Tordjman no siguió una formación lineal — aprendió a través de los cuerpos.",
         "Cada cultura añadió una capa de lectura. Cada encuentro refinó el gesto. Lo que otros llaman técnica, él lo construyó como un lenguaje.",
-        "Diez años de práctica intensiva. Más de 9.000 sesiones. Un método que no viene de un manual, sino del terreno.",
+        "Desde 2006, la práctica profesional afina una misma exigencia: observar antes de actuar, adaptar el gesto y saber cuándo no intervenir porque debe priorizarse otro profesional.",
       ],
     },
   }[lang];
@@ -241,53 +224,53 @@ function BioMethode({ lang }: { lang: Language }) {
   const t = {
     FR: {
       eyebrow: "02 — Méthode TMS®",
-      title: "De l'expérience est née la Méthode TMS®.",
-      sub: "Pas un protocole. Une lecture.",
+      title: "Comment est née la Méthode TMS® ?",
+      sub: "Pas une promesse. Une lecture et un geste adaptés.",
       body: [
-        "La Méthode TMS® n'a pas été conçue dans un laboratoire. Elle s'est imposée progressivement — session après session, corps après corps.",
-        "Structure, muscles, fascias, posture, système nerveux, respiration, fatigue, digestion, équilibre émotionnel. Grégory ne traite pas un symptôme : il lit un ensemble.",
-        "Chaque corps arrive avec sa propre histoire. Chaque intervention est construite pour ce corps-là, à ce moment-là. Rien n'est généralisé.",
+        "La Méthode TMS® s'est structurée au fil d'une pratique commencée en 2006, par l'observation répétée des postures, des mobilités et des réactions au toucher.",
+        "Grégory considère la respiration, l'organisation corporelle, les zones de tension et le contexte exprimé par la personne. Cette lecture oriente la séance sans prétendre établir un diagnostic.",
+        "Chaque intervention est adaptée au moment, au confort et aux limites de la personne. Lorsque la situation dépasse ce cadre, l'orientation vers un professionnel de santé prime.",
       ],
       items: [
-        { num: "01", label: "Structure & Fascias", desc: "Articulations, vertèbres, compensations profondes." },
-        { num: "02", label: "Muscles & Posture", desc: "Tensions chroniques, déséquilibres, restrictions motrices." },
-        { num: "03", label: "Système nerveux", desc: "Fatigue, sensibilité, réponse au stress, récupération." },
-        { num: "04", label: "Respiration & Digestion", desc: "Présence viscérale, tonus, fluidité interne." },
-        { num: "05", label: "Équilibre émotionnel", desc: "Ce que le corps porte, exprime et retient." },
+        { num: "01", label: "Posture & Appuis", desc: "Observer comment le corps s'organise dans l'espace." },
+        { num: "02", label: "Muscles & Fascias", desc: "Repérer les zones de tension et leur réponse au geste." },
+        { num: "03", label: "Mobilité", desc: "Adapter le travail à l'aisance disponible, sans forcer." },
+        { num: "04", label: "Respiration", desc: "Tenir compte du rythme et du relâchement perçu." },
+        { num: "05", label: "Contexte", desc: "Écouter l'expérience, les attentes et les limites exprimées." },
       ],
     },
     EN: {
       eyebrow: "02 — Méthode TMS®",
-      title: "From experience, the Méthode TMS® was born.",
-      sub: "Not a protocol. A reading.",
+      title: "How did the Méthode TMS® emerge?",
+      sub: "Not a promise. An adapted reading and gesture.",
       body: [
-        "The Méthode TMS® was not designed in a laboratory. It emerged gradually — session after session, body after body.",
-        "Structure, muscles, fascia, posture, nervous system, breathing, fatigue, digestion, emotional balance. Grégory doesn't treat a symptom: he reads a whole.",
-        "Every body arrives with its own story. Every intervention is built for that body, at that moment. Nothing is generalised.",
+        "The Méthode TMS® took shape through professional practice begun in 2006 and repeated observation of posture, mobility and responses to touch.",
+        "Grégory considers breathing, body organisation, areas of tension and the context described by the person. This reading guides the session without claiming to provide a diagnosis.",
+        "Each intervention is adapted to the moment, comfort and individual boundaries. When a situation exceeds this scope, referral to a healthcare professional takes priority.",
       ],
       items: [
-        { num: "01", label: "Structure & Fascia", desc: "Joints, vertebrae, deep compensations." },
-        { num: "02", label: "Muscles & Posture", desc: "Chronic tensions, imbalances, motor restrictions." },
-        { num: "03", label: "Nervous system", desc: "Fatigue, sensitivity, stress response, recovery." },
-        { num: "04", label: "Breathing & Digestion", desc: "Visceral presence, tone, internal fluidity." },
-        { num: "05", label: "Emotional balance", desc: "What the body carries, expresses and holds." },
+        { num: "01", label: "Posture & Support", desc: "Observe how the body organises itself in space." },
+        { num: "02", label: "Muscles & Fascia", desc: "Notice areas of tension and their response to touch." },
+        { num: "03", label: "Mobility", desc: "Adapt the work to available ease without forcing." },
+        { num: "04", label: "Breathing", desc: "Consider rhythm and the perceived ability to release." },
+        { num: "05", label: "Context", desc: "Listen to the person's experience, expectations and boundaries." },
       ],
     },
     ES: {
       eyebrow: "02 — Método TMS®",
-      title: "De la experiencia nació el Método TMS®.",
-      sub: "No un protocolo. Una lectura.",
+      title: "¿Cómo nació el Método TMS®?",
+      sub: "No una promesa. Una lectura y un gesto adaptados.",
       body: [
-        "El Método TMS® no fue diseñado en un laboratorio. Emergió gradualmente — sesión tras sesión, cuerpo tras cuerpo.",
-        "Estructura, músculos, fascias, postura, sistema nervioso, respiración, fatiga, digestión, equilibrio emocional. Grégory no trata un síntoma: lee un conjunto.",
-        "Cada cuerpo llega con su propia historia. Cada intervención está construida para ese cuerpo, en ese momento. Nada está generalizado.",
+        "El Método TMS® se estructuró a través de una práctica profesional iniciada en 2006 y de la observación repetida de la postura, la movilidad y las respuestas al tacto.",
+        "Grégory considera la respiración, la organización corporal, las zonas de tensión y el contexto expresado por la persona. Esta lectura orienta la sesión sin pretender establecer un diagnóstico.",
+        "Cada intervención se adapta al momento, al confort y a los límites individuales. Cuando una situación supera este marco, se prioriza la orientación a un profesional sanitario.",
       ],
       items: [
-        { num: "01", label: "Estructura y fascias", desc: "Articulaciones, vértebras, compensaciones profundas." },
-        { num: "02", label: "Músculos y postura", desc: "Tensiones crónicas, desequilibrios, restricciones motoras." },
-        { num: "03", label: "Sistema nervioso", desc: "Fatiga, sensibilidad, respuesta al estrés, recuperación." },
-        { num: "04", label: "Respiración y digestión", desc: "Presencia visceral, tono, fluidez interna." },
-        { num: "05", label: "Equilibrio emocional", desc: "Lo que el cuerpo lleva, expresa y retiene." },
+        { num: "01", label: "Postura y apoyos", desc: "Observar cómo se organiza el cuerpo en el espacio." },
+        { num: "02", label: "Músculos y fascias", desc: "Percibir las zonas de tensión y su respuesta al gesto." },
+        { num: "03", label: "Movilidad", desc: "Adaptar el trabajo a la soltura disponible, sin forzar." },
+        { num: "04", label: "Respiración", desc: "Tener en cuenta el ritmo y la relajación percibida." },
+        { num: "05", label: "Contexto", desc: "Escuchar la experiencia, las expectativas y los límites expresados." },
       ],
     },
   }[lang];
@@ -335,46 +318,6 @@ function BioMethode({ lang }: { lang: Language }) {
 /* ──────────────────────────────────────────────────────────
    04 — Chiffres clés (TrustBar style)
    ────────────────────────────────────────────────────────── */
-function BioStats({ lang }: { lang: Language }) {
-  const stats = {
-    FR: [
-      { value: "9 000+", label: "Corps accompagnés" },
-      { value: "230+", label: "Thérapeutes formés" },
-      { value: "465", label: "Workshops animés" },
-      { value: "2014", label: "Depuis" },
-    ],
-    EN: [
-      { value: "9,000+", label: "Bodies supported" },
-      { value: "230+", label: "Therapists trained" },
-      { value: "465", label: "Workshops delivered" },
-      { value: "2014", label: "Since" },
-    ],
-    ES: [
-      { value: "9.000+", label: "Cuerpos acompañados" },
-      { value: "230+", label: "Terapeutas formados" },
-      { value: "465", label: "Workshops realizados" },
-      { value: "2014", label: "Desde" },
-    ],
-  }[lang];
-
-  return (
-    <section className="trust-bar bio-stats">
-      <div className="container">
-        <Reveal>
-          <div className="trust-bar__stats">
-            {stats.map((stat, i) => (
-              <div className="trust-bar__stat" key={i}>
-                <span className="trust-bar__value">{stat.value}</span>
-                <span className="trust-bar__label">{stat.label}</span>
-              </div>
-            ))}
-          </div>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
-
 /* ──────────────────────────────────────────────────────────
    05 — Vision (soulager sans interrompre)
    ────────────────────────────────────────────────────────── */
@@ -518,23 +461,23 @@ function BioPresence({ lang }: { lang: Language }) {
 function BioCta({ lang }: { lang: Language }) {
   const t = {
     FR: {
-      eyebrow: "Méthode TMS® · Depuis 2014",
+      eyebrow: "Méthode TMS® · Pratique depuis 2006",
       title: "Une demande privée.\nUne réponse personnelle.",
-      sub: "Grégory vous répond personnellement sous 12h.",
+      sub: "Chaque demande est lue personnellement et replacée dans son contexte.",
       cta: "Demander une consultation privée",
       phone: "+33 6 65 51 77 35",
     },
     EN: {
-      eyebrow: "Méthode TMS® · Since 2014",
+      eyebrow: "Méthode TMS® · Practising since 2006",
       title: "A private request.\nA personal response.",
-      sub: "Grégory replies personally within 12h.",
+      sub: "Each request is personally reviewed and considered in its context.",
       cta: "Request a private consultation",
       phone: "+33 6 65 51 77 35",
     },
     ES: {
-      eyebrow: "Método TMS® · Desde 2014",
+      eyebrow: "Método TMS® · Práctica desde 2006",
       title: "Una solicitud privada.\nUna respuesta personal.",
-      sub: "Grégory le responde personalmente en 12h.",
+      sub: "Cada solicitud se revisa personalmente y se considera en su contexto.",
       cta: "Solicitar una consulta privada",
       phone: "+33 6 65 51 77 35",
     },
@@ -605,7 +548,6 @@ export default function BiographyPage({ initialLang }: { initialLang: Language }
         <BioHero lang={lang} />
         <BioOrigine lang={lang} />
         <BioMethode lang={lang} />
-        <BioStats lang={lang} />
         <BioVision lang={lang} />
         <BioPresence lang={lang} />
         <BioCta lang={lang} />

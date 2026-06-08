@@ -41,14 +41,14 @@ const B2B_COPY: Record<Locale, {
   fr: {
     title: "Hôtellerie de luxe & spas — Méthode TMS® | Grégory Tordjman",
     description:
-      "Formation hospitality, protocoles spa, séances VIP et consultations sur site avec Grégory Tordjman pour hôtels de luxe, villas, yachts et Caraïbes/Mexique.",
+      "Workshops hospitality, séances privées et accompagnement sur site avec Grégory Tordjman pour hôtels de luxe, spas, villas, yachts et équipes internationales.",
     eyebrow: "B2B hospitality · Spas cinq étoiles · VIP",
-    headline: "Un protocole manuel premium pour les expériences qui ne peuvent pas s'arrêter.",
+    headline: "Une présence manuelle précise pour les expériences qui exigent de la continuité.",
     intro:
-      "Grégory Tordjman accompagne les établissements haut de gamme avec des sessions VIP, des formations sur site et des protocoles Méthode TMS® adaptés aux contraintes de l'hôtellerie de luxe.",
+      "Praticien depuis 2006, Grégory Tordjman accompagne les établissements haut de gamme avec des séances privées, des workshops sur site et un cadre Méthode TMS® adapté aux contraintes de l'hospitality.",
     cta: "Organiser un échange B2B",
     outcomes: [
-      "Réponse corporelle discrète pour clients exigeants.",
+      "Accompagnement manuel discret, organisé selon le contexte du client.",
       "Formation pratique des équipes spa et wellness.",
       "Intervention mobile en hôtel, villa, yacht ou résidence privée.",
       "Positionnement international Caraïbes, Mexique et marchés anglophones/hispanophones.",
@@ -57,15 +57,15 @@ const B2B_COPY: Record<Locale, {
     offers: [
       {
         title: "Hospitality training",
-        text: "Ateliers sur site pour transmettre des gestes, limites et protocoles applicables par des équipes spa.",
+        text: "Ateliers sur site pour travailler observation, gestes, consentement et limites applicables par les équipes spa dans leur champ professionnel.",
       },
       {
         title: "VIP sessions",
-        text: "Séances privées assurées par Grégory pour dirigeants, familles, sportifs, artistes et guests premium.",
+        text: "Séances privées assurées par Grégory, après échange sur le contexte, les attentes et les éventuelles précautions.",
       },
       {
         title: "Consulting spa",
-        text: "Audit de l'expérience corporelle, adaptation des parcours et création d'une offre signature Méthode TMS®.",
+        text: "Analyse du parcours client, clarification du cadre d'intervention et conception d'une expérience signature cohérente avec l'établissement.",
       },
     ],
     territoriesTitle: "Territoires prioritaires",
@@ -73,7 +73,7 @@ const B2B_COPY: Record<Locale, {
     faq: [
       {
         question: "La Méthode TMS® peut-elle être formée à une équipe spa ?",
-        answer: "Oui. Les formations B2B sont construites pour transmettre des protocoles pratiques, lisibles et adaptés au niveau de responsabilité de l'équipe.",
+        answer: "Oui. Les workshops B2B transmettent des gestes, des repères et des limites adaptés au niveau de responsabilité de l'équipe. Ils n'élargissent pas son champ professionnel et ne confèrent aucun titre médical.",
       },
       {
         question: "Grégory se déplace-t-il hors de France ?",
@@ -84,14 +84,14 @@ const B2B_COPY: Record<Locale, {
   en: {
     title: "Luxury hospitality & spas — TMS Method® | Grégory Tordjman",
     description:
-      "Hospitality training, spa protocols, VIP sessions and on-site consulting with Grégory Tordjman for luxury hotels, villas, yachts, the Caribbean and Mexico.",
+      "Hospitality workshops, private sessions and on-site support with Grégory Tordjman for luxury hotels, spas, villas, yachts and international teams.",
     eyebrow: "B2B hospitality · Five-star spas · VIP",
-    headline: "Premium manual therapy support for experiences that cannot stop.",
+    headline: "Precise hands-on presence for experiences that require continuity.",
     intro:
-      "Grégory Tordjman supports high-end properties with VIP sessions, on-site training and TMS Method® protocols adapted to luxury hospitality operations.",
+      "A hands-on practitioner since 2006, Grégory Tordjman supports high-end properties with private sessions, on-site workshops and a Méthode TMS® framework adapted to hospitality operations.",
     cta: "Start a B2B conversation",
     outcomes: [
-      "Discreet bodywork response for demanding guests.",
+      "Discreet hands-on support organised around each guest's context.",
       "Practical training for spa and wellness teams.",
       "Mobile intervention in hotels, villas, yachts or private residences.",
       "International focus across the Caribbean, Mexico and English/Spanish-speaking markets.",
@@ -100,15 +100,15 @@ const B2B_COPY: Record<Locale, {
     offers: [
       {
         title: "Hospitality training",
-        text: "On-site workshops to transmit practical gestures, boundaries and protocols for spa teams.",
+        text: "On-site workshops covering observation, gestures, consent and boundaries within each spa team's professional scope.",
       },
       {
         title: "VIP sessions",
-        text: "Private sessions by Grégory for executives, families, athletes, artists and premium guests.",
+        text: "Private sessions delivered by Grégory after discussing the context, expectations and relevant precautions.",
       },
       {
         title: "Spa consulting",
-        text: "Body-experience audit, guest journey adaptation and creation of a signature TMS Method® offer.",
+        text: "Guest-journey review, clarification of the intervention framework and design of a signature experience aligned with the property.",
       },
     ],
     territoriesTitle: "Priority territories",
@@ -116,7 +116,7 @@ const B2B_COPY: Record<Locale, {
     faq: [
       {
         question: "Can the TMS Method® be taught to a spa team?",
-        answer: "Yes. B2B trainings are designed to transmit practical, clear protocols adapted to the team's scope of responsibility.",
+        answer: "Yes. B2B workshops transmit gestures, practical guidance and boundaries suited to the team's responsibilities. They do not expand professional scope or grant any medical title.",
       },
       {
         question: "Does Grégory travel outside France?",
@@ -127,14 +127,14 @@ const B2B_COPY: Record<Locale, {
   es: {
     title: "Hospitalidad de lujo & spas — Método TMS® | Grégory Tordjman",
     description:
-      "Formación hospitality, protocolos spa, sesiones VIP y consultoría in situ con Grégory Tordjman para hoteles de lujo, villas, yates, Caribe y México.",
+      "Workshops hospitality, sesiones privadas y acompañamiento in situ con Grégory Tordjman para hoteles de lujo, spas, villas, yates y equipos internacionales.",
     eyebrow: "B2B hospitality · Spas cinco estrellas · VIP",
-    headline: "Soporte manual premium para experiencias que no pueden detenerse.",
+    headline: "Una presencia manual precisa para experiencias que exigen continuidad.",
     intro:
-      "Grégory Tordjman acompaña establecimientos de alta gama con sesiones VIP, formación in situ y protocolos Método TMS® adaptados a la hospitalidad de lujo.",
+      "Practicante desde 2006, Grégory Tordjman acompaña establecimientos de alta gama con sesiones privadas, workshops in situ y un marco Método TMS® adaptado a la hospitalidad.",
     cta: "Iniciar una conversación B2B",
     outcomes: [
-      "Respuesta corporal discreta para huéspedes exigentes.",
+      "Acompañamiento manual discreto, organizado según el contexto del huésped.",
       "Formación práctica de equipos spa y wellness.",
       "Intervención móvil en hoteles, villas, yates o residencias privadas.",
       "Foco internacional en Caribe, México y mercados anglófonos/hispanohablantes.",
@@ -143,15 +143,15 @@ const B2B_COPY: Record<Locale, {
     offers: [
       {
         title: "Hospitality training",
-        text: "Talleres in situ para transmitir gestos, límites y protocolos aplicables por equipos spa.",
+        text: "Talleres in situ sobre observación, gestos, consentimiento y límites aplicables por los equipos spa en su ámbito profesional.",
       },
       {
         title: "Sesiones VIP",
-        text: "Sesiones privadas realizadas por Grégory para directivos, familias, deportistas, artistas y huéspedes premium.",
+        text: "Sesiones privadas realizadas por Grégory después de conversar sobre el contexto, las expectativas y las precauciones relevantes.",
       },
       {
         title: "Consultoría spa",
-        text: "Auditoría de la experiencia corporal, adaptación del recorrido y creación de una oferta firma Método TMS®.",
+        text: "Análisis del recorrido del huésped, definición del marco de intervención y diseño de una experiencia firma coherente con el establecimiento.",
       },
     ],
     territoriesTitle: "Territorios prioritarios",
@@ -159,7 +159,7 @@ const B2B_COPY: Record<Locale, {
     faq: [
       {
         question: "¿El Método TMS® puede enseñarse a un equipo spa?",
-        answer: "Sí. Las formaciones B2B transmiten protocolos prácticos, claros y adaptados al nivel de responsabilidad del equipo.",
+        answer: "Sí. Los workshops B2B transmiten gestos, pautas y límites adaptados a la responsabilidad del equipo. No amplían su ámbito profesional ni conceden ningún título médico.",
       },
       {
         question: "¿Grégory se desplaza fuera de Francia?",
@@ -212,9 +212,9 @@ function structuredData(locale: Locale) {
     createProfessionalServiceJsonLd({
       locale,
       routeKey: "luxuryHospitality",
-      name: "Luxury hospitality manual therapy - Méthode TMS®",
+      name: "Luxury hospitality hands-on support - Méthode TMS®",
       description: copy.description,
-      serviceType: ["Hospitality training", "VIP sessions", "Spa consulting", "On-site manual therapy"],
+      serviceType: ["Hospitality training", "VIP sessions", "Spa consulting", "On-site hands-on support"],
     }),
     createWebPageJsonLd({
       locale,
@@ -328,6 +328,27 @@ export default async function LuxuryHospitalityPage({ params }: PageProps) {
                 <span key={territory} style={{ border: "1px solid rgba(247,241,229,.3)", padding: "10px 14px", fontSize: "14px" }}>
                   {territory}
                 </span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section style={{ padding: "84px 0", background: "var(--cream)" }} id="faq">
+          <div style={{ width: "min(860px, calc(100% - 40px))", margin: "0 auto" }}>
+            <p className="eyebrow eyebrow--gold">FAQ</p>
+            <h2 style={{ fontFamily: "var(--serif)", fontSize: "clamp(34px, 5vw, 58px)", fontWeight: 300, margin: "14px 0 32px" }}>
+              {lang === "fr"
+                ? "Questions fréquentes des établissements."
+                : lang === "en"
+                  ? "Frequently asked questions from properties."
+                  : "Preguntas frecuentes de los establecimientos."}
+            </h2>
+            <div style={{ display: "grid", gap: "26px" }}>
+              {copy.faq.map((item) => (
+                <article key={item.question} style={{ borderTop: "1px solid rgba(26,23,20,.18)", paddingTop: "20px" }}>
+                  <h3 style={{ margin: "0 0 10px", fontSize: "20px" }}>{item.question}</h3>
+                  <p style={{ margin: 0, color: "var(--mid)", lineHeight: 1.7 }}>{item.answer}</p>
+                </article>
               ))}
             </div>
           </div>

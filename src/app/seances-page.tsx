@@ -6,15 +6,7 @@ import { Language } from "@/data/copy";
 import SharedHeader from "@/components/SharedHeader";
 import SharedFooter from "@/components/SharedFooter";
 import SharedContactForm from "@/components/SharedContactForm";
-
-/* ──────────────────────────────────────────────────────────
-   Constants
-   ────────────────────────────────────────────────────────── */
-const LANGUAGE_ROUTES: Record<Language, string> = {
-  FR: "/fr",
-  EN: "/en",
-  ES: "/es",
-};
+import { SESSION_FAQ, SESSION_PRECAUTIONS, type PublicLocale } from "@/data/service-content";
 
 /* ──────────────────────────────────────────────────────────
    Reveal-on-scroll
@@ -88,7 +80,7 @@ function SeancesHero({ lang }: { lang: Language }) {
   const t = {
     FR: {
       eyebrow: "Séances privées · Méthode TMS®",
-      h1: ["Une présence.", "Un soulagement précis."],
+      h1: ["Une présence.", "Un geste précis."],
       sub: "Chaque séance est construite pour un corps, dans un contexte. Grégory se déplace — hôtel, villa, yacht, domicile — et intervient là où vous êtes.",
       cta: "Demander une séance",
       ctaSec: "Voir les tarifs",
@@ -96,7 +88,7 @@ function SeancesHero({ lang }: { lang: Language }) {
     },
     EN: {
       eyebrow: "Private sessions · Méthode TMS®",
-      h1: ["One presence.", "One precise relief."],
+      h1: ["One presence.", "One precise gesture."],
       sub: "Each session is built for one body, in one context. Grégory comes to you — hotel, villa, yacht, private residence — and intervenes where you are.",
       cta: "Request a session",
       ctaSec: "View rates",
@@ -104,7 +96,7 @@ function SeancesHero({ lang }: { lang: Language }) {
     },
     ES: {
       eyebrow: "Sesiones privadas · Método TMS®",
-      h1: ["Una presencia.", "Un alivio preciso."],
+      h1: ["Una presencia.", "Un gesto preciso."],
       sub: "Cada sesión está construida para un cuerpo, en un contexto. Grégory se desplaza — hotel, villa, yate, domicilio — e interviene donde usted está.",
       cta: "Solicitar una sesión",
       ctaSec: "Ver tarifas",
@@ -156,7 +148,7 @@ function SeancesHero({ lang }: { lang: Language }) {
             style={{ objectFit: "cover", objectPosition: "center 20%" }}
           />
           <span className="bio-hero__cap eyebrow eyebrow--gold">
-            {lang === "FR" ? "Depuis 2014 · 9 000+ corps" : lang === "EN" ? "Since 2014 · 9,000+ bodies" : "Desde 2014 · 9.000+ cuerpos"}
+            {lang === "FR" ? "Pratique professionnelle · Depuis 2006" : lang === "EN" ? "Professional practice · Since 2006" : "Práctica profesional · Desde 2006"}
           </span>
         </Reveal>
       </div>
@@ -178,29 +170,29 @@ function SeanceIntro({ lang }: { lang: Language }) {
   const t = {
     FR: {
       eyebrow: "01 — La séance",
-      title: "Pas un massage. Pas une consultation.\nQuelque chose de plus précis.",
+      title: "Qu'est-ce qu'une séance\nMéthode TMS® ?",
       lines: [
-        "Une séance Méthode TMS® commence par une lecture. Grégory observe, palpe, écoute — avant même d'intervenir.",
-        "Structure osseuse, chaînes musculaires, fascias, posture, respiration, terrain émotionnel. Tout est pris en compte. Rien n'est ignoré.",
-        "Le travail est manuel, direct, calibré. L'objectif n'est pas la détente — c'est la libération. Deux choses très différentes.",
+        "Une séance Méthode TMS® est un accompagnement manuel personnalisé. Grégory observe le contexte, la posture, la mobilité et les zones de tension ressenties avant d'adapter son geste.",
+        "Le travail reste progressif, attentif aux réactions et aux limites exprimées. Il vise le confort corporel et une meilleure aisance perçue, sans diagnostic ni promesse de résultat.",
+        "Ce cadre ne remplace pas un suivi médical. Lorsque la situation l'exige, l'avis d'un professionnel de santé reste prioritaire.",
       ],
     },
     EN: {
       eyebrow: "01 — The session",
-      title: "Not a massage. Not a consultation.\nSomething more precise.",
+      title: "What is a\nMéthode TMS® session?",
       lines: [
-        "A Méthode TMS® session begins with a reading. Grégory observes, palpates, listens — before intervening.",
-        "Bone structure, muscle chains, fascia, posture, breathing, emotional terrain. Everything is considered. Nothing is ignored.",
-        "The work is manual, direct, calibrated. The goal is not relaxation — it's release. Two very different things.",
+        "A Méthode TMS® session is personalised hands-on support. Grégory considers the context, posture, mobility and areas of felt tension before adapting each gesture.",
+        "The work remains progressive and attentive to individual responses and stated boundaries. It supports physical comfort and perceived ease without diagnosis or promises of results.",
+        "This scope does not replace medical care. When the situation requires it, advice from a qualified healthcare professional takes priority.",
       ],
     },
     ES: {
       eyebrow: "01 — La sesión",
-      title: "No es un masaje. No es una consulta.\nAlgo más preciso.",
+      title: "¿Qué es una sesión\ndel Método TMS®?",
       lines: [
-        "Una sesión del Método TMS® comienza con una lectura. Grégory observa, palpa, escucha — antes de intervenir.",
-        "Estructura ósea, cadenas musculares, fascias, postura, respiración, terreno emocional. Todo se tiene en cuenta. Nada se ignora.",
-        "El trabajo es manual, directo, calibrado. El objetivo no es la relajación — es la liberación. Dos cosas muy diferentes.",
+        "Una sesión del Método TMS® es un acompañamiento manual personalizado. Grégory considera el contexto, la postura, la movilidad y las zonas de tensión percibidas antes de adaptar cada gesto.",
+        "El trabajo es progresivo y atento a las reacciones y límites expresados. Favorece el confort corporal y la soltura percibida, sin diagnóstico ni promesas de resultado.",
+        "Este marco no sustituye la atención médica. Cuando la situación lo exige, se prioriza la opinión de un profesional sanitario cualificado.",
       ],
     },
   }[lang];
@@ -242,7 +234,7 @@ function SeanceDeroule({ lang }: { lang: Language }) {
         {
           num: "01",
           word: "Accueil.",
-          sub: "Grégory arrive à l'heure convenue. Pas de retard, pas d'installation compliquée. Une table de soin transportable ou la surface disponible sur place.",
+          sub: "Grégory intervient au créneau convenu, avec une installation adaptée au lieu : table transportable ou espace préparé sur place.",
         },
         {
           num: "02",
@@ -252,12 +244,12 @@ function SeanceDeroule({ lang }: { lang: Language }) {
         {
           num: "03",
           word: "Travail.",
-          sub: "Intervention manuelle directe. Structure, muscles, fascias, système nerveux. Durée ajustée selon les besoins — 60 à 90 minutes en général.",
+          sub: "Travail manuel progressif sur les zones retenues ensemble. L'intensité et la durée s'ajustent au confort, aux réactions et au contexte.",
         },
         {
           num: "04",
           word: "Transmission.",
-          sub: "En fin de séance, quelques repères simples : postures, gestes, habitudes. Pour que l'effet du soin dure au-delà de la session.",
+          sub: "En fin de séance, quelques repères simples peuvent être proposés : mouvements, positions ou habitudes à observer au quotidien.",
         },
       ],
     },
@@ -268,7 +260,7 @@ function SeanceDeroule({ lang }: { lang: Language }) {
         {
           num: "01",
           word: "Arrival.",
-          sub: "Grégory arrives at the agreed time. No delays, no complicated setup. A portable treatment table or the available surface on site.",
+          sub: "Grégory works at the agreed time with a setup adapted to the setting: a portable table or a suitable space prepared on site.",
         },
         {
           num: "02",
@@ -278,12 +270,12 @@ function SeanceDeroule({ lang }: { lang: Language }) {
         {
           num: "03",
           word: "Work.",
-          sub: "Direct manual intervention. Structure, muscles, fascia, nervous system. Duration adjusted to needs — typically 60 to 90 minutes.",
+          sub: "Progressive hands-on work on the areas agreed together. Intensity and duration adapt to comfort, responses and context.",
         },
         {
           num: "04",
           word: "Transmission.",
-          sub: "At the end of the session, a few simple markers: postures, movements, habits. So that the effect of the session lasts beyond the session itself.",
+          sub: "At the end, simple guidance may be offered: movements, positions or habits to notice in everyday life.",
         },
       ],
     },
@@ -294,7 +286,7 @@ function SeanceDeroule({ lang }: { lang: Language }) {
         {
           num: "01",
           word: "Llegada.",
-          sub: "Grégory llega a la hora acordada. Sin retrasos, sin instalación complicada. Una mesa de tratamiento portátil o la superficie disponible en el lugar.",
+          sub: "Grégory interviene en el horario acordado con una instalación adaptada al lugar: mesa portátil o un espacio adecuado preparado in situ.",
         },
         {
           num: "02",
@@ -304,12 +296,12 @@ function SeanceDeroule({ lang }: { lang: Language }) {
         {
           num: "03",
           word: "Trabajo.",
-          sub: "Intervención manual directa. Estructura, músculos, fascias, sistema nervioso. Duración ajustada según las necesidades — generalmente 60 a 90 minutos.",
+          sub: "Trabajo manual progresivo sobre las zonas acordadas. La intensidad y la duración se adaptan al confort, las reacciones y el contexto.",
         },
         {
           num: "04",
           word: "Transmisión.",
-          sub: "Al final de la sesión, algunos marcadores simples: posturas, movimientos, hábitos. Para que el efecto de la sesión dure más allá de la sesión.",
+          sub: "Al final pueden proponerse pautas sencillas: movimientos, posiciones o hábitos que observar en la vida cotidiana.",
         },
       ],
     },
@@ -341,47 +333,47 @@ function SeanceDeroule({ lang }: { lang: Language }) {
 }
 
 /* ──────────────────────────────────────────────────────────
-   04 — Indications (ce que la séance traite)
+   04 — Situations d'usage
    ────────────────────────────────────────────────────────── */
 function SeanceIndications({ lang }: { lang: Language }) {
   const t = {
     FR: {
-      eyebrow: "03 — Indications",
-      title: "Ce que le corps vous dit.\nCe que la séance écoute.",
-      sub: "La Méthode TMS® n'est pas un catalogue de symptômes. Chaque situation est lue dans sa globalité.",
+      eyebrow: "03 — Situations",
+      title: "Quand envisager\nun accompagnement manuel ?",
+      sub: "La demande part d'un contexte et d'un ressenti, jamais d'un diagnostic établi par la séance.",
       items: [
-        { num: "01", label: "Dos & Lombaires", desc: "Blocages lombaires, douleurs chroniques, hernies discales, contractures profondes." },
-        { num: "02", label: "Nuque & Épaules", desc: "Tensions cervicales, raideur, céphalées de tension, épaule bloquée." },
-        { num: "03", label: "Fatigue profonde", desc: "Épuisement physique, récupération post-voyage, jet lag, surmenage professionnel." },
-        { num: "04", label: "Posture & Équilibre", desc: "Désaxages posturaux, compensation chronique, déséquilibres gauche/droite." },
-        { num: "05", label: "Système digestif", desc: "Tensions abdominales, transit lent, lourdeurs, stress viscéral." },
-        { num: "06", label: "Charge émotionnelle", desc: "Stress accumulé, tensions liées à l'anxiété, corps sous pression." },
+        { num: "01", label: "Après un voyage", desc: "Raideur ressentie, fatigue corporelle ou besoin de retrouver des repères après un déplacement." },
+        { num: "02", label: "Rythme soutenu", desc: "Période professionnelle ou personnelle exigeante, avec une sensation de tension accumulée." },
+        { num: "03", label: "Après l'effort", desc: "Besoin de récupération et de confort après une activité physique, hors situation traumatique." },
+        { num: "04", label: "Mobilité ressentie", desc: "Geste moins fluide ou inconfort dans certaines positions, sans signe nécessitant une urgence médicale." },
+        { num: "05", label: "Séjour privé", desc: "Besoin d'une séance discrète, organisée sur place et adaptée à l'agenda." },
+        { num: "06", label: "Prévention d'usage", desc: "Prendre un temps d'observation et recevoir des repères simples pour le quotidien." },
       ],
     },
     EN: {
       eyebrow: "03 — Indications",
-      title: "What the body is telling you.\nWhat the session listens to.",
-      sub: "The Méthode TMS® is not a catalogue of symptoms. Each situation is read in its entirety.",
+      title: "When might hands-on\nsupport be considered?",
+      sub: "The request begins with context and felt experience, never with a diagnosis made during the session.",
       items: [
-        { num: "01", label: "Back & Lower back", desc: "Lumbar blockages, chronic pain, disc hernias, deep contractures." },
-        { num: "02", label: "Neck & Shoulders", desc: "Cervical tension, stiffness, tension headaches, frozen shoulder." },
-        { num: "03", label: "Deep fatigue", desc: "Physical exhaustion, post-travel recovery, jet lag, professional burnout." },
-        { num: "04", label: "Posture & Balance", desc: "Postural misalignment, chronic compensation, left/right imbalances." },
-        { num: "05", label: "Digestive system", desc: "Abdominal tension, slow transit, heaviness, visceral stress." },
-        { num: "06", label: "Emotional load", desc: "Accumulated stress, anxiety-related tension, body under pressure." },
+        { num: "01", label: "After travel", desc: "Felt stiffness, physical fatigue or a need to regain bearings after a journey." },
+        { num: "02", label: "Demanding schedule", desc: "An intense professional or personal period with a sense of accumulated tension." },
+        { num: "03", label: "After exercise", desc: "A need for recovery and comfort after physical activity, outside any traumatic situation." },
+        { num: "04", label: "Perceived mobility", desc: "Movement feels less fluid or certain positions feel uncomfortable, without medical warning signs." },
+        { num: "05", label: "Private stay", desc: "A discreet on-site session organised around the guest's schedule." },
+        { num: "06", label: "Everyday awareness", desc: "Time to observe the body and receive simple practical guidance." },
       ],
     },
     ES: {
       eyebrow: "03 — Indicaciones",
-      title: "Lo que el cuerpo le dice.\nLo que la sesión escucha.",
-      sub: "El Método TMS® no es un catálogo de síntomas. Cada situación se lee en su globalidad.",
+      title: "¿Cuándo considerar\nun acompañamiento manual?",
+      sub: "La solicitud parte del contexto y de lo que se percibe, nunca de un diagnóstico realizado durante la sesión.",
       items: [
-        { num: "01", label: "Espalda y lumbares", desc: "Bloqueos lumbares, dolores crónicos, hernias discales, contracturas profundas." },
-        { num: "02", label: "Cuello y hombros", desc: "Tensiones cervicales, rigidez, cefaleas tensionales, hombro bloqueado." },
-        { num: "03", label: "Fatiga profunda", desc: "Agotamiento físico, recuperación post-viaje, jet lag, sobrecarga profesional." },
-        { num: "04", label: "Postura y equilibrio", desc: "Desalineaciones posturales, compensación crónica, desequilibrios izquierda/derecha." },
-        { num: "05", label: "Sistema digestivo", desc: "Tensiones abdominales, tránsito lento, pesadez, estrés visceral." },
-        { num: "06", label: "Carga emocional", desc: "Estrés acumulado, tensiones relacionadas con la ansiedad, cuerpo bajo presión." },
+        { num: "01", label: "Después de un viaje", desc: "Rigidez percibida, fatiga corporal o necesidad de recuperar referencias tras un desplazamiento." },
+        { num: "02", label: "Ritmo exigente", desc: "Una etapa profesional o personal intensa con sensación de tensión acumulada." },
+        { num: "03", label: "Después del esfuerzo", desc: "Necesidad de recuperación y confort tras actividad física, fuera de una situación traumática." },
+        { num: "04", label: "Movilidad percibida", desc: "Movimiento menos fluido o incomodidad en ciertas posiciones, sin señales de alarma médica." },
+        { num: "05", label: "Estancia privada", desc: "Una sesión discreta in situ, organizada según la agenda del huésped." },
+        { num: "06", label: "Atención cotidiana", desc: "Un tiempo de observación y pautas prácticas sencillas para el día a día." },
       ],
     },
   }[lang];
@@ -515,21 +507,21 @@ function SeanceTarifs({ lang }: { lang: Language }) {
         {
           name: "Séance individuelle",
           duration: "60 – 75 min",
-          desc: "Prise en charge complète selon lecture du corps ce jour-là. Déplacement inclus dans la zone.",
+          desc: "Séance personnalisée selon le contexte, le confort et les zones retenues ensemble. Déplacement inclus dans la zone convenue.",
           price: "Sur devis",
           tag: "01",
         },
         {
           name: "Séance approfondie",
           duration: "90 – 120 min",
-          desc: "Pour les cas complexes, douleurs chroniques ou première séance avec bilan initial complet.",
+          desc: "Temps élargi pour une première rencontre, un échange approfondi et un travail manuel progressif.",
           price: "Sur devis",
           tag: "02",
         },
         {
           name: "Suivi régulier",
           duration: "Forfait mensuel",
-          desc: "Programme sur-mesure pour clients récurrents, sportifs ou voyageurs fréquents. Disponibilité prioritaire.",
+          desc: "Organisation sur mesure pour clients récurrents, sportifs ou voyageurs fréquents, selon les disponibilités.",
           price: "Sur devis",
           tag: "03",
         },
@@ -541,7 +533,7 @@ function SeanceTarifs({ lang }: { lang: Language }) {
           tag: "04",
         },
       ],
-      note: "Tous les tarifs sont communiqués sur demande. Grégory répond personnellement sous 12h.",
+      note: "Les tarifs et conditions de déplacement sont précisés après étude du contexte.",
     },
     EN: {
       eyebrow: "05 — Rates",
@@ -551,21 +543,21 @@ function SeanceTarifs({ lang }: { lang: Language }) {
         {
           name: "Individual session",
           duration: "60 – 75 min",
-          desc: "Complete care based on body reading on that day. Travel included within the zone.",
+          desc: "A personalised session based on context, comfort and the areas agreed together. Travel included within the agreed zone.",
           price: "On request",
           tag: "01",
         },
         {
           name: "In-depth session",
           duration: "90 – 120 min",
-          desc: "For complex cases, chronic pain or first session with complete initial assessment.",
+          desc: "Extended time for a first meeting, a more detailed discussion and progressive hands-on work.",
           price: "On request",
           tag: "02",
         },
         {
           name: "Regular follow-up",
           duration: "Monthly package",
-          desc: "Tailored programme for regular clients, athletes or frequent travellers. Priority availability.",
+          desc: "Tailored organisation for regular clients, athletes or frequent travellers, subject to availability.",
           price: "On request",
           tag: "03",
         },
@@ -577,7 +569,7 @@ function SeanceTarifs({ lang }: { lang: Language }) {
           tag: "04",
         },
       ],
-      note: "All rates are communicated on request. Grégory replies personally within 12h.",
+      note: "Rates and travel conditions are specified after the context has been reviewed.",
     },
     ES: {
       eyebrow: "05 — Tarifas",
@@ -587,21 +579,21 @@ function SeanceTarifs({ lang }: { lang: Language }) {
         {
           name: "Sesión individual",
           duration: "60 – 75 min",
-          desc: "Atención completa según la lectura corporal de ese día. Desplazamiento incluido en la zona.",
+          desc: "Sesión personalizada según el contexto, el confort y las zonas acordadas. Desplazamiento incluido en la zona convenida.",
           price: "A petición",
           tag: "01",
         },
         {
           name: "Sesión en profundidad",
           duration: "90 – 120 min",
-          desc: "Para casos complejos, dolores crónicos o primera sesión con evaluación inicial completa.",
+          desc: "Tiempo ampliado para un primer encuentro, una conversación detallada y un trabajo manual progresivo.",
           price: "A petición",
           tag: "02",
         },
         {
           name: "Seguimiento regular",
           duration: "Forfait mensual",
-          desc: "Programa a medida para clientes recurrentes, deportistas o viajeros frecuentes. Disponibilidad prioritaria.",
+          desc: "Organización a medida para clientes recurrentes, deportistas o viajeros frecuentes, según disponibilidad.",
           price: "A petición",
           tag: "03",
         },
@@ -613,7 +605,7 @@ function SeanceTarifs({ lang }: { lang: Language }) {
           tag: "04",
         },
       ],
-      note: "Todas las tarifas se comunican a petición. Grégory responde personalmente en 12h.",
+      note: "Las tarifas y condiciones de desplazamiento se precisan después de revisar el contexto.",
     },
   }[lang];
 
@@ -665,22 +657,22 @@ function SeanceTarifs({ lang }: { lang: Language }) {
 function SeanceStats({ lang }: { lang: Language }) {
   const stats = {
     FR: [
-      { value: "9 000+", label: "Corps accompagnés" },
-      { value: "12h", label: "Délai de réponse" },
-      { value: "7j/7", label: "Disponibilité" },
-      { value: "2014", label: "Depuis" },
+      { value: "Depuis 2006", label: "Pratique professionnelle" },
+      { value: "Mobile", label: "Hôtel, villa, yacht, domicile" },
+      { value: "Sur mesure", label: "Contexte et limites considérés" },
+      { value: "Confidentiel", label: "Échanges et organisation" },
     ],
     EN: [
-      { value: "9,000+", label: "Bodies supported" },
-      { value: "12h", label: "Response time" },
-      { value: "7d/7", label: "Availability" },
-      { value: "2014", label: "Since" },
+      { value: "Since 2006", label: "Professional practice" },
+      { value: "Mobile", label: "Hotel, villa, yacht, residence" },
+      { value: "Bespoke", label: "Context and boundaries considered" },
+      { value: "Confidential", label: "Exchange and organisation" },
     ],
     ES: [
-      { value: "9.000+", label: "Cuerpos acompañados" },
-      { value: "12h", label: "Tiempo de respuesta" },
-      { value: "7d/7", label: "Disponibilidad" },
-      { value: "2014", label: "Desde" },
+      { value: "Desde 2006", label: "Práctica profesional" },
+      { value: "Móvil", label: "Hotel, villa, yate, domicilio" },
+      { value: "A medida", label: "Contexto y límites considerados" },
+      { value: "Confidencial", label: "Intercambio y organización" },
     ],
   }[lang];
 
@@ -705,68 +697,68 @@ function SeanceStats({ lang }: { lang: Language }) {
 /* ──────────────────────────────────────────────────────────
    08 — Témoignages clients (serif italic)
    ────────────────────────────────────────────────────────── */
-function SeanceCitations({ lang }: { lang: Language }) {
+function SeanceCommitments({ lang }: { lang: Language }) {
   const t = {
     FR: {
-      eyebrow: "06 — Ressentis",
-      title: "Ce qu'ils ont vécu.",
+      eyebrow: "06 — Engagements",
+      title: "Ce qui encadre chaque séance.",
       items: [
         {
-          quote: "J'avais un blocage lombaire depuis trois semaines. Après une seule séance dans ma chambre d'hôtel, je pouvais à nouveau me lever sans douleur.",
-          author: "Client privé",
-          location: "Monaco",
+          quote: "Écouter avant d'intervenir. Comprendre le contexte, les attentes et les limites exprimées.",
+          author: "Premier principe",
+          location: "Observation",
         },
         {
-          quote: "Grégory est venu directement à bord. Professionnel, discret, efficace. Quelque chose s'est débloqué que je ne savais même pas retenir.",
-          author: "Client yacht",
-          location: "Méditerranée",
+          quote: "Adapter le geste. L'intensité n'est jamais un objectif et la séance évolue selon les réactions de la personne.",
+          author: "Deuxième principe",
+          location: "Adaptation",
         },
         {
-          quote: "Je voyage 200 jours par an. C'est la première fois que j'ai quelqu'un qui comprend ce que ça fait au corps — et qui sait quoi faire.",
-          author: "Dirigeant international",
-          location: "Paris / Dubaï / Genève",
+          quote: "Respecter le cadre. Ne pas diagnostiquer, ne pas promettre et orienter lorsque la situation demande un avis médical.",
+          author: "Troisième principe",
+          location: "Responsabilité",
         },
       ],
     },
     EN: {
-      eyebrow: "06 — Experiences",
-      title: "What they experienced.",
+      eyebrow: "06 — Commitments",
+      title: "What frames every session.",
       items: [
         {
-          quote: "I had a lumbar blockage for three weeks. After a single session in my hotel room, I could get up again without pain.",
-          author: "Private client",
-          location: "Monaco",
+          quote: "Listen before intervening. Understand the context, expectations and boundaries expressed by the person.",
+          author: "First principle",
+          location: "Observation",
         },
         {
-          quote: "Grégory came directly on board. Professional, discreet, effective. Something unlocked that I didn't even know I was holding.",
-          author: "Yacht client",
-          location: "Mediterranean",
+          quote: "Adapt the gesture. Intensity is never the objective and the session evolves with the person's responses.",
+          author: "Second principle",
+          location: "Adaptation",
         },
         {
-          quote: "I travel 200 days a year. This is the first time I've had someone who understands what that does to the body — and knows what to do.",
-          author: "International executive",
-          location: "Paris / Dubai / Geneva",
+          quote: "Respect the scope. Do not diagnose or promise, and refer whenever the situation calls for medical advice.",
+          author: "Third principle",
+          location: "Responsibility",
         },
       ],
     },
     ES: {
-      eyebrow: "06 — Experiencias",
-      title: "Lo que vivieron.",
+      eyebrow: "06 — Compromisos",
+      title: "Lo que enmarca cada sesión.",
       items: [
         {
-          quote: "Tenía un bloqueo lumbar desde hacía tres semanas. Después de una sola sesión en mi habitación de hotel, pude levantarme de nuevo sin dolor.",
-          author: "Cliente privado",
-          location: "Mónaco",
+          quote: "Escuchar antes de intervenir. Comprender el contexto, las expectativas y los límites expresados.",
+          author: "Primer principio",
+          location: "Observación",
         },
         {
-          quote: "Grégory vino directamente a bordo. Profesional, discreto, eficaz. Algo se desbloqueó que ni siquiera sabía que retenía.",
-          author: "Cliente yate",
-          location: "Mediterráneo",
+          quote: "Adaptar el gesto. La intensidad nunca es el objetivo y la sesión evoluciona según las reacciones de la persona.",
+          author: "Segundo principio",
+          location: "Adaptación",
         },
         {
-          quote: "Viajo 200 días al año. Es la primera vez que tengo a alguien que entiende lo que eso le hace al cuerpo — y sabe qué hacer.",
-          author: "Directivo internacional",
-          location: "París / Dubái / Ginebra",
+          quote: "Respetar el marco. No diagnosticar ni prometer y orientar cuando la situación requiere una consulta médica.",
+          author: "Tercer principio",
+          location: "Responsabilidad",
         },
       ],
     },
@@ -802,34 +794,105 @@ function SeanceCitations({ lang }: { lang: Language }) {
   );
 }
 
+function SeanceFaqAndPrecautions({ lang }: { lang: Language }) {
+  const locale = lang.toLowerCase() as PublicLocale;
+  const faq = SESSION_FAQ[locale];
+  const precautions = SESSION_PRECAUTIONS[locale];
+
+  return (
+    <>
+      <section className="seances-faq" id="faq">
+        <div className="container container--narrow">
+          <Reveal>
+            <span className="eyebrow eyebrow--gold">FAQ</span>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <h2 className="section-title">
+              {lang === "FR"
+                ? "Questions fréquentes sur la séance."
+                : lang === "EN"
+                  ? "Frequently asked questions about the session."
+                  : "Preguntas frecuentes sobre la sesión."}
+            </h2>
+          </Reveal>
+          <div className="seances-faq__list">
+            {faq.map((item, index) => (
+              <Reveal className="seances-faq__item" key={item.question} delay={0.12 + index * 0.08}>
+                <h3>{item.question}</h3>
+                <p>{item.answer}</p>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="seances-precautions">
+        <div className="container container--narrow">
+          <Reveal>
+            <span className="eyebrow eyebrow--gold">{precautions.eyebrow}</span>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <h2 className="section-title">{precautions.title}</h2>
+          </Reveal>
+          <Reveal delay={0.15}>
+            <p className="section-sub">{precautions.intro}</p>
+          </Reveal>
+          <ul className="seances-precautions__list">
+            {precautions.points.map((point, index) => (
+              <Reveal as="li" key={point} delay={0.18 + index * 0.06}>
+                {point}
+              </Reveal>
+            ))}
+          </ul>
+          <Reveal delay={0.36}>
+            <p className="seances-precautions__sources">
+              <a href="https://www.ameli.fr/assure/sante/themes/lombalgie-aigue" target="_blank" rel="noreferrer">
+                {precautions.medicalLinkLabel}
+              </a>
+              <span aria-hidden="true"> · </span>
+              <a
+                href="https://www.service-public.fr/particuliers/actualites/A17758?lang=fr"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {precautions.emergencyLinkLabel}
+              </a>
+            </p>
+          </Reveal>
+        </div>
+      </section>
+    </>
+  );
+}
+
 /* ──────────────────────────────────────────────────────────
    09 — CTA final
    ────────────────────────────────────────────────────────── */
 function SeanceCta({ lang }: { lang: Language }) {
   const t = {
     FR: {
-      eyebrow: "Méthode TMS® · Séances privées · Depuis 2014",
-      title: "Une demande.\nUne réponse dans les 12h.",
-      sub: "Grégory répond personnellement à chaque demande de séance. Discrétion absolue.",
+      eyebrow: "Méthode TMS® · Séances privées · Pratique depuis 2006",
+      title: "Une demande.\nUne étude personnelle.",
+      sub: "Grégory replace chaque demande dans son contexte avant de proposer un échange ou une séance.",
       cta: "Demander une séance privée",
       phone: "+33 6 65 51 77 35",
-      note: "7 jours sur 7 · International sur demande",
+      note: "International sur demande",
     },
     EN: {
-      eyebrow: "Méthode TMS® · Private sessions · Since 2014",
-      title: "One request.\nOne reply within 12h.",
-      sub: "Grégory replies personally to every session request. Absolute discretion.",
+      eyebrow: "Méthode TMS® · Private sessions · Practising since 2006",
+      title: "One request.\nA personal review.",
+      sub: "Grégory considers each request in context before proposing a conversation or session.",
       cta: "Request a private session",
       phone: "+33 6 65 51 77 35",
-      note: "7 days a week · International on request",
+      note: "International on request",
     },
     ES: {
-      eyebrow: "Método TMS® · Sesiones privadas · Desde 2014",
-      title: "Una solicitud.\nUna respuesta en 12h.",
-      sub: "Grégory responde personalmente a cada solicitud de sesión. Discreción absoluta.",
+      eyebrow: "Método TMS® · Sesiones privadas · Práctica desde 2006",
+      title: "Una solicitud.\nUna revisión personal.",
+      sub: "Grégory considera cada solicitud en su contexto antes de proponer una conversación o una sesión.",
       cta: "Solicitar una sesión privada",
       phone: "+33 6 65 51 77 35",
-      note: "7 días a la semana · Internacional bajo solicitud",
+      note: "Internacional bajo solicitud",
     },
   }[lang];
 
@@ -880,56 +943,6 @@ function SeanceCta({ lang }: { lang: Language }) {
 }
 
 /* ──────────────────────────────────────────────────────────
-   Footer
-   ────────────────────────────────────────────────────────── */
-function Footer({ lang }: { lang: Language }) {
-  const lines = {
-    FR: [
-      "Grégory Tordjman · Méthode TMS®",
-      "Séances privées · Thérapie manuelle · Hospitality · Villas · Yachts",
-      "+33 6 65 51 77 35 · contact@reboutementmassage.fr",
-      "International sur demande",
-    ],
-    EN: [
-      "Grégory Tordjman · Méthode TMS®",
-      "Private sessions · Manual therapy · Hospitality · Villas · Yachts",
-      "+33 6 65 51 77 35 · contact@reboutementmassage.fr",
-      "International on request",
-    ],
-    ES: [
-      "Grégory Tordjman · Método TMS®",
-      "Sesiones privadas · Terapia manual · Hospitality · Villas · Yates",
-      "+33 6 65 51 77 35 · contact@reboutementmassage.fr",
-      "Internacional bajo solicitud",
-    ],
-  }[lang];
-
-  return (
-    <footer className="site-footer">
-      <div className="footer-inner">
-        <div className="footer-mark">
-          <Image
-            src="/logo--reboutement-tgrégory-tordjman.png"
-            alt="Thérapie Manuelle Reboutement & Massage by Grégory Tordjman"
-            width={120}
-            height={120}
-            className="footer-mark__img"
-          />
-        </div>
-        <div className="footer-lines">
-          {lines.map((l, i) => (
-            <p key={i} className={i === 0 ? "footer-name" : "footer-line"}>{l}</p>
-          ))}
-        </div>
-        <div className="footer-meta">
-          <span className="eyebrow eyebrow--mute">© MMXXVI</span>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
-/* ──────────────────────────────────────────────────────────
    Root export
    ────────────────────────────────────────────────────────── */
 export default function SeancesPage({ initialLang }: { initialLang: Language }) {
@@ -953,7 +966,8 @@ export default function SeancesPage({ initialLang }: { initialLang: Language }) 
         <SeanceOu lang={lang} />
         <SeanceTarifs lang={lang} />
         <SeanceStats lang={lang} />
-        <SeanceCitations lang={lang} />
+        <SeanceCommitments lang={lang} />
+        <SeanceFaqAndPrecautions lang={lang} />
         <SeanceCta lang={lang} />
         <SharedContactForm lang={lang} id="demande" />
       </main>

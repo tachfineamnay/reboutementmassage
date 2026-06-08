@@ -21,19 +21,19 @@ const BIO_META: Record<string, { title: string; description: string; slug: strin
   fr: {
     title: "Biographie — Grégory Tordjman | Créateur de la Méthode TMS®",
     description:
-      "Découvrez le parcours de Grégory Tordjman, créateur de la Méthode TMS®, praticien en thérapie manuelle de précision pour clients privés, hôtels, villas, yachts et conciergeries.",
+      "Découvrez le parcours de Grégory Tordjman, praticien manuel depuis 2006 et créateur de la Méthode TMS®, une approche de terrain fondée sur l'observation, le geste adapté et les limites professionnelles.",
     slug: "biographie",
   },
   en: {
     title: "Biography — Grégory Tordjman | Creator of the Méthode TMS®",
     description:
-      "Discover the journey of Grégory Tordjman, creator of the Méthode TMS®, international precision manual therapy practitioner for private clients, hotels, villas, yachts and concierges.",
+      "Discover Grégory Tordjman's journey as a hands-on practitioner since 2006 and creator of the Méthode TMS®, a field-based approach centred on observation, adapted gesture and professional boundaries.",
     slug: "biography",
   },
   es: {
     title: "Biografía — Grégory Tordjman | Creador del Método TMS®",
     description:
-      "Descubra el recorrido de Grégory Tordjman, creador del Método TMS®, terapeuta manual de precisión para clientes privados, hoteles, villas, yates y concierges.",
+      "Descubra el recorrido de Grégory Tordjman, practicante manual desde 2006 y creador del Método TMS®, un enfoque de campo basado en observación, gesto adaptado y límites profesionales.",
     slug: "biografia",
   },
 };

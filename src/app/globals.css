@@ -6960,3 +6960,80 @@ html[data-layout="cream"] .stories-hero__desc {
     padding: 24px 22px;
   }
 }
+.seances-faq,
+.seances-precautions {
+  padding: clamp(72px, 9vw, 120px) 0;
+}
+
+.seances-faq {
+  background: var(--cream);
+}
+
+.seances-faq__list {
+  display: grid;
+  gap: 0;
+  margin-top: 42px;
+}
+
+.seances-faq__item {
+  padding: 28px 0;
+  border-top: 1px solid rgba(26, 23, 20, 0.18);
+}
+
+.seances-faq__item:last-child {
+  border-bottom: 1px solid rgba(26, 23, 20, 0.18);
+}
+
+.seances-faq__item h3 {
+  margin: 0 0 12px;
+  font-family: var(--serif);
+  font-size: clamp(23px, 3vw, 32px);
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.seances-faq__item p {
+  max-width: 780px;
+  margin: 0;
+  color: var(--mid);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.seances-precautions {
+  background: var(--forest-light);
+}
+
+.seances-precautions__list {
+  display: grid;
+  gap: 14px;
+  margin: 34px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.seances-precautions__list li {
+  position: relative;
+  padding: 18px 18px 18px 42px;
+  border-top: 1px solid rgba(26, 23, 20, 0.16);
+  line-height: 1.65;
+}
+
+.seances-precautions__list li::before {
+  position: absolute;
+  top: 19px;
+  left: 12px;
+  color: var(--gold);
+  content: "—";
+}
+
+.seances-precautions__sources {
+  margin: 30px 0 0;
+  color: var(--mid);
+  font-size: 14px;
+}
+
+.seances-precautions__sources a {
+  color: inherit;
+  text-underline-offset: 4px;
+}
