@@ -7,7 +7,11 @@ import { slugify } from "@/lib/utils";
 import ImageUploader from "./ImageUploader";
 import SeoPanel from "./SeoPanel";
 import ArticleStatusBadge from "./ArticleStatusBadge";
-import type { GeoChecklistItem } from "@/lib/geo";
+import type {
+  EvidenceNotes,
+  FaqItem,
+  GeoChecklistItem,
+} from "@/lib/geo";
 import type { TiptapContent, ContentStats } from "./TiptapEditor";
 
 // ─── Chargement dynamique de l'éditeur (pas de SSR) ─────────────────────────
@@ -57,6 +61,17 @@ type ArticleData = {
     atomicAnswerPresent: boolean;
     answerCoverageScore: number;
     geoChecklist: GeoChecklistItem[];
+    primaryQuestion: string;
+    answerIntent: string;
+    targetAudience: string;
+    geoLocation: string;
+    businessGoal: string;
+    entityTargets: string[];
+    faqItems: FaqItem[];
+    evidenceNotes: EvidenceNotes;
+    aeoScore: number;
+    geoScore: number;
+    eeatScore: number;
   };
 };
 
@@ -351,6 +366,14 @@ export default function ArticleEditor({
             metaDescription: current.seo.metaDescription || null,
             focusKeyword: current.seo.focusKeyword || null,
             noindex: current.seo.noindex,
+            primaryQuestion: current.seo.primaryQuestion || null,
+            answerIntent: current.seo.answerIntent || null,
+            targetAudience: current.seo.targetAudience || null,
+            geoLocation: current.seo.geoLocation || null,
+            businessGoal: current.seo.businessGoal || null,
+            entityTargets: current.seo.entityTargets,
+            faqItems: current.seo.faqItems,
+            evidenceNotes: current.seo.evidenceNotes,
           }),
         });
 
@@ -380,6 +403,18 @@ export default function ArticleEditor({
             geoChecklist: Array.isArray(savedSeo.geoChecklist)
               ? (savedSeo.geoChecklist as GeoChecklistItem[])
               : prev.seo.geoChecklist,
+            aeoScore:
+              typeof savedSeo.aeoScore === "number"
+                ? savedSeo.aeoScore
+                : prev.seo.aeoScore,
+            geoScore:
+              typeof savedSeo.geoScore === "number"
+                ? savedSeo.geoScore
+                : prev.seo.geoScore,
+            eeatScore:
+              typeof savedSeo.eeatScore === "number"
+                ? savedSeo.eeatScore
+                : prev.seo.eeatScore,
           },
         }));
 
@@ -611,6 +646,7 @@ export default function ArticleEditor({
                   initialContent={data.content.editorJson}
                   onChange={handleEditorChange}
                   placeholder="Commencez à rédiger votre article…"
+                  locale={data.locale}
                 />
               </div>
             </div>
@@ -630,11 +666,28 @@ export default function ArticleEditor({
                 plainText={data.content.plainText}
                 html={data.content.html}
                 editorJson={data.content.editorJson}
+                seoScore={data.seo.score}
+                primaryQuestion={data.seo.primaryQuestion}
+                answerIntent={data.seo.answerIntent}
+                targetAudience={data.seo.targetAudience}
+                geoLocation={data.seo.geoLocation}
+                businessGoal={data.seo.businessGoal}
+                entityTargets={data.seo.entityTargets}
+                faqItems={data.seo.faqItems}
+                evidenceNotes={data.seo.evidenceNotes}
                 onChange={(field, value) => {
                   if (field === "seoTitle") setSeo("seoTitle", value as string);
                   else if (field === "seoDescription") setSeo("metaDescription", value as string);
                   else if (field === "focusKeyword") setSeo("focusKeyword", value as string);
                   else if (field === "noindex") setSeo("noindex", value as boolean);
+                  else if (field === "primaryQuestion") setSeo("primaryQuestion", value as string);
+                  else if (field === "answerIntent") setSeo("answerIntent", value as string);
+                  else if (field === "targetAudience") setSeo("targetAudience", value as string);
+                  else if (field === "geoLocation") setSeo("geoLocation", value as string);
+                  else if (field === "businessGoal") setSeo("businessGoal", value as string);
+                  else if (field === "entityTargets") setSeo("entityTargets", value as string[]);
+                  else if (field === "faqItems") setSeo("faqItems", value as FaqItem[]);
+                  else if (field === "evidenceNotes") setSeo("evidenceNotes", value as EvidenceNotes);
                 }}
               />
             </div>

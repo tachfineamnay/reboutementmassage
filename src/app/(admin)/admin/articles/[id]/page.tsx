@@ -3,7 +3,12 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import ArticleEditor from "@/components/admin/ArticleEditor";
-import type { GeoChecklistItem } from "@/lib/geo";
+import {
+  normalizeEntityTargets,
+  normalizeEvidenceNotes,
+  normalizeFaqItems,
+  type GeoChecklistItem,
+} from "@/lib/geo";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -93,6 +98,17 @@ export default async function ArticleDetailPage({ params }: Props) {
             geoChecklist: Array.isArray(article.seo?.geoChecklist)
               ? (article.seo.geoChecklist as GeoChecklistItem[])
               : [],
+            primaryQuestion: article.seo?.primaryQuestion ?? "",
+            answerIntent: article.seo?.answerIntent ?? "",
+            targetAudience: article.seo?.targetAudience ?? "",
+            geoLocation: article.seo?.geoLocation ?? "",
+            businessGoal: article.seo?.businessGoal ?? "",
+            entityTargets: normalizeEntityTargets(article.seo?.entityTargets),
+            faqItems: normalizeFaqItems(article.seo?.faqItems),
+            evidenceNotes: normalizeEvidenceNotes(article.seo?.evidenceNotes),
+            aeoScore: article.seo?.aeoScore || article.seo?.answerCoverageScore || 0,
+            geoScore: article.seo?.geoScore || article.seo?.llmReadabilityScore || 0,
+            eeatScore: article.seo?.eeatScore ?? 0,
           },
         }}
         googleMetrics={{

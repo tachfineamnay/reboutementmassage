@@ -5,11 +5,18 @@ import { prisma } from "@/lib/prisma";
 import {
   absoluteUrl,
   createArticleJsonLd,
+  createFaqJsonLd,
   createIdentityJsonLd,
   createWebPageJsonLd,
   graphJsonLd,
   renderJsonLd,
 } from "@/lib/seo";
+import {
+  isTermVisible,
+  normalizeEntityTargets,
+  normalizeEvidenceNotes,
+  normalizeFaqItems,
+} from "@/lib/geo";
 import { getArticleCanonicalUrl, getStoriesIndexPath } from "@/lib/routes";
 import { sanitizeHtml } from "@/lib/utils";
 import ArticleContent from "@/components/stories/ArticleContent";
@@ -26,7 +33,15 @@ const ARTICLE_INCLUDE = {
   seo: {
     include: { ogImage: { select: { url: true } } },
   },
-  content: { select: { html: true, editorJson: true, wordCount: true, readingTime: true } },
+  content: {
+    select: {
+      html: true,
+      editorJson: true,
+      plainText: true,
+      wordCount: true,
+      readingTime: true,
+    },
+  },
   coverImage: { select: { url: true, altFr: true, altEn: true, altEs: true } },
 } as const;
 
@@ -117,6 +132,10 @@ const CTA_TRANSLATIONS = {
     contactHref: "/fr#contact",
     storiesLink: "Stories",
     allArticles: "← Tous les articles",
+    byline: "Par Grégory Tordjman",
+    faqTitle: "Questions fréquentes",
+    experienceTitle: "Repères issus de l'expérience",
+    precautionsTitle: "Limites et précautions",
   },
   EN: {
     title: "A question or need for support?",
@@ -125,6 +144,10 @@ const CTA_TRANSLATIONS = {
     contactHref: "/en#contact",
     storiesLink: "Stories",
     allArticles: "← All articles",
+    byline: "By Grégory Tordjman",
+    faqTitle: "Frequently asked questions",
+    experienceTitle: "Experience-based perspective",
+    precautionsTitle: "Limits and precautions",
   },
   ES: {
     title: "¿Una pregunta, una necesidad de acompañamiento?",
@@ -133,6 +156,10 @@ const CTA_TRANSLATIONS = {
     contactHref: "/es#contact",
     storiesLink: "Stories",
     allArticles: "← Todos los artículos",
+    byline: "Por Grégory Tordjman",
+    faqTitle: "Preguntas frecuentes",
+    experienceTitle: "Perspectiva basada en la experiencia",
+    precautionsTitle: "Límites y precauciones",
   },
 };
 
@@ -141,8 +168,31 @@ function articleStructuredData(article: NonNullable<Awaited<ReturnType<typeof ge
   const storiesIndexUrl = absoluteUrl(getStoriesIndexPath(article.locale));
   const langUrl = absoluteUrl(`/${lang}`);
   const locale = lang as "fr" | "en" | "es";
+  const faqItems = normalizeFaqItems(article.seo?.faqItems);
+  const evidenceNotes = normalizeEvidenceNotes(article.seo?.evidenceNotes);
+  const entityTargets = normalizeEntityTargets(article.seo?.entityTargets);
+  const visibleParts = [
+    article.title,
+    article.excerpt,
+    article.content?.plainText,
+    ...faqItems.flatMap((item) => [item.question, item.answer]),
+    evidenceNotes.experience,
+    evidenceNotes.precautions,
+    "Grégory Tordjman",
+  ];
+  const visibleEntities = entityTargets.filter((entity) =>
+    isTermVisible(entity, visibleParts)
+  );
+  const visibleFocusKeyword =
+    article.seo?.focusKeyword &&
+    isTermVisible(article.seo.focusKeyword, visibleParts)
+      ? article.seo.focusKeyword
+      : null;
+  const keywords = Array.from(
+    new Set([visibleFocusKeyword, ...visibleEntities].filter((value): value is string => Boolean(value)))
+  );
 
-  return graphJsonLd([
+  const nodes = [
     createIdentityJsonLd(locale),
     createWebPageJsonLd({
       locale,
@@ -160,6 +210,9 @@ function articleStructuredData(article: NonNullable<Awaited<ReturnType<typeof ge
       datePublished: article.publishedAt?.toISOString(),
       dateModified: article.updatedAt.toISOString(),
       wordCount: article.content?.wordCount,
+      keywords,
+      about: visibleEntities.slice(0, 1),
+      mentions: visibleEntities.slice(1),
     }),
     {
       "@context": "https://schema.org",
@@ -173,9 +226,15 @@ function articleStructuredData(article: NonNullable<Awaited<ReturnType<typeof ge
       },
       { "@type": "ListItem", position: 2, name: "Stories", item: storiesIndexUrl },
       { "@type": "ListItem", position: 3, name: article.title, item: canonical },
-    ],
+      ],
     },
-  ]);
+  ];
+
+  if (faqItems.length > 0) {
+    nodes.push(createFaqJsonLd(faqItems));
+  }
+
+  return graphJsonLd(nodes);
 }
 
 export default async function ArticlePage({ params }: Props) {
@@ -196,6 +255,9 @@ export default async function ArticlePage({ params }: Props) {
   const cta = CTA_TRANSLATIONS[localeKey] || CTA_TRANSLATIONS.FR;
   const sanitizedHtml = article.content?.html ? sanitizeHtml(article.content.html) : null;
   const storiesIndexUrl = getStoriesIndexPath(article.locale);
+  const faqItems = normalizeFaqItems(article.seo?.faqItems);
+  const evidenceNotes = normalizeEvidenceNotes(article.seo?.evidenceNotes);
+  const hasEvidence = Boolean(evidenceNotes.experience || evidenceNotes.precautions);
 
   return (
     <>
@@ -252,6 +314,7 @@ export default async function ArticlePage({ params }: Props) {
                 {article.content.wordCount} {lang === "en" ? "words" : lang === "es" ? "palabras" : "mots"} · {article.content.readingTime} min {lang === "en" ? "read" : lang === "es" ? "de lectura" : "de lecture"}
               </p>
             )}
+            <p className="article-header__author">{cta.byline}</p>
           </header>
 
           {/* Body */}
@@ -259,6 +322,40 @@ export default async function ArticlePage({ params }: Props) {
             content={article.content?.editorJson ?? null}
             html={sanitizedHtml}
           />
+
+          {hasEvidence && (
+            <section className="article-evidence" aria-label={cta.experienceTitle}>
+              {evidenceNotes.experience && (
+                <div className="article-evidence__block">
+                  <p className="article-evidence__eyebrow">Who / How</p>
+                  <h2>{cta.experienceTitle}</h2>
+                  <p>{evidenceNotes.experience}</p>
+                </div>
+              )}
+              {evidenceNotes.precautions && (
+                <div className="article-evidence__block article-evidence__block--precautions">
+                  <p className="article-evidence__eyebrow">Why / Limits</p>
+                  <h2>{cta.precautionsTitle}</h2>
+                  <p>{evidenceNotes.precautions}</p>
+                </div>
+              )}
+            </section>
+          )}
+
+          {faqItems.length > 0 && (
+            <section className="article-faq" aria-labelledby="article-faq-title">
+              <p className="article-faq__eyebrow">AEO</p>
+              <h2 id="article-faq-title">{cta.faqTitle}</h2>
+              <div className="article-faq__list">
+                {faqItems.map((item, index) => (
+                  <div className="article-faq__item" key={`${item.question}-${index}`}>
+                    <h3>{item.question}</h3>
+                    <p>{item.answer}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Dynamic Premium CTA Block */}
           <section className="article-cta-section" style={{ margin: "48px 0", padding: "40px 32px", background: "var(--forest-light)", borderLeft: "4px solid var(--forest)", borderRadius: "2px" }}>

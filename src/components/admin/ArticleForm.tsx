@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import ImageUploader from "./ImageUploader";
 import SeoPanel from "./SeoPanel";
 import { slugify } from "@/lib/utils";
+import type { EvidenceNotes, FaqItem } from "@/lib/geo";
 
 // Tiptap ne fonctionne pas en SSR
 const TiptapEditor = dynamic(() => import("./TiptapEditor"), { ssr: false });
@@ -31,6 +32,14 @@ type ArticleFormData = {
   seoDescription: string;
   focusKeyword: string;
   noindex: boolean;
+  primaryQuestion: string;
+  answerIntent: string;
+  targetAudience: string;
+  geoLocation: string;
+  businessGoal: string;
+  entityTargets: string[];
+  faqItems: FaqItem[];
+  evidenceNotes: EvidenceNotes;
 };
 
 type ArticleFormProps = {
@@ -55,6 +64,14 @@ const DEFAULT: ArticleFormData = {
   seoDescription: "",
   focusKeyword: "",
   noindex: false,
+  primaryQuestion: "",
+  answerIntent: "",
+  targetAudience: "",
+  geoLocation: "",
+  businessGoal: "",
+  entityTargets: [],
+  faqItems: [],
+  evidenceNotes: { experience: "", precautions: "" },
 };
 
 export default function ArticleForm({ initialData, mode }: ArticleFormProps) {
@@ -135,6 +152,14 @@ export default function ArticleForm({ initialData, mode }: ArticleFormProps) {
             metaDescription: data.seoDescription || null,
             focusKeyword: data.focusKeyword || null,
             noindex: data.noindex,
+            primaryQuestion: data.primaryQuestion || null,
+            answerIntent: data.answerIntent || null,
+            targetAudience: data.targetAudience || null,
+            geoLocation: data.geoLocation || null,
+            businessGoal: data.businessGoal || null,
+            entityTargets: data.entityTargets,
+            faqItems: data.faqItems,
+            evidenceNotes: data.evidenceNotes,
           }),
         });
 
@@ -232,6 +257,7 @@ export default function ArticleForm({ initialData, mode }: ArticleFormProps) {
             <label className="admin-label">Contenu</label>
             <TiptapEditor
               initialContent={data.content}
+              locale={data.locale}
               onChange={({ editorJson, html, plainText, stats }) => {
                 set("content", editorJson);
                 set("contentHtml", html);
@@ -311,6 +337,14 @@ export default function ArticleForm({ initialData, mode }: ArticleFormProps) {
               plainText={data.contentPlainText}
               html={data.contentHtml}
               editorJson={data.content}
+              primaryQuestion={data.primaryQuestion}
+              answerIntent={data.answerIntent}
+              targetAudience={data.targetAudience}
+              geoLocation={data.geoLocation}
+              businessGoal={data.businessGoal}
+              entityTargets={data.entityTargets}
+              faqItems={data.faqItems}
+              evidenceNotes={data.evidenceNotes}
               onChange={(field, value) =>
                 set(field as keyof ArticleFormData, value as never)
               }

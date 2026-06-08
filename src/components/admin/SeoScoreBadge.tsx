@@ -1,5 +1,6 @@
 type SeoScoreBadgeProps = {
   score: number; // 0-100
+  aeoScore?: number;
   geoScore?: number;
   atomicAnswerPresent?: boolean;
   showLabel?: boolean;
@@ -13,27 +14,37 @@ function getScoreConfig(score: number) {
 
 export default function SeoScoreBadge({
   score,
+  aeoScore,
   geoScore,
   atomicAnswerPresent,
   showLabel = true,
 }: SeoScoreBadgeProps) {
   const { label, className } = getScoreConfig(score);
+  const aeoConfig = typeof aeoScore === "number" ? getScoreConfig(aeoScore) : null;
   const geoConfig = typeof geoScore === "number" ? getScoreConfig(geoScore) : null;
 
-  if (geoConfig) {
+  if (aeoConfig || geoConfig) {
     return (
       <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
         <span className={className} title={`Score SEO : ${score}/100`}>
           <span className="seo-score__value">{score}</span>
           {showLabel && <span className="seo-score__label">SEO</span>}
         </span>
-        <span
-          className={geoConfig.className}
-          title={`Score GEO : ${geoScore}/100${atomicAnswerPresent ? " - réponse atomique présente" : ""}`}
-        >
-          <span className="seo-score__value">{geoScore}</span>
-          {showLabel && <span className="seo-score__label">GEO</span>}
-        </span>
+        {aeoConfig && (
+          <span
+            className={aeoConfig.className}
+            title={`Score AEO : ${aeoScore}/100${atomicAnswerPresent ? " - réponse directe présente" : ""}`}
+          >
+            <span className="seo-score__value">{aeoScore}</span>
+            {showLabel && <span className="seo-score__label">AEO</span>}
+          </span>
+        )}
+        {geoConfig && (
+          <span className={geoConfig.className} title={`Score GEO : ${geoScore}/100`}>
+            <span className="seo-score__value">{geoScore}</span>
+            {showLabel && <span className="seo-score__label">GEO</span>}
+          </span>
+        )}
       </span>
     );
   }

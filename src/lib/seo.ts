@@ -355,7 +355,13 @@ export function createArticleJsonLd(params: {
   datePublished?: string | null;
   dateModified: string;
   wordCount?: number | null;
+  keywords?: string[];
+  about?: string[];
+  mentions?: string[];
 }): JsonLd {
+  const toThings = (values?: string[]) =>
+    values?.filter(Boolean).map((name) => ({ "@type": "Thing", name }));
+
   return {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -368,6 +374,9 @@ export function createArticleJsonLd(params: {
     dateModified: params.dateModified,
     inLanguage: params.locale,
     wordCount: params.wordCount ?? undefined,
+    keywords: params.keywords?.length ? params.keywords : undefined,
+    about: params.about?.length ? toThings(params.about) : undefined,
+    mentions: params.mentions?.length ? toThings(params.mentions) : undefined,
     author: { "@id": entityId("gregory-tordjman") },
     publisher: { "@id": entityId("organization") },
     mainEntityOfPage: { "@type": "WebPage", "@id": params.url },

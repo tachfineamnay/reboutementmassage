@@ -6599,3 +6599,364 @@ html[data-layout="cream"] .stories-hero__h1 em {
 html[data-layout="cream"] .stories-hero__desc {
   color: var(--mid);
 }
+
+/* ─── Assistant AEO/GEO admin ─── */
+.seo-panel__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.seo-panel__eyebrow,
+.seo-panel__note {
+  margin: 0;
+  color: var(--admin-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.seo-panel__eyebrow {
+  margin-bottom: 4px;
+  color: var(--admin-accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.seo-panel__note {
+  max-width: 310px;
+  text-align: right;
+}
+
+.seo-score-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.seo-score-grid .seo-score {
+  justify-content: center;
+  min-height: 42px;
+}
+
+.seo-score-grid .seo-score__value {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.seo-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.seo-tab {
+  margin-bottom: -1px;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--admin-muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.seo-tab:hover,
+.seo-tab--active {
+  color: var(--admin-text);
+}
+
+.seo-tab--active {
+  border-bottom-color: var(--admin-accent);
+}
+
+.seo-tab-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.seo-field__header,
+.seo-audit__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.seo-field__header p,
+.seo-audit__heading p {
+  margin: 0;
+}
+
+.faq-editor-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.faq-editor-item {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.seo-remove-button {
+  justify-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--admin-red);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.seo-empty-state {
+  margin: 0;
+  padding: 16px;
+  border: 1px dashed var(--admin-border);
+  border-radius: 8px;
+  color: var(--admin-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.credibility-intro {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border-left: 3px solid var(--admin-accent);
+  background: rgba(99, 102, 241, 0.06);
+}
+
+.credibility-intro p,
+.credibility-intro strong,
+.credibility-intro span {
+  margin: 0;
+}
+
+.credibility-intro p {
+  color: var(--admin-accent);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.credibility-intro strong {
+  font-size: 13px;
+}
+
+.credibility-intro span {
+  color: var(--admin-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.seo-audit {
+  padding-top: 16px;
+  border-top: 1px solid var(--admin-border);
+}
+
+.seo-audit__heading {
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.seo-audit__heading span {
+  color: var(--admin-muted);
+  font-size: 11px;
+}
+
+.aeo-checklist {
+  display: grid;
+}
+
+.aeo-checklist__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.aeo-checklist__label,
+.aeo-checklist__detail {
+  margin: 0;
+}
+
+.aeo-checklist__label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.aeo-checklist__detail {
+  margin-top: 4px;
+  color: var(--admin-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.aeo-status {
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.aeo-status--ok {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--admin-green);
+}
+
+.aeo-status--todo {
+  background: rgba(245, 158, 11, 0.14);
+  color: var(--admin-amber);
+}
+
+.tiptap-assistant-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--admin-border);
+  background: rgba(99, 102, 241, 0.045);
+}
+
+.tiptap-assistant-toolbar__label {
+  margin-right: 4px;
+  color: var(--admin-accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tiptap-assistant-toolbar button {
+  padding: 5px 8px;
+  border: 1px solid rgba(99, 102, 241, 0.22);
+  border-radius: 4px;
+  background: rgba(99, 102, 241, 0.08);
+  color: var(--admin-text);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.tiptap-assistant-toolbar button:hover {
+  border-color: var(--admin-accent);
+  color: var(--admin-accent);
+}
+
+/* ─── Blocs AEO/GEO publics ─── */
+.article-header__author {
+  margin: 2px 0 0;
+  color: var(--forest);
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.article-evidence,
+.article-faq {
+  margin: 48px 0;
+}
+
+.article-evidence {
+  display: grid;
+  gap: 16px;
+}
+
+.article-evidence__block {
+  padding: 28px 30px;
+  border: 0.5px solid var(--line);
+  background: rgba(47, 106, 79, 0.045);
+}
+
+.article-evidence__block--precautions {
+  border-left: 3px solid var(--gold);
+  background: rgba(174, 143, 75, 0.055);
+}
+
+.article-evidence__eyebrow,
+.article-faq__eyebrow {
+  margin: 0 0 8px;
+  color: var(--gold);
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.article-evidence h2,
+.article-faq > h2 {
+  margin: 0 0 14px;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 25px;
+  font-weight: 300;
+  line-height: 1.25;
+}
+
+.article-evidence p:last-child,
+.article-faq__item p {
+  margin: 0;
+  color: var(--ink-light);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.article-faq {
+  padding-top: 36px;
+  border-top: 0.5px solid var(--line);
+}
+
+.article-faq__list {
+  display: grid;
+  margin-top: 8px;
+}
+
+.article-faq__item {
+  padding: 22px 0;
+  border-bottom: 0.5px solid var(--line);
+}
+
+.article-faq__item h3 {
+  margin: 0 0 10px;
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+@media (max-width: 720px) {
+  .seo-panel__heading {
+    display: grid;
+  }
+
+  .seo-panel__note {
+    max-width: none;
+    text-align: left;
+  }
+
+  .seo-score-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .seo-tabs {
+    overflow-x: auto;
+  }
+
+  .article-evidence__block {
+    padding: 24px 22px;
+  }
+}

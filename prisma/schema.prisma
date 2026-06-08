@@ -249,6 +249,21 @@ model ArticleSeo {
   answerCoverageScore Int       @default(0)
   lastGeoAuditAt      DateTime?
 
+  // Brief éditorial AEO/GEO et signaux de crédibilité visibles
+  primaryQuestion String?
+  answerIntent    String?
+  targetAudience  String?
+  geoLocation     String?
+  businessGoal    String?
+  entityTargets   Json    @default("[]")
+  faqItems        Json    @default("[]")
+  evidenceNotes   Json    @default("{}")
+
+  // Scores spécialisés calculés depuis le contenu visible
+  aeoScore  Int @default(0)
+  geoScore  Int @default(0)
+  eeatScore Int @default(0)
+
   @@map("article_seo")
 }
 

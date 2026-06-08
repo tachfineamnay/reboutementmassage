@@ -106,6 +106,30 @@ export const ArticleSeoSchema = z.object({
   schemaValidation: z.any().optional(),
   geoChecklist: z.any().optional(),
   answerCoverageScore: z.number().int().min(0).max(100).optional(),
+  primaryQuestion: z.string().max(300).optional().nullable(),
+  answerIntent: z.string().max(80).optional().nullable(),
+  targetAudience: z.string().max(300).optional().nullable(),
+  geoLocation: z.string().max(200).optional().nullable(),
+  businessGoal: z.string().max(300).optional().nullable(),
+  entityTargets: z.array(z.string().max(120)).max(20).default([]),
+  faqItems: z
+    .array(
+      z.object({
+        question: z.string().max(300),
+        answer: z.string().max(2000),
+      })
+    )
+    .max(12)
+    .default([]),
+  evidenceNotes: z
+    .object({
+      experience: z.string().max(4000).default(""),
+      precautions: z.string().max(4000).default(""),
+    })
+    .default({ experience: "", precautions: "" }),
+  aeoScore: z.number().int().min(0).max(100).optional(),
+  geoScore: z.number().int().min(0).max(100).optional(),
+  eeatScore: z.number().int().min(0).max(100).optional(),
 });
 
 export type ArticleSeoInput = z.infer<typeof ArticleSeoSchema>;

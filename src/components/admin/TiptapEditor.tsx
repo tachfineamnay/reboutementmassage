@@ -44,6 +44,7 @@ type TiptapEditorProps = {
    * Texte affiché quand l'éditeur est vide.
    */
   placeholder?: string;
+  locale?: "FR" | "EN" | "ES";
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -77,6 +78,7 @@ export default function TiptapEditor({
   onChange,
   readOnly = false,
   placeholder = "Commencez à rédiger votre article…",
+  locale = "FR",
 }: TiptapEditorProps) {
   // Ref pour éviter les calls onChange pendant le chargement initial
   const isInitialized = useRef(false);
@@ -160,7 +162,7 @@ export default function TiptapEditor({
 
   return (
     <div className={`tiptap-wrapper ${readOnly ? "tiptap-wrapper--readonly" : ""}`}>
-      {!readOnly && <TiptapToolbar editor={editor} />}
+      {!readOnly && <TiptapToolbar editor={editor} locale={locale} />}
       <EditorContent
         editor={editor}
         className="tiptap-editor-content"

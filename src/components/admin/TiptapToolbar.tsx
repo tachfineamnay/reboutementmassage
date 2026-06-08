@@ -5,10 +5,102 @@ import { useCallback, useState } from "react";
 
 type ToolbarProps = {
   editor: Editor | null;
+  locale?: "FR" | "EN" | "ES";
 };
 
 type LinkModalState = { open: boolean; url: string };
 type ImageModalState = { open: boolean; url: string; alt: string };
+type AssistantBlock = "answer" | "faq" | "list" | "experience" | "precautions";
+
+const ASSISTANT_COPY = {
+  FR: {
+    answerQuestion: "Quelle est la réponse essentielle à retenir ?",
+    answer:
+      "Une réponse utile commence par identifier précisément le contexte, les sensations décrites et les limites de la situation. Elle explique ensuite l'approche proposée, ce qu'elle peut raisonnablement apporter et quand demander un avis complémentaire. Remplacez ce texte par des faits concrets issus de votre expérience.",
+    faqTitle: "Questions fréquentes",
+    faqQuestion: "Quelle question revient le plus souvent ?",
+    faqAnswer: "Répondez ici de façon claire, autonome et directement utile au lecteur.",
+    listTitle: "Les points essentiels",
+    listItems: ["Premier critère concret", "Deuxième étape vérifiable", "Troisième point à retenir"],
+    experienceTitle: "Ce que l'expérience de terrain montre",
+    experience:
+      "Décrivez une situation réellement rencontrée, le contexte, votre manière d'intervenir et ce que vous avez observé, sans généraliser ni promettre un résultat.",
+    precautionsTitle: "Limites et précautions",
+    precautions:
+      "Précisez les limites de l'approche, les signes qui nécessitent un avis médical et les situations dans lesquelles cette information ne remplace pas une prise en charge adaptée.",
+  },
+  EN: {
+    answerQuestion: "What is the essential answer?",
+    answer:
+      "A useful answer starts by identifying the context, the sensations described, and the limits of the situation. It then explains the proposed approach, what it can reasonably support, and when further advice is appropriate. Replace this text with concrete facts drawn from your professional experience.",
+    faqTitle: "Frequently asked questions",
+    faqQuestion: "What question comes up most often?",
+    faqAnswer: "Answer clearly, independently, and with immediate value for the reader.",
+    listTitle: "Key points",
+    listItems: ["First concrete criterion", "Second verifiable step", "Third point to remember"],
+    experienceTitle: "What field experience shows",
+    experience:
+      "Describe a real situation, its context, how you approached it, and what you observed, without generalizing or promising a result.",
+    precautionsTitle: "Limits and precautions",
+    precautions:
+      "State the limits of the approach, the signs that require medical advice, and when this information does not replace appropriate professional care.",
+  },
+  ES: {
+    answerQuestion: "¿Cuál es la respuesta esencial?",
+    answer:
+      "Una respuesta útil empieza por identificar el contexto, las sensaciones descritas y los límites de la situación. Después explica el enfoque propuesto, lo que puede aportar razonablemente y cuándo conviene pedir una opinión adicional. Sustituya este texto por hechos concretos procedentes de su experiencia profesional.",
+    faqTitle: "Preguntas frecuentes",
+    faqQuestion: "¿Qué pregunta aparece con más frecuencia?",
+    faqAnswer: "Responda de forma clara, autónoma y directamente útil para el lector.",
+    listTitle: "Puntos esenciales",
+    listItems: ["Primer criterio concreto", "Segundo paso verificable", "Tercer punto que recordar"],
+    experienceTitle: "Lo que muestra la experiencia de campo",
+    experience:
+      "Describa una situación real, su contexto, cómo intervino y qué observó, sin generalizar ni prometer un resultado.",
+    precautionsTitle: "Límites y precauciones",
+    precautions:
+      "Indique los límites del enfoque, las señales que requieren asesoramiento médico y cuándo esta información no sustituye una atención profesional adecuada.",
+  },
+} as const;
+
+function assistantBlockContent(
+  locale: "FR" | "EN" | "ES",
+  block: AssistantBlock
+): Record<string, unknown>[] {
+  const copy = ASSISTANT_COPY[locale];
+  const heading = (text: string, level: 2 | 3 = 2) => ({
+    type: "heading",
+    attrs: { level },
+    content: [{ type: "text", text }],
+  });
+  const paragraph = (text: string) => ({
+    type: "paragraph",
+    content: [{ type: "text", text }],
+  });
+
+  if (block === "answer") {
+    return [heading(copy.answerQuestion), paragraph(copy.answer)];
+  }
+  if (block === "faq") {
+    return [heading(copy.faqTitle), heading(copy.faqQuestion, 3), paragraph(copy.faqAnswer)];
+  }
+  if (block === "list") {
+    return [
+      heading(copy.listTitle),
+      {
+        type: "bulletList",
+        content: copy.listItems.map((item) => ({
+          type: "listItem",
+          content: [paragraph(item)],
+        })),
+      },
+    ];
+  }
+  if (block === "experience") {
+    return [heading(copy.experienceTitle), paragraph(copy.experience)];
+  }
+  return [heading(copy.precautionsTitle), paragraph(copy.precautions)];
+}
 
 // ─── Composant bouton de la toolbar ──────────────────────────────────────────
 
@@ -45,7 +137,7 @@ function Separator() {
 
 // ─── Toolbar principale ───────────────────────────────────────────────────────
 
-export default function TiptapToolbar({ editor }: ToolbarProps) {
+export default function TiptapToolbar({ editor, locale = "FR" }: ToolbarProps) {
   const [linkModal, setLinkModal] = useState<LinkModalState>({ open: false, url: "" });
   const [imageModal, setImageModal] = useState<ImageModalState>({ open: false, url: "", alt: "" });
   const [uploading, setUploading] = useState(false);
@@ -107,6 +199,10 @@ export default function TiptapToolbar({ editor }: ToolbarProps) {
   }, []);
 
   if (!editor) return null;
+
+  const insertAssistantBlock = (block: AssistantBlock) => {
+    editor.chain().focus().insertContent(assistantBlockContent(locale, block)).run();
+  };
 
   return (
     <>
@@ -284,6 +380,25 @@ export default function TiptapToolbar({ editor }: ToolbarProps) {
         >
           ↪
         </ToolbarButton>
+      </div>
+
+      <div className="tiptap-assistant-toolbar" aria-label="Blocs AEO et crédibilité">
+        <span className="tiptap-assistant-toolbar__label">Assistant AEO/GEO</span>
+        <button type="button" onClick={() => insertAssistantBlock("answer")}>
+          + Réponse directe AEO
+        </button>
+        <button type="button" onClick={() => insertAssistantBlock("faq")}>
+          + FAQ visible
+        </button>
+        <button type="button" onClick={() => insertAssistantBlock("list")}>
+          + Liste extractible
+        </button>
+        <button type="button" onClick={() => insertAssistantBlock("experience")}>
+          + Bloc expérience
+        </button>
+        <button type="button" onClick={() => insertAssistantBlock("precautions")}>
+          + Bloc précautions
+        </button>
       </div>
 
       {/* Modal Lien */}

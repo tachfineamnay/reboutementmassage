@@ -80,6 +80,9 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
             focusKeyword: true,
             ogImageId: true,
             score: true,
+            aeoScore: true,
+            geoScore: true,
+            answerCoverageScore: true,
             llmReadabilityScore: true,
             atomicAnswerPresent: true,
           },
@@ -105,7 +108,8 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
       excerpt: a.excerpt,
       wordCount: a.content?.wordCount,
     }),
-    geoScore: a.seo?.llmReadabilityScore ?? 0,
+    aeoScore: a.seo?.aeoScore || a.seo?.answerCoverageScore || 0,
+    geoScore: a.seo?.geoScore || a.seo?.llmReadabilityScore || 0,
     atomicAnswerPresent: a.seo?.atomicAnswerPresent ?? false,
   }));
 
@@ -259,6 +263,7 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
                     <td>
                       <SeoScoreBadge
                         score={article.seoScore}
+                        aeoScore={article.aeoScore}
                         geoScore={article.geoScore}
                         atomicAnswerPresent={article.atomicAnswerPresent}
                       />

@@ -71,7 +71,7 @@ type NotificationResult =
 
 const DEFAULT_GHL_BASE_URL = "https://services.leadconnectorhq.com";
 const DEFAULT_GHL_API_VERSION = "2021-07-28";
-const DEFAULT_TAGS = ["landing-tms", "demande-privee", "source-landing-page"];
+const DEFAULT_TAGS = ["source-site-premium", "channel-ghl"];
 const DEFAULT_GHL_SOURCE = "Landing Méthode TMS";
 const GHL_INTENT_LABELS: Record<string, string> = {
   private_session: "Demande privée Méthode TMS",
@@ -179,22 +179,23 @@ function parseUtm(value: unknown) {
 }
 
 function inferLeadSegment(payload: Omit<LeadPayload, "leadSegment">, explicitSegment: string | null) {
-  if (explicitSegment) return explicitSegment;
-
-  const pageUrl = payload.pageUrl?.toLowerCase() ?? "";
-  if (
-    pageUrl.includes("luxury-hospitality") ||
-    pageUrl.includes("hotellerie-luxe") ||
-    pageUrl.includes("hospitalidad-lujo")
-  ) {
-    return "luxury_hospitality";
+  switch (payload.intent) {
+    case "private_session":
+    case "training":
+      return "b2c_premium";
+    case "workshop":
+      return payload.companyName || payload.propertyType || payload.destination
+        ? "b2b"
+        : "b2c_premium";
+    case "hospitality_partner":
+      return "luxury_hospitality";
+    case "partnership":
+      return "b2b";
+    case "other":
+      return null;
+    default:
+      return explicitSegment;
   }
-
-  if (payload.companyName || payload.jobTitle || payload.propertyType || payload.destination) {
-    return "b2b";
-  }
-
-  return null;
 }
 
 function normalizePayload(raw: unknown): LeadPayload | null {
@@ -833,7 +834,7 @@ export async function handleLeadRequest(request: Request) {
 
     await ghlFetch(config, `/contacts/${contactId}/notes`, {
       body: {
-        title: "Demande privée - Méthode TMS®",
+        title: `${getIntentLabel(payload.intent)} — Méthode TMS®`,
         body: noteBody,
         pinned: false,
       },

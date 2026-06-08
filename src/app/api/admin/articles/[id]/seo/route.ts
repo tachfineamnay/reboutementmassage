@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { ArticleSeoSchema } from "@/lib/schemas";
-import { auditGeoContent } from "@/lib/geo";
+import {
+  auditGeoContent,
+  normalizeEntityTargets,
+  normalizeEvidenceNotes,
+  normalizeFaqItems,
+} from "@/lib/geo";
 import { computeSeoScore } from "@/lib/utils";
 
 type Params = { params: Promise<{ id: string }> };
@@ -27,6 +32,9 @@ export async function PUT(req: NextRequest, { params }: Params) {
   }
 
   const data = parsed.data;
+  const entityTargets = normalizeEntityTargets(data.entityTargets);
+  const faqItems = normalizeFaqItems(data.faqItems);
+  const evidenceNotes = normalizeEvidenceNotes(data.evidenceNotes);
 
   // Récupère l'article pour le calcul du score
   const article = await prisma.article.findUnique({
@@ -66,45 +74,53 @@ export async function PUT(req: NextRequest, { params }: Params) {
     plainText: article.content?.plainText,
     html: article.content?.html,
     editorJson: article.content?.editorJson,
+    primaryQuestion: data.primaryQuestion,
+    answerIntent: data.answerIntent,
+    targetAudience: data.targetAudience,
+    geoLocation: data.geoLocation,
+    businessGoal: data.businessGoal,
+    entityTargets,
+    faqItems,
+    evidenceNotes,
+    authorName: "Grégory Tordjman",
   });
+
+  const seoData = {
+    focusKeyword: data.focusKeyword ?? null,
+    seoTitle: data.seoTitle ?? null,
+    metaDescription: data.metaDescription ?? null,
+    canonical: data.canonical || null,
+    ogTitle: data.ogTitle ?? null,
+    ogDescription: data.ogDescription ?? null,
+    ogImageId: data.ogImageId ?? null,
+    noindex: data.noindex ?? false,
+    score,
+    primaryQuestion: data.primaryQuestion ?? null,
+    answerIntent: data.answerIntent ?? null,
+    targetAudience: data.targetAudience ?? null,
+    geoLocation: data.geoLocation ?? null,
+    businessGoal: data.businessGoal ?? null,
+    entityTargets,
+    faqItems,
+    evidenceNotes,
+    aeoScore: geoAudit.aeoScore,
+    geoScore: geoAudit.geoScore,
+    eeatScore: geoAudit.eeatScore,
+    llmReadabilityScore: geoAudit.llmReadabilityScore,
+    atomicAnswerPresent: geoAudit.atomicAnswerPresent,
+    schemaValidation: geoAudit.schemaValidation,
+    geoChecklist: geoAudit.checklist,
+    answerCoverageScore: geoAudit.answerCoverageScore,
+    lastGeoAuditAt: new Date(),
+  };
 
   const seo = await prisma.articleSeo.upsert({
     where: { articleId: id },
     create: {
       articleId: id,
-      focusKeyword: data.focusKeyword ?? null,
-      seoTitle: data.seoTitle ?? null,
-      metaDescription: data.metaDescription ?? null,
-      canonical: data.canonical || null,
-      ogTitle: data.ogTitle ?? null,
-      ogDescription: data.ogDescription ?? null,
-      ogImageId: data.ogImageId ?? null,
-      noindex: data.noindex ?? false,
-      score,
-      llmReadabilityScore: geoAudit.llmReadabilityScore,
-      atomicAnswerPresent: geoAudit.atomicAnswerPresent,
-      schemaValidation: geoAudit.schemaValidation,
-      geoChecklist: geoAudit.checklist,
-      answerCoverageScore: geoAudit.answerCoverageScore,
-      lastGeoAuditAt: new Date(),
+      ...seoData,
     },
-    update: {
-      focusKeyword: data.focusKeyword ?? null,
-      seoTitle: data.seoTitle ?? null,
-      metaDescription: data.metaDescription ?? null,
-      canonical: data.canonical || null,
-      ogTitle: data.ogTitle ?? null,
-      ogDescription: data.ogDescription ?? null,
-      ogImageId: data.ogImageId ?? null,
-      noindex: data.noindex ?? false,
-      score,
-      llmReadabilityScore: geoAudit.llmReadabilityScore,
-      atomicAnswerPresent: geoAudit.atomicAnswerPresent,
-      schemaValidation: geoAudit.schemaValidation,
-      geoChecklist: geoAudit.checklist,
-      answerCoverageScore: geoAudit.answerCoverageScore,
-      lastGeoAuditAt: new Date(),
-    },
+    update: seoData,
   });
 
   return NextResponse.json(seo);

@@ -261,11 +261,13 @@ const EXTRA_TEXTS = {
       "Votre demande privée a bien été transmise. Grégory ou son équipe reviendra vers vous personnellement.",
     requestConfirmation:
       "Votre demande a bien été transmise. Grégory ou son équipe l’analysera personnellement et reviendra vers vous.",
+    calendarTitle: "Méthode TMS® — Consultation privée",
     steps: ["Intention", "Identité", "Qualification", "Finalisation", "Agenda", "Confirmé"],
     fields: {
       currentLocation: "Lieu actuel ou destination",
       currentLocationPh: "Ex: Monaco, Chalet Courchevel, Yacht Cannes...",
       needType: "Besoin principal",
+      needTypes: ["Douleur", "Blocage", "Récupération", "Fatigue", "Stress", "Autre"],
       urgency: "Niveau d'urgence",
       urgencies: ["Aujourd'hui", "Cette semaine", "Plus tard"],
       companyName: "Nom de l'établissement / société",
@@ -288,6 +290,15 @@ const EXTRA_TEXTS = {
       targetLangPh: "Ex: Français, Anglais...",
       goal: "Votre objectif",
       goals: ["Apprendre pour soi", "Intégrer à ma pratique", "Former mon équipe", "Certification complète"],
+      workshopTypes: ["Équipe spa", "Hôtel", "Praticiens", "Événement privé", "Autre"],
+      participantCount: "Nombre de participants estimé",
+      participantCountPh: "Ex: 5, 12, 20...",
+      periodPreference: "Période souhaitée",
+      periodPreferencePh: "Ex: Juillet 2026, Saison d'été...",
+      organization: "Organisation / Société",
+      organizationPh: "Ex: Hôtel Royal, Spa Océan, Villa Blue...",
+      cityCountry: "Pays / Ville",
+      cityCountryPh: "Ex: Saint-Tropez, Suisse...",
       collabNature: "Nature de la collaboration souhaitée",
       collabNaturePh: "Décrivez brièvement votre projet...",
       context: "Détails ou contexte complémentaire",
@@ -314,11 +325,13 @@ const EXTRA_TEXTS = {
       "Your private request has been submitted. Grégory or his team will personally get back to you.",
     requestConfirmation:
       "Your request has been submitted. Grégory or his team will personally review it and get back to you.",
+    calendarTitle: "TMS® Method — Private consultation",
     steps: ["Intent", "Identity", "Qualification", "Finalize", "Scheduler", "Confirmed"],
     fields: {
       currentLocation: "Current location or destination",
       currentLocationPh: "E.g., Monaco, Chalet Courchevel, Yacht Cannes...",
       needType: "Primary need",
+      needTypes: ["Pain", "Restricted mobility", "Recovery", "Fatigue", "Stress", "Other"],
       urgency: "Urgency level",
       urgencies: ["Today", "This week", "Later"],
       companyName: "Establishment / Company Name",
@@ -341,6 +354,15 @@ const EXTRA_TEXTS = {
       targetLangPh: "E.g., French, English...",
       goal: "Your goal",
       goals: ["Learn for myself", "Integrate into my practice", "Train my team", "Full certification"],
+      workshopTypes: ["Spa team", "Hotel", "Practitioners", "Private event", "Other"],
+      participantCount: "Estimated number of participants",
+      participantCountPh: "E.g., 5, 12, 20...",
+      periodPreference: "Preferred period",
+      periodPreferencePh: "E.g., July 2026, summer season...",
+      organization: "Organization / Company",
+      organizationPh: "E.g., Royal Hotel, Ocean Spa, Blue Villa...",
+      cityCountry: "Country / City",
+      cityCountryPh: "E.g., Saint-Tropez, Switzerland...",
       collabNature: "Nature of the collaboration",
       collabNaturePh: "Briefly describe your project...",
       context: "Additional details or context",
@@ -367,11 +389,13 @@ const EXTRA_TEXTS = {
       "Su solicitud privada ha sido enviada. Grégory o su equipo se pondrá en contacto personalmente.",
     requestConfirmation:
       "Su solicitud ha sido enviada. Grégory o su equipo la revisará personalmente y se pondrá en contacto.",
+    calendarTitle: "Método TMS® — Consulta privada",
     steps: ["Solicitud", "Identidad", "Calificación", "Finalización", "Cita", "Confirmado"],
     fields: {
       currentLocation: "Ubicación actual o destino",
       currentLocationPh: "Ej: Mónaco, Chalet Courchevel, Yate Cannes...",
       needType: "Necesidad principal",
+      needTypes: ["Dolor", "Bloqueo", "Recuperación", "Fatiga", "Estrés", "Otro"],
       urgency: "Nivel de urgencia",
       urgencies: ["Hoy", "Esta semana", "Más tarde"],
       companyName: "Nombre del establecimiento / empresa",
@@ -394,6 +418,15 @@ const EXTRA_TEXTS = {
       targetLangPh: "Ej: Francés, Inglés...",
       goal: "Su objetivo",
       goals: ["Aprender para mí", "Integrar a mi práctica", "Capacitar a mi equipo", "Certificación completa"],
+      workshopTypes: ["Equipo de spa", "Hotel", "Profesionales", "Evento privado", "Otro"],
+      participantCount: "Número estimado de participantes",
+      participantCountPh: "Ej: 5, 12, 20...",
+      periodPreference: "Periodo deseado",
+      periodPreferencePh: "Ej: julio de 2026, temporada de verano...",
+      organization: "Organización / Empresa",
+      organizationPh: "Ej: Hotel Royal, Spa Océano, Villa Blue...",
+      cityCountry: "País / Ciudad",
+      cityCountryPh: "Ej: Saint-Tropez, Suiza...",
       collabNature: "Naturaleza de la colaboración",
       collabNaturePh: "Describa brevemente su proyecto...",
       context: "Detalles o contexto adicional",
@@ -643,11 +676,11 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
   const calendarLink = useMemo(() => {
     if (!selectedSlotStart) return "#";
     return createGoogleCalendarUrl({
-      title: "Méthode TMS® — Consultation privée",
+      title: ext.calendarTitle,
       startDateTime: selectedSlotStart,
       durationMinutes: 30,
     });
-  }, [selectedSlotStart]);
+  }, [ext.calendarTitle, selectedSlotStart]);
 
   const arrow = (
     <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
@@ -795,7 +828,7 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
                   <div className="sf-fields">
                     <label className="sf-field__label" style={{ marginBottom: "12px", display: "block" }}>{ext.fields.needType}</label>
                     <div className="sf-types" style={{ marginBottom: "24px" }}>
-                      {["Douleur", "Blocage", "Récupération", "Fatigue", "Stress", "Autre"].map((need) => (
+                      {ext.fields.needTypes.map((need) => (
                         <button
                           key={need}
                           className={`sf-type ${form.needType === need ? "is-selected" : ""}`}
@@ -946,7 +979,7 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
                   <div className="sf-fields">
                     <label className="sf-field__label" style={{ marginBottom: "12px", display: "block" }}>{ext.fields.propertyType}</label>
                     <div className="sf-types" style={{ marginBottom: "24px" }}>
-                      {["Équipe spa", "Hôtel", "Praticiens", "Événement privé", "Autre"].map((w) => (
+                      {ext.fields.workshopTypes.map((w) => (
                         <button
                           key={w}
                           className={`sf-type ${form.needType === w ? "is-selected" : ""}`}
@@ -963,14 +996,14 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
                       onChange={(v) => setForm((f) => ({ ...f, currentLocation: v }))}
                     />
                     <StepField
-                      label="Nombre de participants estimé"
-                      placeholder="Ex: 5, 12, 20..."
+                      label={ext.fields.participantCount}
+                      placeholder={ext.fields.participantCountPh}
                       value={form.participantCount}
                       onChange={(v) => setForm((f) => ({ ...f, participantCount: v }))}
                     />
                     <StepField
-                      label="Période souhaitée"
-                      placeholder="Ex: Juillet 2026, Saison d'été..."
+                      label={ext.fields.periodPreference}
+                      placeholder={ext.fields.periodPreferencePh}
                       value={form.urgency}
                       onChange={(v) => setForm((f) => ({ ...f, urgency: v }))}
                     />
@@ -981,14 +1014,14 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
                 {form.intent === "partnership" && (
                   <div className="sf-fields">
                     <StepField
-                      label="Organisation / Société"
-                      placeholder="Ex: Hôtel Royal, Spa Océan, Villa Blue..."
+                      label={ext.fields.organization}
+                      placeholder={ext.fields.organizationPh}
                       value={form.companyName}
                       onChange={(v) => setForm((f) => ({ ...f, companyName: v }))}
                     />
                     <StepField
-                      label="Pays / Ville"
-                      placeholder="Ex: Saint-Tropez, Suisse..."
+                      label={ext.fields.cityCountry}
+                      placeholder={ext.fields.cityCountryPh}
                       value={form.destination}
                       onChange={(v) => setForm((f) => ({ ...f, destination: v }))}
                     />
