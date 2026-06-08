@@ -220,6 +220,26 @@ export function createWebPageJsonLd(params: {
   };
 }
 
+export function createArticleWebPageJsonLd(params: {
+  locale: Locale;
+  url: string;
+  title: string;
+  description?: string | null;
+  aboutId?: string;
+}): JsonLd {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": params.url,
+    url: params.url,
+    name: params.title,
+    description: params.description ?? undefined,
+    inLanguage: params.locale,
+    isPartOf: { "@id": entityId("website") },
+    ...(params.aboutId ? { about: { "@id": params.aboutId } } : {}),
+  };
+}
+
 export function createProfessionalServiceJsonLd(params: {
   locale: Locale;
   routeKey: LocalizedRouteKey;

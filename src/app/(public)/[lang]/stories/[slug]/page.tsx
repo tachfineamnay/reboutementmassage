@@ -7,7 +7,7 @@ import {
   createArticleJsonLd,
   createFaqJsonLd,
   createIdentityJsonLd,
-  createWebPageJsonLd,
+  createArticleWebPageJsonLd,
   graphJsonLd,
   renderJsonLd,
 } from "@/lib/seo";
@@ -194,9 +194,9 @@ function articleStructuredData(article: NonNullable<Awaited<ReturnType<typeof ge
 
   const nodes = [
     createIdentityJsonLd(locale),
-    createWebPageJsonLd({
+    createArticleWebPageJsonLd({
       locale,
-      routeKey: "stories",
+      url: canonical,
       title: article.title,
       description: article.excerpt ?? article.title,
       aboutId: `${canonical}#article`,
@@ -316,6 +316,14 @@ export default async function ArticlePage({ params }: Props) {
             )}
             <p className="article-header__author">{cta.byline}</p>
           </header>
+
+          {/* Direct Answer AEO */}
+          {article.seo?.primaryQuestion && article.excerpt && (
+            <section className="article-direct-answer" aria-labelledby="direct-answer-title">
+              <h2 id="direct-answer-title">{article.seo.primaryQuestion}</h2>
+              <p>{article.excerpt}</p>
+            </section>
+          )}
 
           {/* Body */}
           <ArticleContent

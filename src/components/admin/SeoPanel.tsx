@@ -243,7 +243,7 @@ export default function SeoPanel({
                 type="text"
                 className="admin-input seo-field__input"
                 value={seoTitle}
-                maxLength={80}
+                maxLength={60}
                 placeholder="Titre pour les moteurs de recherche"
                 onChange={(event) => onChange("seoTitle", event.target.value)}
               />
@@ -260,7 +260,7 @@ export default function SeoPanel({
                 id="seo-description"
                 className="admin-input seo-field__textarea"
                 value={seoDescription}
-                maxLength={200}
+                maxLength={160}
                 rows={3}
                 placeholder="Résumé précis et utile de la page"
                 onChange={(event) => onChange("seoDescription", event.target.value)}
