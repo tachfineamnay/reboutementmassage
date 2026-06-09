@@ -11,5 +11,6 @@ Coolify settings:
 - Test temporary domain first with http://xxxxx.sslip.io
 
 Database schema:
-- The Docker entrypoint runs `pnpm exec prisma db push` before `node server.js` when `DATABASE_URL` is set.
-- Schema synchronization is enabled by default because this repository currently has no Prisma migrations. Set `RUN_DB_PUSH=0` only if synchronization is handled elsewhere.
+- The web server starts even if PostgreSQL or Prisma is temporarily unavailable.
+- Schema synchronization is disabled by default. Set `RUN_DB_PUSH=1` only when the container should run `pnpm exec prisma db push` at startup.
+- A failed schema synchronization is logged but never stops `node server.js`.

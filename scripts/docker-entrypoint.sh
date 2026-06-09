@@ -1,10 +1,14 @@
 #!/bin/sh
 set -eu
 
-if [ "${RUN_DB_PUSH:-1}" = "1" ]; then
+if [ "${RUN_DB_PUSH:-0}" = "1" ]; then
   if [ -n "${DATABASE_URL:-}" ]; then
     echo "Applying Prisma schema..."
-    pnpm exec prisma db push
+    if pnpm exec prisma db push; then
+      echo "Prisma schema synchronized."
+    else
+      echo "WARNING: Prisma schema synchronization failed; starting the web server anyway." >&2
+    fi
   else
     echo "DATABASE_URL is not set; skipping Prisma schema sync."
   fi
