@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { Prisma } from "@prisma/client";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { ensureAdminSchema } from "@/lib/admin-schema";
 import { computeSeoScore } from "@/lib/utils";
 import ArticleStatusBadge from "@/components/admin/ArticleStatusBadge";
 import GoogleImportButton from "@/components/admin/GoogleImportButton";
@@ -218,6 +219,8 @@ async function getOverviewLeadStats(now: Date): Promise<{
 }
 
 export default async function OverviewPage() {
+  await ensureAdminSchema();
+
   const now = new Date();
   const date28DaysAgo = new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000);
 

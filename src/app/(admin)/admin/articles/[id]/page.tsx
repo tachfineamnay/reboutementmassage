@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { ensureAdminSchema } from "@/lib/admin-schema";
 import ArticleEditor from "@/components/admin/ArticleEditor";
 import {
   normalizeEntityTargets,
@@ -15,6 +16,8 @@ type Props = { params: Promise<{ id: string }> };
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  await ensureAdminSchema();
+
   const { id } = await params;
   const article = await prisma.article.findUnique({
     where: { id },
@@ -27,14 +30,40 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ArticleDetailPage({ params }: Props) {
+  await ensureAdminSchema();
+
   const { id } = await params;
 
   const [article, metrics] = await Promise.all([
     prisma.article.findUnique({
       where: { id },
-      include: {
-        seo: true,
-        content: true,
+      select: {
+        id: true,
+        locale: true,
+        title: true,
+        slug: true,
+        excerpt: true,
+        status: true,
+        publishedAt: true,
+        updatedAt: true,
+        seo: {
+          select: {
+            seoTitle: true,
+            metaDescription: true,
+            focusKeyword: true,
+            noindex: true,
+            score: true,
+          },
+        },
+        content: {
+          select: {
+            editorJson: true,
+            plainText: true,
+            html: true,
+            wordCount: true,
+            readingTime: true,
+          },
+        },
         coverImage: { select: { id: true, url: true, filename: true, altFr: true, altEn: true, altEs: true } },
       },
     }),
@@ -92,23 +121,21 @@ export default async function ArticleDetailPage({ params }: Props) {
             focusKeyword: article.seo?.focusKeyword ?? "",
             noindex: article.seo?.noindex ?? false,
             score: article.seo?.score ?? 0,
-            llmReadabilityScore: article.seo?.llmReadabilityScore ?? 0,
-            atomicAnswerPresent: article.seo?.atomicAnswerPresent ?? false,
-            answerCoverageScore: article.seo?.answerCoverageScore ?? 0,
-            geoChecklist: Array.isArray(article.seo?.geoChecklist)
-              ? (article.seo.geoChecklist as GeoChecklistItem[])
-              : [],
-            primaryQuestion: article.seo?.primaryQuestion ?? "",
-            answerIntent: article.seo?.answerIntent ?? "",
-            targetAudience: article.seo?.targetAudience ?? "",
-            geoLocation: article.seo?.geoLocation ?? "",
-            businessGoal: article.seo?.businessGoal ?? "",
-            entityTargets: normalizeEntityTargets(article.seo?.entityTargets),
-            faqItems: normalizeFaqItems(article.seo?.faqItems),
-            evidenceNotes: normalizeEvidenceNotes(article.seo?.evidenceNotes),
-            aeoScore: article.seo?.aeoScore || article.seo?.answerCoverageScore || 0,
-            geoScore: article.seo?.geoScore || article.seo?.llmReadabilityScore || 0,
-            eeatScore: article.seo?.eeatScore ?? 0,
+            llmReadabilityScore: 0,
+            atomicAnswerPresent: false,
+            answerCoverageScore: 0,
+            geoChecklist: [] as GeoChecklistItem[],
+            primaryQuestion: "",
+            answerIntent: "",
+            targetAudience: "",
+            geoLocation: "",
+            businessGoal: "",
+            entityTargets: normalizeEntityTargets([]),
+            faqItems: normalizeFaqItems([]),
+            evidenceNotes: normalizeEvidenceNotes({}),
+            aeoScore: 0,
+            geoScore: 0,
+            eeatScore: 0,
           },
         }}
         googleMetrics={{

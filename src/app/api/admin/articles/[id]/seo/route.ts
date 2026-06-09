@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { ensureAdminSchema } from "@/lib/admin-schema";
 import { ArticleSeoSchema } from "@/lib/schemas";
 import {
   auditGeoContent,
@@ -17,6 +18,8 @@ export async function PUT(req: NextRequest, { params }: Params) {
   const session = await getSession();
   if (!session)
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+
+  await ensureAdminSchema();
 
   const { id } = await params;
   const body = await req.json().catch(() => null);
@@ -131,6 +134,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
   const session = await getSession();
   if (!session)
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+
+  await ensureAdminSchema();
 
   const { id } = await params;
   const seo = await prisma.articleSeo.findUnique({ where: { articleId: id } });

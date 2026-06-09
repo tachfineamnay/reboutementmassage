@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { ensureAdminSchema } from "@/lib/admin-schema";
 import {
   formatLeadChannel,
   formatLeadSlot,
@@ -44,6 +45,8 @@ function jsonNumber(value: unknown) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  await ensureAdminSchema();
+
   const { id } = await params;
   const lead = await prisma.leadSubmission.findUnique({
     where: { id },
@@ -57,12 +60,51 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function DemandeDetailPage({ params }: Props) {
+  await ensureAdminSchema();
+
   const { id } = await params;
-  const lead = await prisma.leadSubmission.findUnique({
+  const legacyLead = await prisma.leadSubmission.findUnique({
     where: { id },
+    select: {
+      id: true,
+      firstName: true,
+      contact: true,
+      type: true,
+      context: true,
+      locale: true,
+      selectedDayLabel: true,
+      selectedTime: true,
+      selectedAt: true,
+      timezone: true,
+      pageUrl: true,
+      utm: true,
+      tags: true,
+      status: true,
+      ghlContactId: true,
+      errorMessage: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
 
-  if (!lead) notFound();
+  if (!legacyLead) notFound();
+
+  const lead = {
+    ...legacyLead,
+    branchData: {},
+    companyName: null,
+    jobTitle: null,
+    propertyType: null,
+    destination: null,
+    intent: null,
+    preferredChannel: null,
+    routedToUrl: null,
+    urgency: null,
+    needType: null,
+    volumePotential: null,
+    participantCount: null,
+    currentLocation: null,
+  };
 
   const phone = normalizePhoneContact(lead.contact);
   const isEmail = isEmailContact(lead.contact);

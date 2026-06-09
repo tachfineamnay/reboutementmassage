@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { ensureAdminSchema } from "@/lib/admin-schema";
 import { ArticleCreateSchema } from "@/lib/schemas";
 
 const ARTICLE_INCLUDE = {
@@ -14,6 +15,8 @@ export async function GET(req: NextRequest) {
   const session = await getSession();
   if (!session)
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+
+  await ensureAdminSchema();
 
   const { searchParams } = req.nextUrl;
   const status = searchParams.get("status");
@@ -57,6 +60,8 @@ export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session)
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+
+  await ensureAdminSchema();
 
   const body = await req.json().catch(() => null);
   if (!body)

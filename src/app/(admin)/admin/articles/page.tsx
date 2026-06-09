@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { ensureAdminSchema } from "@/lib/admin-schema";
 import { computeSeoScore } from "@/lib/utils";
 import { getArticlePublicPath } from "@/lib/routes";
 import ArticleStatusBadge from "@/components/admin/ArticleStatusBadge";
@@ -36,6 +37,8 @@ const fmt = new Intl.DateTimeFormat("fr-FR", {
 });
 
 export default async function ArticlesListPage({ searchParams }: PageProps) {
+  await ensureAdminSchema();
+
   const { status, locale, q, page: pageParam } = await searchParams;
   const page = Math.max(1, Number(pageParam ?? "1"));
   const limit = 20;
@@ -80,11 +83,6 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
             focusKeyword: true,
             ogImageId: true,
             score: true,
-            aeoScore: true,
-            geoScore: true,
-            answerCoverageScore: true,
-            llmReadabilityScore: true,
-            atomicAnswerPresent: true,
           },
         },
         content: { select: { wordCount: true } },
@@ -108,9 +106,9 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
       excerpt: a.excerpt,
       wordCount: a.content?.wordCount,
     }),
-    aeoScore: a.seo?.aeoScore || a.seo?.answerCoverageScore || 0,
-    geoScore: a.seo?.geoScore || a.seo?.llmReadabilityScore || 0,
-    atomicAnswerPresent: a.seo?.atomicAnswerPresent ?? false,
+    aeoScore: 0,
+    geoScore: 0,
+    atomicAnswerPresent: false,
   }));
 
   // Build filter URL helper

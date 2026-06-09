@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { Locale, Prisma } from "@prisma/client";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { ensureAdminSchema } from "@/lib/admin-schema";
 import {
   formatBookingFormat,
   formatLeadChannel,
@@ -76,6 +77,8 @@ function filterUrl(filters: Record<string, string | undefined>) {
 }
 
 export default async function DemandesPage({ searchParams }: PageProps) {
+  await ensureAdminSchema();
+
   const params = await searchParams;
   const status = one(params.status);
   const locale = one(params.locale);
@@ -103,7 +106,7 @@ export default async function DemandesPage({ searchParams }: PageProps) {
       : {}),
   };
 
-  const [leads, total, typeRows] = await Promise.all([
+  const [legacyLeads, total, typeRows] = await Promise.all([
     prisma.leadSubmission.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -114,10 +117,6 @@ export default async function DemandesPage({ searchParams }: PageProps) {
         firstName: true,
         contact: true,
         type: true,
-        intent: true,
-        preferredChannel: true,
-        leadSegment: true,
-        branchData: true,
         locale: true,
         selectedDayLabel: true,
         selectedTime: true,
@@ -134,6 +133,13 @@ export default async function DemandesPage({ searchParams }: PageProps) {
       select: { type: true },
     }),
   ]);
+  const leads = legacyLeads.map((lead) => ({
+    ...lead,
+    intent: null,
+    preferredChannel: null,
+    leadSegment: null,
+    branchData: {},
+  }));
 
   const pages = Math.ceil(total / LIMIT);
   const hasFilters = !!(validStatus || validLocale || type || q || period);
