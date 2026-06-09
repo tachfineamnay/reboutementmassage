@@ -55,6 +55,20 @@ type CallbackLead = {
   status: "CAPTURED" | "MOCKED" | "SENT_TO_GHL" | "FAILED" | "ARCHIVED";
 };
 
+const EMPTY_LEAD_OVERVIEW: {
+  stats: LeadStats;
+  callbacks: CallbackLead[];
+} = {
+  stats: {
+    total: 0,
+    today: 0,
+    week: 0,
+    failed: 0,
+    callbacksToday: 0,
+  },
+  callbacks: [],
+};
+
 function isMissingSchemaObjectError(error: unknown) {
   const code = (error as { code?: string }).code;
   if (code === "P2021" || code === "P2022") return true;
@@ -211,12 +225,33 @@ export default async function OverviewPage() {
   const googleConfig = getGoogleConfig();
   const isGoogleConfigured = !!googleConfig;
 
-  // 1. Récupération optimisée des articles et des sections landing
-  const [articles, sections, leadOverview] = await Promise.all([
+  // 1. Une source indisponible ne doit pas rendre tout le dashboard inaccessible.
+  const [articlesResult, sectionsResult, leadOverviewResult] = await Promise.allSettled([
     getOverviewArticles(date28DaysAgo),
     getOverviewSections(),
     getOverviewLeadStats(now),
   ]);
+
+  const articles = articlesResult.status === "fulfilled" ? articlesResult.value : [];
+  const sections = sectionsResult.status === "fulfilled" ? sectionsResult.value : [];
+  const leadOverview =
+    leadOverviewResult.status === "fulfilled"
+      ? leadOverviewResult.value
+      : EMPTY_LEAD_OVERVIEW;
+  const hasUnavailableData =
+    articlesResult.status === "rejected" ||
+    sectionsResult.status === "rejected" ||
+    leadOverviewResult.status === "rejected";
+
+  if (articlesResult.status === "rejected") {
+    console.error("[admin/overview] Unable to load articles.", articlesResult.reason);
+  }
+  if (sectionsResult.status === "rejected") {
+    console.error("[admin/overview] Unable to load landing sections.", sectionsResult.reason);
+  }
+  if (leadOverviewResult.status === "rejected") {
+    console.error("[admin/overview] Unable to load leads.", leadOverviewResult.reason);
+  }
 
   // 2. Calculs des métriques d'articles
   const publishedCount = articles.filter((a) => a.status === "PUBLISHED").length;
@@ -400,6 +435,24 @@ export default async function OverviewPage() {
           </Link>
         </div>
       </div>
+
+      {hasUnavailableData && (
+        <div
+          role="alert"
+          style={{
+            marginBottom: "16px",
+            padding: "12px 16px",
+            borderRadius: "6px",
+            border: "1px solid rgba(251,191,36,0.3)",
+            background: "rgba(251,191,36,0.08)",
+            color: "#d97706",
+            fontSize: "13px",
+          }}
+        >
+          Certaines données sont temporairement indisponibles. Le dashboard reste
+          accessible pendant la synchronisation de la base de données.
+        </div>
+      )}
 
       <div className="kpi-grid kpi-grid--business" style={{ marginBottom: "8px" }}>
         <Link href="/admin/demandes" className="kpi-card kpi-card--link kpi-card--green">
