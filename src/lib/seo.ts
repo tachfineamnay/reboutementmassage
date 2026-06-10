@@ -25,19 +25,19 @@ export const LOCALE_LABELS: Record<Language, string> = {
 
 export const META_BY_LOCALE: Record<Locale, { title: string; description: string }> = {
   fr: {
-    title: "Grégory Tordjman — Méthode TMS® | Reboutement & thérapie manuelle",
+    title: "Grégory Tordjman — Méthode TMS® | Reboutement & thérapie manuelle de précision",
     description:
-      "Méthode TMS® avec Grégory Tordjman, praticien manuel depuis 2006 : accompagnement personnalisé, workshops et interventions discrètes pour particuliers, hôtels, villas, yachts et équipes.",
+      "Grégory Tordjman, créateur de la Méthode TMS® et praticien manuel depuis 2006. Reboutement, massage et thérapie manuelle de précision : séances privées pour particuliers, hôtels, villas et yachts. Formations pour thérapeutes et praticiens spa.",
   },
   en: {
-    title: "Grégory Tordjman — TMS® Manual Therapy | French Bonesetting",
+    title: "Grégory Tordjman — Méthode TMS® | Manual therapy & French bonesetting",
     description:
-      "Méthode TMS® with Grégory Tordjman, a hands-on practitioner since 2006: personalised support, workshops and discreet interventions for private clients, hotels, villas, yachts and teams.",
+      "Grégory Tordjman, creator of the Méthode TMS® and hands-on practitioner since 2006. Reboutement, massage and precise manual therapy: private sessions for individuals, hotels, villas and yachts. Training for therapists and spa practitioners.",
   },
   es: {
-    title: "Grégory Tordjman — Método TMS® | Terapia manual privada",
+    title: "Grégory Tordjman — Método TMS® | Terapia manual y reboutement",
     description:
-      "Método TMS® con Grégory Tordjman, practicante manual desde 2006: acompañamiento personalizado, workshops e intervenciones discretas para particulares, hoteles, villas, yates y equipos.",
+      "Grégory Tordjman, creador del Método TMS® y practicante manual desde 2006. Reboutement, masaje y terapia manual de precisión: sesiones privadas para particulares, hoteles, villas y yates. Formaciones para terapeutas y profesionales spa.",
   },
 };
 
@@ -158,10 +158,16 @@ export function createIdentityJsonLd(locale: Locale): JsonLd {
       {
         "@type": "WebSite",
         "@id": entityId("website"),
-        name: "Méthode TMS®",
+        name: "Grégory Tordjman — Méthode TMS®",
+        alternateName: "Méthode TMS®",
         url: absoluteUrl(),
         inLanguage: locale,
         publisher: { "@id": entityId("organization") },
+        potentialAction: {
+          "@type": "SearchAction",
+          target: `${absoluteUrl()}/search?q={search_term_string}`,
+          "query-input": "required name=search_term_string",
+        },
       },
       {
         "@type": "Organization",
@@ -169,33 +175,65 @@ export function createIdentityJsonLd(locale: Locale): JsonLd {
         name: "Méthode TMS®",
         legalName: "Grégory Tordjman - Méthode TMS®",
         url: absoluteUrl(),
-        logo: { "@type": "ImageObject", url: logoUrl },
+        foundingDate: "2014",
+        logo: { "@type": "ImageObject", url: logoUrl, width: 300, height: 300 },
         image: imageUrl,
+        description:
+          "Méthode TMS® est une marque et une méthode d'accompagnement manuel créée par Grégory Tordjman en 2014, issue d'une pratique professionnelle du reboutement, du massage et de la thérapie manuelle de précision.",
         areaServed: ["France", "Caribbean", "Mexico", "International"],
         founder: { "@id": entityId("gregory-tordjman") },
+        sameAs: [
+          "https://www.formationreboutement.fr",
+          "https://www.reboutementmassage.fr",
+        ],
       },
       {
         "@type": "Person",
         "@id": entityId("gregory-tordjman"),
         name: "Grégory Tordjman",
+        givenName: "Grégory",
+        familyName: "Tordjman",
         url: homeUrl,
-        image: imageUrl,
-        jobTitle: "Manual therapy practitioner and creator of the Méthode TMS®",
+        image: {
+          "@type": "ImageObject",
+          url: imageUrl,
+          caption: "Grégory Tordjman, créateur de la Méthode TMS®",
+        },
+        jobTitle: [
+          "Créateur de la Méthode TMS®",
+          "Praticien en reboutement et thérapie manuelle",
+          "Creator of the Méthode TMS®",
+          "Manual therapy practitioner",
+        ],
         description:
-          "Hands-on practitioner since 2006 and creator of the Méthode TMS®, working with private clients and hospitality teams in France and internationally.",
+          "Grégory Tordjman est un praticien manuel en activité depuis 2006, créateur de la Méthode TMS® en 2014. Il accompagne des particuliers, des équipes hospitality et des praticiens en formation grâce à une approche du reboutement, du massage et de la thérapie manuelle de précision.",
         brand: { "@id": entityId("organization") },
+        foundingDate: "2014",
         knowsAbout: [
           "Méthode TMS®",
           "Reboutement TMS®",
           "Reboutement",
+          "Reboutement traditionnel",
           "Traditional French bonesetting",
+          "Thérapie manuelle de précision",
           "TMS® Manual Therapy",
           "Terapia manual TMS®",
-          "Manual therapy",
-          "Hands-on body support",
+          "Massage thérapeutique",
+          "Accompagnement corporel",
+          "Lecture corporelle",
+          "Tensions musculaires",
+          "Blocages corporels",
+          "Mobilité articulaire",
           "Luxury hospitality",
           "Spa team training",
+          "Formation reboutement",
+          "Reconversion praticien bien-être",
         ],
+        sameAs: [
+          "https://www.formationreboutement.fr",
+          "https://www.reboutementmassage.fr",
+        ],
+        worksFor: { "@id": entityId("organization") },
       },
     ],
   };

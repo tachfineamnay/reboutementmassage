@@ -8,6 +8,25 @@ import SharedFooter from "@/components/SharedFooter";
 import SharedContactForm from "@/components/SharedContactForm";
 
 /* ──────────────────────────────────────────────────────────
+   Types
+   ────────────────────────────────────────────────────────── */
+type BioCopy = {
+  lang: Language;
+};
+
+const LANGUAGE_ROUTES: Record<Language, string> = {
+  FR: "/fr",
+  EN: "/en",
+  ES: "/es",
+};
+
+const BIO_ROUTES: Record<Language, string> = {
+  FR: "/fr/biographie",
+  EN: "/en/biography",
+  ES: "/es/biografia",
+};
+
+/* ──────────────────────────────────────────────────────────
    Reveal-on-scroll (same as landing page)
    ────────────────────────────────────────────────────────── */
 function useReveal() {
@@ -80,7 +99,7 @@ function BioHero({ lang }: { lang: Language }) {
     FR: {
       eyebrow: "Biographie · Méthode TMS®",
       h1: ["Le geste juste,", "au bon endroit."],
-      sub: "Praticien manuel depuis 2006, Grégory Tordjman a développé la Méthode TMS® au contact du terrain — une approche précise, mobile et attentive aux limites de chaque personne.",
+      sub: "Praticien manuel depuis 2006, Grégory Tordjman a développé la Méthode TMS® au contact du terrain — une approche précise, mobile et attentive aux limites de chaque personne. 9 000+ corps accompagnés, 230+ thérapeutes formés.",
       cta: "Demander une consultation privée",
       ctaSec: "Découvrir la Méthode TMS®",
       ctaSecHref: "/fr#contact",
@@ -88,7 +107,7 @@ function BioHero({ lang }: { lang: Language }) {
     EN: {
       eyebrow: "Biography · Méthode TMS®",
       h1: ["The right gesture,", "in the right place."],
-      sub: "A hands-on practitioner since 2006, Grégory Tordjman developed the Méthode TMS® through field experience — a precise, mobile approach attentive to each person's boundaries.",
+      sub: "A hands-on practitioner since 2006, Grégory Tordjman developed the Méthode TMS® through field experience — a precise, mobile approach attentive to each person's boundaries. 9,000+ bodies supported, 230+ therapists trained.",
       cta: "Request a private consultation",
       ctaSec: "Discover the Méthode TMS®",
       ctaSecHref: "/en#contact",
@@ -96,7 +115,7 @@ function BioHero({ lang }: { lang: Language }) {
     ES: {
       eyebrow: "Biografía · Método TMS®",
       h1: ["El gesto preciso,", "en el lugar justo."],
-      sub: "Practicante manual desde 2006, Grégory Tordjman desarrolló el Método TMS® desde la experiencia de campo — un enfoque preciso, móvil y atento a los límites de cada persona.",
+      sub: "Practicante manual desde 2006, Grégory Tordjman desarrolló el Método TMS® desde la experiencia de campo — un enfoque preciso, móvil y atento a los límites de cada persona. 9.000+ cuerpos acompañados, 230+ terapeutas formados.",
       cta: "Solicitar una consulta privada",
       ctaSec: "Descubrir el Método TMS®",
       ctaSecHref: "/es#contact",
@@ -142,9 +161,7 @@ function BioHero({ lang }: { lang: Language }) {
             sizes="(max-width: 920px) 100vw, 46vw"
             style={{ objectFit: "cover", objectPosition: "center 20%" }}
           />
-          <span className="bio-hero__cap eyebrow eyebrow--gold">
-            {lang === "FR" ? "Pratique professionnelle · Depuis 2006" : lang === "EN" ? "Professional practice · Since 2006" : "Práctica profesional · Desde 2006"}
-          </span>
+          <span className="bio-hero__cap eyebrow eyebrow--gold">Méthode TMS® · Depuis 2014</span>
         </Reveal>
       </div>
 
@@ -167,27 +184,27 @@ function BioOrigine({ lang }: { lang: Language }) {
       eyebrow: "01 — Origine",
       title: "Un parcours construit par le corps.",
       lines: [
-        "Suisse, Burkina Faso, Espagne, Guadeloupe. Grégory Tordjman n'a pas suivi une formation linéaire — il a appris par les corps.",
-        "Chaque culture a ajouté une couche de lecture. Chaque rencontre a affiné le geste. Ce que d'autres appellent une technique, il l'a construit comme une langue.",
-        "Depuis 2006, la pratique professionnelle affine une même exigence : observer avant d'agir, adapter le geste et savoir ne pas intervenir lorsque le contexte appelle un autre professionnel.",
+        "Suisse, Burkina Faso, Espagne, Guadeloupe. Grégory Tordjman n'a pas suivi une formation linéaire — il a appris par les corps. Depuis 2006, il exerce en tant que praticien manuel et accompagne des particuliers, des voyageurs et des équipes hospitality aux quatre coins du monde.",
+        "Chaque culture a ajouté une couche de lecture. Chaque rencontre a affiné le geste. Ce que d'autres appellent une technique, il l'a construit comme un langage — jusqu'à créer la Méthode TMS® en 2014, après des années de terrain et de transmission.",
+        "Aujourd'hui, 9 000+ corps accompagnés et 230+ thérapeutes formés. Une exigence constante : observer avant d'agir, adapter le geste et orienter lorsque la situation appelle un autre professionnel de santé.",
       ],
     },
     EN: {
       eyebrow: "01 — Origin",
       title: "A path built by the body.",
       lines: [
-        "Switzerland, Burkina Faso, Spain, Guadeloupe. Grégory Tordjman did not follow a linear path — he learned through bodies.",
-        "Each culture added a layer of reading. Each encounter refined the gesture. What others call technique, he built as a language.",
-        "Since 2006, professional practice has refined the same discipline: observe before acting, adapt the gesture and know when not to intervene because another professional should take priority.",
+        "Switzerland, Burkina Faso, Spain, Guadeloupe. Grégory Tordjman did not follow a linear path — he learned through bodies. Since 2006, he has practised as a hands-on practitioner, supporting private clients, travellers and hospitality teams around the world.",
+        "Each culture added a layer of reading. Each encounter refined the gesture. What others call technique, he built as a language — until founding the Méthode TMS® in 2014, after years of field work and transmission.",
+        "Today: 9,000+ bodies supported and 230+ therapists trained. The same discipline throughout: observe before acting, adapt the gesture and refer whenever a healthcare professional should take priority.",
       ],
     },
     ES: {
       eyebrow: "01 — Origen",
       title: "Un camino construido por el cuerpo.",
       lines: [
-        "Suiza, Burkina Faso, España, Guadalupe. Grégory Tordjman no siguió una formación lineal — aprendió a través de los cuerpos.",
-        "Cada cultura añadió una capa de lectura. Cada encuentro refinó el gesto. Lo que otros llaman técnica, él lo construyó como un lenguaje.",
-        "Desde 2006, la práctica profesional afina una misma exigencia: observar antes de actuar, adaptar el gesto y saber cuándo no intervenir porque debe priorizarse otro profesional.",
+        "Suiza, Burkina Faso, España, Guadalupe. Grégory Tordjman no siguió una formación lineal — aprendió a través de los cuerpos. Desde 2006, ejerce como practicante manual, acompañando a particulares, viajeros y equipos de hospitality en todo el mundo.",
+        "Cada cultura añadió una capa de lectura. Cada encuentro refinó el gesto. Lo que otros llaman técnica, él lo construyó como un lenguaje — hasta crear el Método TMS® en 2014, tras años de trabajo de campo y transmisión.",
+        "Hoy: 9.000+ cuerpos acompañados y 230+ terapeutas formados. Una exigencia constante: observar antes de actuar, adaptar el gesto y orientar cuando debe priorizarse otro profesional de la salud.",
       ],
     },
   }[lang];
@@ -225,9 +242,9 @@ function BioMethode({ lang }: { lang: Language }) {
     FR: {
       eyebrow: "02 — Méthode TMS®",
       title: "Comment est née la Méthode TMS® ?",
-      sub: "Pas une promesse. Une lecture et un geste adaptés.",
+      sub: "Créée en 2014 après des années de terrain. Pas une promesse. Une lecture et un geste adaptés.",
       body: [
-        "La Méthode TMS® s'est structurée au fil d'une pratique commencée en 2006, par l'observation répétée des postures, des mobilités et des réactions au toucher.",
+        "La Méthode TMS® s'est structurée au fil d'une pratique commencée en 2006, par l'observation répétée des postures, des mobilités et des réactions au toucher. Elle est officiellement créée en 2014, formalisée, enseignée et transmise depuis.",
         "Grégory considère la respiration, l'organisation corporelle, les zones de tension et le contexte exprimé par la personne. Cette lecture oriente la séance sans prétendre établir un diagnostic.",
         "Chaque intervention est adaptée au moment, au confort et aux limites de la personne. Lorsque la situation dépasse ce cadre, l'orientation vers un professionnel de santé prime.",
       ],
@@ -242,9 +259,9 @@ function BioMethode({ lang }: { lang: Language }) {
     EN: {
       eyebrow: "02 — Méthode TMS®",
       title: "How did the Méthode TMS® emerge?",
-      sub: "Not a promise. An adapted reading and gesture.",
+      sub: "Founded in 2014 after years of field practice. Not a promise. An adapted reading and gesture.",
       body: [
-        "The Méthode TMS® took shape through professional practice begun in 2006 and repeated observation of posture, mobility and responses to touch.",
+        "The Méthode TMS® took shape through professional practice begun in 2006 and repeated observation of posture, mobility and responses to touch. It was formally founded in 2014, and has been taught and transmitted ever since.",
         "Grégory considers breathing, body organisation, areas of tension and the context described by the person. This reading guides the session without claiming to provide a diagnosis.",
         "Each intervention is adapted to the moment, comfort and individual boundaries. When a situation exceeds this scope, referral to a healthcare professional takes priority.",
       ],
@@ -259,9 +276,9 @@ function BioMethode({ lang }: { lang: Language }) {
     ES: {
       eyebrow: "02 — Método TMS®",
       title: "¿Cómo nació el Método TMS®?",
-      sub: "No una promesa. Una lectura y un gesto adaptados.",
+      sub: "Creado en 2014 tras años de práctica de campo. No una promesa. Una lectura y un gesto adaptados.",
       body: [
-        "El Método TMS® se estructuró a través de una práctica profesional iniciada en 2006 y de la observación repetida de la postura, la movilidad y las respuestas al tacto.",
+        "El Método TMS® se estructuró a través de una práctica profesional iniciada en 2006 y de la observación repetida de la postura, la movilidad y las respuestas al tacto. Fue fundado formalmente en 2014 y ha sido enseñado y transmitido desde entonces.",
         "Grégory considera la respiración, la organización corporal, las zonas de tensión y el contexto expresado por la persona. Esta lectura orienta la sesión sin pretender establecer un diagnóstico.",
         "Cada intervención se adapta al momento, al confort y a los límites individuales. Cuando una situación supera este marco, se prioriza la orientación a un profesional sanitario.",
       ],
@@ -318,6 +335,46 @@ function BioMethode({ lang }: { lang: Language }) {
 /* ──────────────────────────────────────────────────────────
    04 — Chiffres clés (TrustBar style)
    ────────────────────────────────────────────────────────── */
+function BioStats({ lang }: { lang: Language }) {
+  const stats = {
+    FR: [
+      { value: "9 000+", label: "Corps accompagnés" },
+      { value: "230+", label: "Thérapeutes formés" },
+      { value: "465", label: "Workshops animés" },
+      { value: "2014", label: "Méthode TMS® créée" },
+    ],
+    EN: [
+      { value: "9,000+", label: "Bodies supported" },
+      { value: "230+", label: "Therapists trained" },
+      { value: "465", label: "Workshops delivered" },
+      { value: "2014", label: "Méthode TMS® founded" },
+    ],
+    ES: [
+      { value: "9.000+", label: "Cuerpos acompañados" },
+      { value: "230+", label: "Terapeutas formados" },
+      { value: "465", label: "Workshops realizados" },
+      { value: "2014", label: "Método TMS® creado" },
+    ],
+  }[lang];
+
+  return (
+    <section className="trust-bar bio-stats">
+      <div className="container">
+        <Reveal>
+          <div className="trust-bar__stats">
+            {stats.map((stat, i) => (
+              <div className="trust-bar__stat" key={i}>
+                <span className="trust-bar__value">{stat.value}</span>
+                <span className="trust-bar__label">{stat.label}</span>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
 /* ──────────────────────────────────────────────────────────
    05 — Vision (soulager sans interrompre)
    ────────────────────────────────────────────────────────── */
@@ -461,23 +518,23 @@ function BioPresence({ lang }: { lang: Language }) {
 function BioCta({ lang }: { lang: Language }) {
   const t = {
     FR: {
-      eyebrow: "Méthode TMS® · Pratique depuis 2006",
+      eyebrow: "Méthode TMS® · Créée en 2014 · Pratique depuis 2006",
       title: "Une demande privée.\nUne réponse personnelle.",
-      sub: "Chaque demande est lue personnellement et replacée dans son contexte.",
+      sub: "Chaque demande est lue personnellement et replacée dans son contexte. 9 000+ corps accompagnés, 230+ thérapeutes formés, 465 workshops animés.",
       cta: "Demander une consultation privée",
       phone: "+33 6 65 51 77 35",
     },
     EN: {
-      eyebrow: "Méthode TMS® · Practising since 2006",
+      eyebrow: "Méthode TMS® · Founded 2014 · Since 2006",
       title: "A private request.\nA personal response.",
-      sub: "Each request is personally reviewed and considered in its context.",
+      sub: "Each request is personally reviewed and considered in its context. 9,000+ bodies supported, 230+ therapists trained, 465 workshops delivered.",
       cta: "Request a private consultation",
       phone: "+33 6 65 51 77 35",
     },
     ES: {
-      eyebrow: "Método TMS® · Práctica desde 2006",
+      eyebrow: "Método TMS® · Creado en 2014 · Desde 2006",
       title: "Una solicitud privada.\nUna respuesta personal.",
-      sub: "Cada solicitud se revisa personalmente y se considera en su contexto.",
+      sub: "Cada solicitud se revisa personalmente y se considera en su contexto. 9.000+ cuerpos acompañados, 230+ terapeutas formados, 465 workshops realizados.",
       cta: "Solicitar una consulta privada",
       phone: "+33 6 65 51 77 35",
     },
@@ -548,6 +605,7 @@ export default function BiographyPage({ initialLang }: { initialLang: Language }
         <BioHero lang={lang} />
         <BioOrigine lang={lang} />
         <BioMethode lang={lang} />
+        <BioStats lang={lang} />
         <BioVision lang={lang} />
         <BioPresence lang={lang} />
         <BioCta lang={lang} />
