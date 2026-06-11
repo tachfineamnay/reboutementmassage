@@ -14,15 +14,13 @@
 # =============================================================================
 FROM node:20-alpine AS base
 WORKDIR /app
+RUN apk add --no-cache openssl libc6-compat && \
+    corepack enable && \
+    corepack prepare pnpm@10.6.1 --activate
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 ENV PNPM_STORE_PATH="/pnpm/store"
-ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
-
-RUN apk add --no-cache openssl libc6-compat && \
-    corepack enable && \
-    corepack prepare pnpm@10.6.1 --activate
 
 # =============================================================================
 # STAGE 2: DEPS
@@ -87,9 +85,9 @@ COPY --from=builder /app/apps/api/dist /prod/api/dist
 COPY --from=builder /app/seeds /prod/api/seeds
 COPY --from=builder /app/scripts /prod/api/scripts
 
-# Pre-create writable runtime directories for the nestjs user without chowning node_modules.
+# Pre-create writable directories for the nestjs user
 RUN mkdir -p public/invoices uploads/avatars uploads/documents uploads/services uploads/chat && \
-    chown -R nestjs:nodejs public uploads
+    chown -R nestjs:nodejs /prod/api
 
 USER nestjs
 
@@ -99,5 +97,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD curl -fsS http://localhost:4000/api/v1/health || exit 1
 
 # Apply committed Prisma migrations only. Never use db push or seed on beta/prod startup.
-# Use the local Prisma binary directly to avoid Corepack resolving pnpm 11 at runtime on Node 20.
-CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/main"]
+CMD ["sh", "-c", "pnpm exec prisma migrate deploy && node dist/main"]
