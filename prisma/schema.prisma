@@ -258,6 +258,7 @@ model ArticleSeo {
   entityTargets   Json    @default("[]")
   faqItems        Json    @default("[]")
   evidenceNotes   Json    @default("{}")
+  customJsonLd    Json    @default("[]")
 
   // Scores spécialisés calculés depuis le contenu visible
   aeoScore  Int @default(0)
@@ -330,7 +331,8 @@ model ArticleAudioAsset {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model ArticleMetric {
-  id        String  @id @default(cuid())
+  id        String
+  @id @default(cuid())
   articleId String
   article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
