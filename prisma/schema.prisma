@@ -331,8 +331,7 @@ model ArticleAudioAsset {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model ArticleMetric {
-  id        String
-  @id @default(cuid())
+  id        String  @id @default(cuid())
   articleId String
   article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
 
