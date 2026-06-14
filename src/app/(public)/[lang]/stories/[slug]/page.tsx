@@ -10,6 +10,7 @@ import {
   createArticleWebPageJsonLd,
   graphJsonLd,
   renderJsonLd,
+  type JsonLd,
 } from "@/lib/seo";
 import {
   isTermVisible,
@@ -163,6 +164,25 @@ const CTA_TRANSLATIONS = {
   },
 };
 
+function isJsonLdObject(value: unknown): value is JsonLd {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function customJsonLdNodes(value: unknown): JsonLd[] {
+  if (Array.isArray(value)) {
+    return value.filter(isJsonLdObject);
+  }
+
+  if (!isJsonLdObject(value)) return [];
+
+  const graph = value["@graph"];
+  if (Array.isArray(graph)) {
+    return graph.filter(isJsonLdObject);
+  }
+
+  return [value];
+}
+
 function articleStructuredData(article: NonNullable<Awaited<ReturnType<typeof getArticle>>>, lang: string) {
   const canonical = getArticleCanonicalUrl({ locale: article.locale, slug: article.slug });
   const storiesIndexUrl = absoluteUrl(getStoriesIndexPath(article.locale));
@@ -191,8 +211,9 @@ function articleStructuredData(article: NonNullable<Awaited<ReturnType<typeof ge
   const keywords = Array.from(
     new Set([visibleFocusKeyword, ...visibleEntities].filter((value): value is string => Boolean(value)))
   );
+  const customNodes = customJsonLdNodes(article.seo?.customJsonLd);
 
-  const nodes = [
+  const nodes: JsonLd[] = [
     createIdentityJsonLd(locale),
     createArticleWebPageJsonLd({
       locale,
@@ -232,6 +253,10 @@ function articleStructuredData(article: NonNullable<Awaited<ReturnType<typeof ge
 
   if (faqItems.length > 0) {
     nodes.push(createFaqJsonLd(faqItems));
+  }
+
+  if (customNodes.length > 0) {
+    nodes.push(...customNodes);
   }
 
   return graphJsonLd(nodes);
