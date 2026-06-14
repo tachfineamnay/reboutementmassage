@@ -4,6 +4,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ensureAdminSchema } from "@/lib/admin-schema";
 import ArticleEditor from "@/components/admin/ArticleEditor";
+import ArticleJsonLdEditor from "@/components/admin/ArticleJsonLdEditor";
 import {
   normalizeEntityTargets,
   normalizeEvidenceNotes,
@@ -53,6 +54,22 @@ export default async function ArticleDetailPage({ params }: Props) {
             focusKeyword: true,
             noindex: true,
             score: true,
+            llmReadabilityScore: true,
+            atomicAnswerPresent: true,
+            answerCoverageScore: true,
+            geoChecklist: true,
+            primaryQuestion: true,
+            answerIntent: true,
+            targetAudience: true,
+            geoLocation: true,
+            businessGoal: true,
+            entityTargets: true,
+            faqItems: true,
+            evidenceNotes: true,
+            customJsonLd: true,
+            aeoScore: true,
+            geoScore: true,
+            eeatScore: true,
           },
         },
         content: {
@@ -121,21 +138,21 @@ export default async function ArticleDetailPage({ params }: Props) {
             focusKeyword: article.seo?.focusKeyword ?? "",
             noindex: article.seo?.noindex ?? false,
             score: article.seo?.score ?? 0,
-            llmReadabilityScore: 0,
-            atomicAnswerPresent: false,
-            answerCoverageScore: 0,
-            geoChecklist: [] as GeoChecklistItem[],
-            primaryQuestion: "",
-            answerIntent: "",
-            targetAudience: "",
-            geoLocation: "",
-            businessGoal: "",
-            entityTargets: normalizeEntityTargets([]),
-            faqItems: normalizeFaqItems([]),
-            evidenceNotes: normalizeEvidenceNotes({}),
-            aeoScore: 0,
-            geoScore: 0,
-            eeatScore: 0,
+            llmReadabilityScore: article.seo?.llmReadabilityScore ?? 0,
+            atomicAnswerPresent: article.seo?.atomicAnswerPresent ?? false,
+            answerCoverageScore: article.seo?.answerCoverageScore ?? 0,
+            geoChecklist: (article.seo?.geoChecklist as GeoChecklistItem[] | null) ?? [],
+            primaryQuestion: article.seo?.primaryQuestion ?? "",
+            answerIntent: article.seo?.answerIntent ?? "",
+            targetAudience: article.seo?.targetAudience ?? "",
+            geoLocation: article.seo?.geoLocation ?? "",
+            businessGoal: article.seo?.businessGoal ?? "",
+            entityTargets: normalizeEntityTargets(article.seo?.entityTargets),
+            faqItems: normalizeFaqItems(article.seo?.faqItems),
+            evidenceNotes: normalizeEvidenceNotes(article.seo?.evidenceNotes),
+            aeoScore: article.seo?.aeoScore ?? 0,
+            geoScore: article.seo?.geoScore ?? 0,
+            eeatScore: article.seo?.eeatScore ?? 0,
           },
         }}
         googleMetrics={{
@@ -144,6 +161,11 @@ export default async function ArticleDetailPage({ params }: Props) {
           ctr: avgCtr,
           position: avgPosition,
         }}
+      />
+
+      <ArticleJsonLdEditor
+        articleId={article.id}
+        initialValue={article.seo?.customJsonLd ?? []}
       />
     </div>
   );
