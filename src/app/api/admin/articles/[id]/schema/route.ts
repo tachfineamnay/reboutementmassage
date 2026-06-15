@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { ensureAdminSchema } from "@/lib/admin-schema";
+import { revalidateArticlePublicPaths } from "@/lib/article-cache";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -62,7 +63,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
 
   const article = await prisma.article.findUnique({
     where: { id },
-    select: { id: true },
+    select: { id: true, locale: true, slug: true },
   });
   if (!article) {
     return NextResponse.json({ error: "Article non trouvé" }, { status: 404 });
@@ -89,6 +90,8 @@ export async function PUT(req: NextRequest, { params }: Params) {
     },
     select: { customJsonLd: true },
   });
+
+  revalidateArticlePublicPaths(article);
 
   return NextResponse.json({ customJsonLd: seo.customJsonLd });
 }

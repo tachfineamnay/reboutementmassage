@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { ensureAdminSchema } from "@/lib/admin-schema";
+import { revalidateArticlePublicPaths } from "@/lib/article-cache";
 import { ArticleSeoSchema } from "@/lib/schemas";
 import {
   auditGeoContent,
@@ -44,6 +45,8 @@ export async function PUT(req: NextRequest, { params }: Params) {
     where: { id },
     select: {
       title: true,
+      locale: true,
+      slug: true,
       coverImageId: true,
       excerpt: true,
       content: {
@@ -125,6 +128,8 @@ export async function PUT(req: NextRequest, { params }: Params) {
     },
     update: seoData,
   });
+
+  revalidateArticlePublicPaths(article);
 
   return NextResponse.json(seo);
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import { revalidateArticlePublicPaths } from "@/lib/article-cache";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -18,7 +19,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
 
   const article = await prisma.article.findUnique({
     where: { id },
-    select: { id: true, status: true, publishedAt: true },
+    select: { id: true, status: true, publishedAt: true, locale: true, slug: true },
   });
   if (!article)
     return NextResponse.json({ error: "Article non trouvé" }, { status: 404 });
@@ -36,8 +37,17 @@ export async function POST(_req: NextRequest, { params }: Params) {
       status: "PUBLISHED",
       publishedAt: article.publishedAt ?? new Date(),
     },
-    select: { id: true, status: true, publishedAt: true, updatedAt: true },
+    select: {
+      id: true,
+      status: true,
+      publishedAt: true,
+      updatedAt: true,
+      locale: true,
+      slug: true,
+    },
   });
+
+  revalidateArticlePublicPaths(article, updated);
 
   return NextResponse.json(updated);
 }

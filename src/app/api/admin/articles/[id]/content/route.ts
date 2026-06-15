@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { ArticleContentSchema } from "@/lib/schemas";
 import { countWords, estimateReadingTime } from "@/lib/utils";
+import { revalidateArticlePublicPaths } from "@/lib/article-cache";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -26,6 +27,12 @@ export async function PUT(req: NextRequest, { params }: Params) {
   }
 
   const data = parsed.data;
+  const article = await prisma.article.findUnique({
+    where: { id },
+    select: { locale: true, slug: true },
+  });
+  if (!article)
+    return NextResponse.json({ error: "Article non trouvé" }, { status: 404 });
 
   // Calcule wordCount + readingTime si plainText fourni
   const wordCount =
@@ -51,6 +58,8 @@ export async function PUT(req: NextRequest, { params }: Params) {
       readingTime,
     },
   });
+
+  revalidateArticlePublicPaths(article);
 
   return NextResponse.json(content);
 }

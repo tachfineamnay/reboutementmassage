@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { ensureAdminSchema } from "@/lib/admin-schema";
 import { ArticleCreateSchema } from "@/lib/schemas";
+import { revalidateArticlePublicPaths } from "@/lib/article-cache";
 
 const ARTICLE_INCLUDE = {
   seo: true,
@@ -132,6 +133,8 @@ export async function POST(req: NextRequest) {
     where: { id: article.id },
     include: ARTICLE_INCLUDE,
   });
+
+  revalidateArticlePublicPaths(article);
 
   return NextResponse.json(full, { status: 201 });
 }

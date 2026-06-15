@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { ensureAdminSchema } from "@/lib/admin-schema";
 import { ArticleUpdateSchema } from "@/lib/schemas";
+import { revalidateArticlePublicPaths } from "@/lib/article-cache";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -54,15 +55,15 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
   const data = parsed.data;
 
+  const current = await prisma.article.findUnique({
+    where: { id },
+    select: { locale: true, slug: true },
+  });
+  if (!current)
+    return NextResponse.json({ error: "Non trouvé" }, { status: 404 });
+
   // Vérifie unicité du slug si changement
   if (data.slug || data.locale) {
-    const current = await prisma.article.findUnique({
-      where: { id },
-      select: { locale: true, slug: true },
-    });
-    if (!current)
-      return NextResponse.json({ error: "Non trouvé" }, { status: 404 });
-
     const newLocale = data.locale ?? current.locale;
     const newSlug = data.slug ?? current.slug;
 
@@ -95,6 +96,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     include: ARTICLE_INCLUDE,
   });
 
+  revalidateArticlePublicPaths(current, article);
+
   return NextResponse.json(article);
 }
 
@@ -112,10 +115,14 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   const { id } = await params;
 
   // Vérifie existence
-  const exists = await prisma.article.findUnique({ where: { id }, select: { id: true } });
+  const exists = await prisma.article.findUnique({
+    where: { id },
+    select: { id: true, locale: true, slug: true },
+  });
   if (!exists)
     return NextResponse.json({ error: "Non trouvé" }, { status: 404 });
 
   await prisma.article.delete({ where: { id } });
+  revalidateArticlePublicPaths(exists);
   return NextResponse.json({ success: true });
 }
