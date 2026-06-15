@@ -2855,6 +2855,12 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   color: #fca5a5;
 }
 
+.admin-alert--success {
+  background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.3);
+  color: #86efac;
+}
+
 /* Panel (card) */
 .admin-panel {
   background: var(--admin-surface);
@@ -4527,35 +4533,6 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   max-width: 800px;
 }
 
-.locale-select-group {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.locale-btn {
-  padding: 7px 16px;
-  border-radius: 6px;
-  border: 1px solid var(--admin-border);
-  background: transparent;
-  color: var(--admin-muted);
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.locale-btn:hover {
-  border-color: var(--admin-accent);
-  color: var(--admin-text);
-}
-
-.locale-btn--active {
-  background: rgba(99,102,241,0.12);
-  border-color: var(--admin-accent);
-  color: var(--admin-accent);
-  font-weight: 500;
-}
-
 .new-article-form__actions {
   display: flex;
   gap: 10px;
@@ -4594,6 +4571,53 @@ textarea.sf-field__input::placeholder { font-style: normal; }
 }
 
 .admin-hint--warn { color: #fbbf24; }
+
+.article-locale-switcher {
+  margin-bottom: 16px;
+}
+
+.article-locale-switcher__warning {
+  margin-top: 6px;
+  color: var(--admin-text);
+  font-size: 13px;
+}
+
+.article-locale-switcher__controls {
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) minmax(260px, 1fr) auto;
+  gap: 16px;
+  align-items: end;
+}
+
+.article-locale-switcher__controls .admin-field {
+  margin-bottom: 0;
+}
+
+.article-locale-switcher__url code {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--admin-border);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.03);
+  color: var(--admin-muted);
+  overflow-wrap: anywhere;
+}
+
+.locale-suspect {
+  display: block;
+  width: max-content;
+  max-width: 150px;
+  margin-top: 6px;
+  padding: 3px 6px;
+  border: 1px solid rgba(245,158,11,0.35);
+  border-radius: 4px;
+  background: rgba(245,158,11,0.1);
+  color: #fbbf24;
+  font-size: 10px;
+  line-height: 1.3;
+}
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Article Editor
@@ -4829,6 +4853,11 @@ textarea.sf-field__input::placeholder { font-style: normal; }
 
 /* Responsive editor */
 @media (max-width: 960px) {
+  .article-locale-switcher__controls {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
   .article-editor__layout {
     grid-template-columns: 1fr;
   }

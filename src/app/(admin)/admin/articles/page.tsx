@@ -36,6 +36,20 @@ const fmt = new Intl.DateTimeFormat("fr-FR", {
   year: "numeric",
 });
 
+function getSuspectedLocale(title: string): "EN" | "ES" | null {
+  const normalizedTitle = title.toLowerCase();
+  const englishSignals = [
+    "manual therapy",
+    "when the body",
+    "experience must continue",
+  ];
+  const spanishSignals = ["terapia manual", "cuerpo", "experiencia"];
+
+  if (englishSignals.some((signal) => normalizedTitle.includes(signal))) return "EN";
+  if (spanishSignals.some((signal) => normalizedTitle.includes(signal))) return "ES";
+  return null;
+}
+
 export default async function ArticlesListPage({ searchParams }: PageProps) {
   await ensureAdminSchema();
 
@@ -96,6 +110,7 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
 
   const withScore = articles.map((a) => ({
     ...a,
+    suspectedLocale: a.locale === "FR" ? getSuspectedLocale(a.title) : null,
     seoScore: a.seo?.score ?? computeSeoScore({
       title: a.title,
       seoTitle: a.seo?.seoTitle,
@@ -243,6 +258,14 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
                       <span className="badge badge--locale">
                         {LOCALE_FLAGS[article.locale] ?? ""} {article.locale}
                       </span>
+                      {article.suspectedLocale && (
+                        <span
+                          className="locale-suspect"
+                          title={`Le titre semble être en ${article.suspectedLocale}, mais la locale enregistrée est FR.`}
+                        >
+                          Locale suspecte : {article.suspectedLocale}
+                        </span>
+                      )}
                     </td>
 
                     {/* Slug */}

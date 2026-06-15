@@ -646,7 +646,7 @@ export default function ArticleEditor({
                   initialContent={data.content.editorJson}
                   onChange={handleEditorChange}
                   placeholder="Commencez à rédiger votre article…"
-                  locale={data.locale}
+                  locale={article.locale}
                 />
               </div>
             </div>
@@ -661,7 +661,7 @@ export default function ArticleEditor({
                 focusKeyword={data.seo.focusKeyword}
                 noindex={data.seo.noindex}
                 slug={data.slug}
-                locale={data.locale}
+                locale={article.locale}
                 title={data.title}
                 plainText={data.content.plainText}
                 html={data.content.html}
@@ -921,7 +921,7 @@ export default function ArticleEditor({
                 </label>
                 <div className="admin-input-group">
                   <span className="admin-input-prefix">
-                    /{data.locale.toLowerCase()}/stories/
+                    /{article.locale.toLowerCase()}/stories/
                   </span>
                   <input
                     id="ae-slug"
@@ -953,9 +953,9 @@ export default function ArticleEditor({
               {/* Langue */}
               <div className="admin-field">
                 <label className="admin-label">Langue</label>
-                <span className="badge badge--locale">{data.locale}</span>
+                <span className="badge badge--locale">{article.locale}</span>
                 <span className="admin-hint">
-                  La langue ne peut pas être modifiée après création.
+                  Utilisez le sélecteur « Langue et URL publique » au-dessus de l&apos;éditeur.
                 </span>
               </div>
 

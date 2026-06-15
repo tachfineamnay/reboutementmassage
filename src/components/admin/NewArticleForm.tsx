@@ -22,6 +22,10 @@ const DEFAULT: FormState = {
 
 type FieldError = Partial<Record<keyof FormState, string>>;
 
+function normalizeLocale(value: FormDataEntryValue | null, fallback: Locale): Locale {
+  return value === "FR" || value === "EN" || value === "ES" ? value : fallback;
+}
+
 /**
  * Formulaire de création d'article — léger, focusé sur l'essentiel.
  * Crée l'article + ArticleContent vide + ArticleSeo vide en une seule requête.
@@ -68,8 +72,10 @@ export default function NewArticleForm() {
     return Object.keys(errors).length === 0;
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const selectedLocale = normalizeLocale(formData.get("locale"), data.locale);
     if (!validate()) return;
     setError(null);
 
@@ -79,7 +85,7 @@ export default function NewArticleForm() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            locale: data.locale,
+            locale: selectedLocale,
             title: data.title.trim(),
             slug: data.slug.trim(),
             excerpt: data.excerpt.trim() || null,
@@ -124,18 +130,22 @@ export default function NewArticleForm() {
         <label className="admin-label" htmlFor="na-locale">
           Langue <span className="admin-required">*</span>
         </label>
-        <div className="locale-select-group">
-          {(["FR", "EN", "ES"] as Locale[]).map((loc) => (
-            <button
-              key={loc}
-              type="button"
-              className={`locale-btn ${data.locale === loc ? "locale-btn--active" : ""}`}
-              onClick={() => set("locale", loc)}
-            >
-              {loc === "FR" ? "🇫🇷 Français" : loc === "EN" ? "🇬🇧 English" : "🇪🇸 Español"}
-            </button>
-          ))}
-        </div>
+        <select
+          id="na-locale"
+          name="locale"
+          className="admin-input"
+          value={data.locale}
+          onChange={(e) => set("locale", e.target.value as Locale)}
+          disabled={isPending}
+          required
+        >
+          <option value="FR">🇫🇷 Français</option>
+          <option value="EN">🇬🇧 English</option>
+          <option value="ES">🇪🇸 Español</option>
+        </select>
+        <span className="admin-hint">
+          Cette langue détermine la page publique de l&apos;article.
+        </span>
       </div>
 
       {/* Titre */}

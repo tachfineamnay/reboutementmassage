@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { ensureAdminSchema } from "@/lib/admin-schema";
 import ArticleEditor from "@/components/admin/ArticleEditor";
 import ArticleJsonLdEditor from "@/components/admin/ArticleJsonLdEditor";
+import ArticleLocaleSwitcher from "@/components/admin/ArticleLocaleSwitcher";
 import {
   normalizeEntityTargets,
   normalizeEvidenceNotes,
@@ -108,6 +109,13 @@ export default async function ArticleDetailPage({ params }: Props) {
         <span className="admin-breadcrumb-sep">/</span>
         <span className="admin-breadcrumb-current">{article.title}</span>
       </nav>
+
+      <ArticleLocaleSwitcher
+        articleId={article.id}
+        initialLocale={article.locale}
+        slug={article.slug}
+        status={article.status}
+      />
 
       <ArticleEditor
         article={{
