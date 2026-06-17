@@ -55,6 +55,70 @@ enum AudioProvider {
   OTHER
 }
 
+enum StudioStage {
+  RESEARCH
+  BRIEF
+  OUTLINE
+  DRAFT
+  FACT_CHECK
+  SEO
+  TRANSLATION
+  IMAGE
+}
+
+enum StudioRunStatus {
+  QUEUED
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum StudioArtifactStatus {
+  GENERATED
+  APPROVED
+  REJECTED
+  SUPERSEDED
+}
+
+enum StudioClaimStatus {
+  VERIFIED
+  NEEDS_NUANCE
+  UNSUPPORTED
+  HUMAN_EVIDENCE_REQUIRED
+}
+
+enum StudioSourceStatus {
+  CANDIDATE
+  APPROVED
+  REJECTED
+}
+
+enum HumanEvidenceStatus {
+  DRAFT
+  VERIFIED
+  REJECTED
+}
+
+enum SeoIssueSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum SeoSuggestionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  APPLIED
+}
+
+enum SeoEntityType {
+  PERSON
+  ORGANIZATION
+  LOCAL_BUSINESS
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // AdminUser — authentification admin
 // ─────────────────────────────────────────────────────────────────────────────
@@ -160,9 +224,10 @@ model MediaAsset {
   createdAt DateTime @default(now())
 
   // Relations inverses
-  articles        Article[]        @relation("ArticleCover")
-  articlesSeo     ArticleSeo[]     @relation("ArticleOgImage")
-  landingSections LandingSection[] @relation("SectionImage")
+  articles        Article[]             @relation("ArticleCover")
+  articlesSeo     ArticleSeo[]          @relation("ArticleOgImage")
+  articleVariants ArticleImageVariant[]
+  landingSections LandingSection[]      @relation("SectionImage")
 
   @@map("media_assets")
 }
@@ -184,6 +249,9 @@ model Article {
   coverImageId String?
   coverImage   MediaAsset? @relation("ArticleCover", fields: [coverImageId], references: [id], onDelete: SetNull)
 
+  authorEntityId String?
+  authorEntity   SeoEntity? @relation(fields: [authorEntityId], references: [id], onDelete: SetNull)
+
   // Relations 1-1
   content ArticleContent?
   seo     ArticleSeo?
@@ -194,6 +262,14 @@ model Article {
   urlInspections  ArticleUrlInspection[]
   transcreations  ArticleTranscreation[]
   audioAssets     ArticleAudioAsset[]
+  studioRuns      ArticleStudioRun[]
+  studioArtifacts ArticleStudioArtifact[]
+  sources         ArticleSource[]
+  claims          ArticleClaim[]
+  humanEvidence   ArticleHumanEvidence[]
+  revisions       ArticleRevision[]
+  linkSuggestions SeoLinkSuggestion[]
+  imageVariants   ArticleImageVariant[]
 
   publishedAt DateTime?
   createdAt   DateTime  @default(now())
@@ -204,6 +280,7 @@ model Article {
   @@index([status])
   @@index([locale, status])
   @@index([translationGroupId])
+  @@index([authorEntityId])
   @@index([publishedAt])
   @@map("articles")
 }
@@ -270,6 +347,7 @@ model ArticleSeo {
   faqItems        Json    @default("[]")
   evidenceNotes   Json    @default("{}")
   customJsonLd    Json    @default("[]")
+  schemaConfig    Json    @default("{}")
 
   // Scores spécialisés calculés depuis le contenu visible
   aeoScore  Int @default(0)
@@ -415,6 +493,348 @@ model ArticleUrlInspection {
   @@index([articleId, inspectedAt])
   @@index([inspectedAt])
   @@map("article_url_inspections")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AI Article Studio — runs, artefacts, sources, claims and revisions
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ArticleStudioRun {
+  id               String                  @id @default(cuid())
+  articleId        String
+  article          Article                 @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  stage            StudioStage
+  status           StudioRunStatus         @default(QUEUED)
+  openaiResponseId String?
+  model            String
+  reasoningEffort  String?
+  promptVersion    String
+  input            Json
+  output           Json?
+  error            String?                 @db.Text
+  createdBy        String?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  artifacts        ArticleStudioArtifact[]
+
+  @@index([articleId, createdAt])
+  @@index([status, createdAt])
+  @@map("article_studio_runs")
+}
+
+model ArticleStudioArtifact {
+  id          String               @id @default(cuid())
+  articleId   String
+  article     Article              @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  runId       String?
+  run         ArticleStudioRun?    @relation(fields: [runId], references: [id], onDelete: SetNull)
+  stage       StudioStage
+  version     Int
+  status      StudioArtifactStatus @default(GENERATED)
+  contentHash String?
+  data        Json
+  approvedBy  String?
+  approvedAt  DateTime?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  sources     ArticleSource[]
+  claims      ArticleClaim[]
+
+  @@unique([articleId, stage, version])
+  @@index([articleId, stage, status])
+  @@index([runId])
+  @@map("article_studio_artifacts")
+}
+
+model ArticleSource {
+  id            String                 @id @default(cuid())
+  articleId     String
+  article       Article                @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  artifactId    String?
+  artifact      ArticleStudioArtifact? @relation(fields: [artifactId], references: [id], onDelete: SetNull)
+  url           String                 @db.Text
+  title         String
+  publisher     String?
+  publishedAt   DateTime?
+  accessedAt    DateTime               @default(now())
+  sourceType    String?
+  authorityTier Int                    @default(3)
+  status        StudioSourceStatus     @default(CANDIDATE)
+  metadata      Json                   @default("{}")
+  claimSources  ArticleClaimSource[]
+
+  @@unique([articleId, url])
+  @@index([articleId, status])
+  @@index([artifactId])
+  @@map("article_sources")
+}
+
+model ArticleClaim {
+  id           String                 @id @default(cuid())
+  articleId    String
+  article      Article                @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  artifactId   String?
+  artifact     ArticleStudioArtifact? @relation(fields: [artifactId], references: [id], onDelete: SetNull)
+  text         String                 @db.Text
+  riskLevel    String                 @default("NORMAL")
+  status       StudioClaimStatus      @default(UNSUPPORTED)
+  contentHash  String?
+  notes        String?                @db.Text
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  claimSources ArticleClaimSource[]
+
+  @@index([articleId, status])
+  @@index([artifactId])
+  @@map("article_claims")
+}
+
+model ArticleClaimSource {
+  claimId  String
+  claim    ArticleClaim  @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  sourceId String
+  source   ArticleSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@id([claimId, sourceId])
+  @@index([sourceId])
+  @@map("article_claim_sources")
+}
+
+model ArticleHumanEvidence {
+  id         String              @id @default(cuid())
+  articleId  String
+  article    Article             @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  type       String
+  text       String              @db.Text
+  status     HumanEvidenceStatus @default(DRAFT)
+  verifiedBy String?
+  verifiedAt DateTime?
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+
+  @@index([articleId, status])
+  @@map("article_human_evidence")
+}
+
+model ArticleRevision {
+  id          String   @id @default(cuid())
+  articleId   String
+  article     Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  snapshot    Json
+  contentHash String
+  reason      String
+  createdBy   String?
+  createdAt   DateTime @default(now())
+
+  @@unique([articleId, contentHash])
+  @@index([articleId, createdAt])
+  @@map("article_revisions")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SEO Intelligence — crawl, graph, redirects, backlinks and entities
+// ─────────────────────────────────────────────────────────────────────────────
+
+model SeoCrawlRun {
+  id           String          @id @default(cuid())
+  status       StudioRunStatus @default(QUEUED)
+  baseUrl      String
+  totalPages   Int             @default(0)
+  crawledPages Int             @default(0)
+  error        String?         @db.Text
+  startedAt    DateTime?
+  completedAt  DateTime?
+  createdBy    String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  pages        SeoPage[]
+  links        SeoLinkEdge[]
+  issues       SeoIssue[]
+
+  @@index([status, createdAt])
+  @@map("seo_crawl_runs")
+}
+
+model SeoPage {
+  id                String              @id @default(cuid())
+  crawlRunId        String?
+  crawlRun          SeoCrawlRun?        @relation(fields: [crawlRunId], references: [id], onDelete: SetNull)
+  url               String              @unique @db.Text
+  path              String
+  locale            Locale?
+  pageType          String?
+  title             String?
+  statusCode        Int
+  indexable         Boolean             @default(true)
+  canonical         String?             @db.Text
+  noindex           Boolean             @default(false)
+  contentHash       String?
+  plainText         String?             @db.Text
+  depth             Int?
+  lastCrawledAt     DateTime            @default(now())
+  outgoingLinks     SeoLinkEdge[]       @relation("SeoLinkSource")
+  incomingLinks     SeoLinkEdge[]       @relation("SeoLinkTarget")
+  issues            SeoIssue[]
+  sourceSuggestions SeoLinkSuggestion[] @relation("SuggestionSource")
+  targetSuggestions SeoLinkSuggestion[] @relation("SuggestionTarget")
+
+  @@index([locale, pageType])
+  @@index([indexable, statusCode])
+  @@index([crawlRunId])
+  @@map("seo_pages")
+}
+
+model SeoLinkEdge {
+  id             String      @id @default(cuid())
+  crawlRunId     String
+  crawlRun       SeoCrawlRun @relation(fields: [crawlRunId], references: [id], onDelete: Cascade)
+  sourcePageId   String
+  sourcePage     SeoPage     @relation("SeoLinkSource", fields: [sourcePageId], references: [id], onDelete: Cascade)
+  targetPageId   String?
+  targetPage     SeoPage?    @relation("SeoLinkTarget", fields: [targetPageId], references: [id], onDelete: SetNull)
+  targetUrl      String      @db.Text
+  anchor         String?
+  rel            String?
+  statusCode     Int?
+  internal       Boolean     @default(true)
+  localeMismatch Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+
+  @@index([crawlRunId, sourcePageId])
+  @@index([targetPageId])
+  @@map("seo_link_edges")
+}
+
+model SeoIssue {
+  id         String           @id @default(cuid())
+  crawlRunId String
+  crawlRun   SeoCrawlRun      @relation(fields: [crawlRunId], references: [id], onDelete: Cascade)
+  pageId     String?
+  page       SeoPage?         @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  type       String
+  severity   SeoIssueSeverity
+  message    String           @db.Text
+  data       Json             @default("{}")
+  resolvedAt DateTime?
+  createdAt  DateTime         @default(now())
+
+  @@index([crawlRunId, severity])
+  @@index([pageId])
+  @@map("seo_issues")
+}
+
+model SeoLinkSuggestion {
+  id           String              @id @default(cuid())
+  articleId    String?
+  article      Article?            @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  sourcePageId String
+  sourcePage   SeoPage             @relation("SuggestionSource", fields: [sourcePageId], references: [id], onDelete: Cascade)
+  targetPageId String
+  targetPage   SeoPage             @relation("SuggestionTarget", fields: [targetPageId], references: [id], onDelete: Cascade)
+  anchor       String
+  context      String?             @db.Text
+  reason       String              @db.Text
+  confidence   Float
+  status       SeoSuggestionStatus @default(PENDING)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@index([articleId, status])
+  @@index([sourcePageId, targetPageId])
+  @@map("seo_link_suggestions")
+}
+
+model SeoRedirect {
+  id              String    @id @default(cuid())
+  sourcePath      String    @unique
+  destinationPath String
+  statusCode      Int       @default(301)
+  active          Boolean   @default(true)
+  hits            Int       @default(0)
+  lastHitAt       DateTime?
+  createdBy       String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([active, sourcePath])
+  @@map("seo_redirects")
+}
+
+model BacklinkImport {
+  id            String          @id @default(cuid())
+  fileName      String
+  provider      String          @default("AHREFS_CSV")
+  status        StudioRunStatus @default(QUEUED)
+  rowCount      Int             @default(0)
+  importedCount Int             @default(0)
+  mapping       Json            @default("{}")
+  error         String?         @db.Text
+  createdBy     String?
+  createdAt     DateTime        @default(now())
+  completedAt   DateTime?
+  backlinks     Backlink[]
+
+  @@index([status, createdAt])
+  @@map("backlink_imports")
+}
+
+model Backlink {
+  id           String         @id @default(cuid())
+  importId     String
+  import       BacklinkImport @relation(fields: [importId], references: [id], onDelete: Cascade)
+  sourceUrl    String         @db.Text
+  sourceDomain String
+  targetUrl    String         @db.Text
+  anchor       String?
+  rel          String?
+  firstSeen    DateTime?
+  lastSeen     DateTime?
+  status       String         @default("ACTIVE")
+  metrics      Json           @default("{}")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([sourceDomain])
+  @@index([status, lastSeen])
+  @@index([importId])
+  @@map("backlinks")
+}
+
+model SeoEntity {
+  id          String        @id @default(cuid())
+  type        SeoEntityType
+  name        String
+  slug        String        @unique
+  url         String?
+  description String?       @db.Text
+  imageUrl    String?
+  sameAs      Json          @default("[]")
+  credentials Json          @default("[]")
+  metadata    Json          @default("{}")
+  active      Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  articles    Article[]
+
+  @@index([type, active])
+  @@map("seo_entities")
+}
+
+model ArticleImageVariant {
+  id        String     @id @default(cuid())
+  articleId String
+  article   Article    @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  assetId   String
+  asset     MediaAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  ratio     String
+  kind      String     @default("COVER")
+  createdAt DateTime   @default(now())
+
+  @@unique([articleId, ratio, kind])
+  @@index([assetId])
+  @@map("article_image_variants")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
