@@ -4339,6 +4339,40 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   font-size: 13px;
 }
 
+.openai-settings-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.openai-settings-form {
+  display: grid;
+  gap: 16px;
+  padding-top: 4px;
+}
+
+.openai-settings-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.openai-settings-form .admin-field {
+  margin-bottom: 0;
+}
+
+.openai-settings-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+@media (max-width: 720px) {
+  .openai-settings-form__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .settings-code {
   font-family: 'JetBrains Mono', 'Courier New', monospace;
   font-size: 12px;

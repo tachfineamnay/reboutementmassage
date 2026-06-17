@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { getSession } from "@/lib/auth";
+import { getOpenAISettingsStatus } from "@/lib/openai";
+import OpenAISettingsForm from "@/components/admin/OpenAISettingsForm";
 
 export const metadata: Metadata = {
   title: "Settings — GT Dash",
@@ -15,6 +17,10 @@ const ENV_KEYS = [
   { key: "ADMIN_PASSWORD", label: "Mot de passe admin", sensitive: true },
   { key: "NEXT_PUBLIC_SITE_URL", label: "URL publique du site", sensitive: false },
   { key: "UPLOADS_DIR", label: "Dossier uploads", sensitive: false },
+  { key: "OPENAI_API_KEY", label: "Clé OpenAI", sensitive: true },
+  { key: "OPENAI_TEXT_MODEL", label: "Modèle texte OpenAI", sensitive: false },
+  { key: "OPENAI_IMAGE_MODEL", label: "Modèle image OpenAI", sensitive: false },
+  { key: "ADMIN_SETTINGS_ENCRYPTION_KEY", label: "Chiffrement settings", sensitive: true },
   { key: "NODE_ENV", label: "Environnement", sensitive: false },
 ];
 
@@ -26,7 +32,10 @@ function envStatus(key: string, sensitive: boolean) {
 }
 
 export default async function SettingsPage() {
-  const session = await getSession();
+  const [session, openAIStatus] = await Promise.all([
+    getSession(),
+    getOpenAISettingsStatus(),
+  ]);
 
   return (
     <div className="admin-page">
@@ -57,6 +66,8 @@ export default async function SettingsPage() {
           </dl>
         </div>
       </section>
+
+      <OpenAISettingsForm initialStatus={openAIStatus} />
 
       {/* Variables d'environnement */}
       <section className="admin-section">
@@ -104,9 +115,12 @@ ADMIN_PASSWORD=mot-de-passe-fort-32-chars
 SESSION_SECRET=cle-aleatoire-256-bits
 DATABASE_URL=postgresql://user:pass@host:5432/db
 NEXT_PUBLIC_SITE_URL=https://votre-domaine.fr
-UPLOADS_DIR=/app/storage/uploads`}</pre>
+UPLOADS_DIR=/app/storage/uploads
+ADMIN_SETTINGS_ENCRYPTION_KEY=cle-aleatoire-256-bits
+OPENAI_TEXT_MODEL=gpt-5.5
+OPENAI_IMAGE_MODEL=gpt-image-1`}</pre>
           <p className="settings-hint">
-            💡 Générez SESSION_SECRET avec :{" "}
+            💡 Générez SESSION_SECRET et ADMIN_SETTINGS_ENCRYPTION_KEY avec :{" "}
             <code>openssl rand -base64 32</code>
           </p>
         </div>

@@ -69,6 +69,17 @@ model AdminUser {
   @@map("admin_users")
 }
 
+model AdminSetting {
+  key       String   @id
+  value     String   @db.Text
+  encrypted Boolean  @default(false)
+  updatedBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admin_settings")
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // LeadSubmission — demandes privées reçues depuis la landing page
 // ─────────────────────────────────────────────────────────────────────────────

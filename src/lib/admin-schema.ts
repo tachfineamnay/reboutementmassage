@@ -8,6 +8,16 @@ const globalForAdminSchema = globalThis as unknown as {
 
 const schemaStatements = [
   `
+    CREATE TABLE IF NOT EXISTS "admin_settings" (
+      "key" TEXT PRIMARY KEY,
+      "value" TEXT NOT NULL,
+      "encrypted" BOOLEAN NOT NULL DEFAULT false,
+      "updatedBy" TEXT,
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `,
+  `
     ALTER TABLE "articles"
       ADD COLUMN IF NOT EXISTS "translationGroupId" TEXT
   `,
