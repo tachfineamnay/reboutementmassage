@@ -8,16 +8,24 @@ type Locale = "FR" | "EN" | "ES";
 
 type FormState = {
   locale: Locale;
-  title: string;
+  topic: string;
+  audience: string;
+  location: string;
+  businessGoal: string;
+  editorialAngle: string;
+  provisionalTitle: string;
   slug: string;
-  excerpt: string;
 };
 
 const DEFAULT: FormState = {
   locale: "FR",
-  title: "",
+  topic: "",
+  audience: "",
+  location: "",
+  businessGoal: "",
+  editorialAngle: "",
+  provisionalTitle: "",
   slug: "",
-  excerpt: "",
 };
 
 type FieldError = Partial<Record<keyof FormState, string>>;
@@ -26,11 +34,22 @@ function normalizeLocale(value: FormDataEntryValue | null, fallback: Locale): Lo
   return value === "FR" || value === "EN" || value === "ES" ? value : fallback;
 }
 
-/**
- * Formulaire de création d'article — léger, focusé sur l'essentiel.
- * Crée l'article + ArticleContent vide + ArticleSeo vide en une seule requête.
- * Redirige vers la page d'édition complète après création.
- */
+function titleFromTopic(topic: string) {
+  const cleaned = topic.trim().replace(/\s+/g, " ");
+  if (!cleaned) return "";
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+}
+
+function buildExcerpt(data: FormState) {
+  if (data.editorialAngle.trim()) return data.editorialAngle.trim();
+  const parts = [
+    data.topic.trim(),
+    data.audience.trim() ? `pour ${data.audience.trim()}` : "",
+    data.location.trim() ? `à ${data.location.trim()}` : "",
+  ].filter(Boolean);
+  return parts.join(" ").slice(0, 500);
+}
+
 export default function NewArticleForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -46,37 +65,69 @@ export default function NewArticleForm() {
     }
   }
 
-  function handleTitleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const title = e.target.value;
-    set("title", title);
-    // Auto-génère le slug seulement si l'utilisateur n'a pas édité manuellement
+  function syncSlug(nextTitle: string) {
     if (!slugEdited) {
-      set("slug", slugify(title));
+      set("slug", slugify(nextTitle));
     }
   }
 
-  function handleSlugChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleTopicChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
+    const topic = event.target.value;
+    set("topic", topic);
+    if (!data.provisionalTitle.trim()) {
+      syncSlug(titleFromTopic(topic));
+    }
+  }
+
+  function handleTitleChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const title = event.target.value;
+    set("provisionalTitle", title);
+    syncSlug(title || titleFromTopic(data.topic));
+  }
+
+  function handleSlugChange(event: React.ChangeEvent<HTMLInputElement>) {
     setSlugEdited(true);
-    set("slug", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, ""));
+    set(
+      "slug",
+      event.target.value
+        .toLowerCase()
+        .replace(/[^a-z0-9-]/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "")
+    );
+  }
+
+  function getResolvedTitle() {
+    return data.provisionalTitle.trim() || titleFromTopic(data.topic);
   }
 
   function validate(): boolean {
     const errors: FieldError = {};
-    if (!data.title.trim()) errors.title = "Le titre est requis.";
-    if (!data.slug.trim()) errors.slug = "Le slug est requis.";
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(data.slug)) {
+    const title = getResolvedTitle();
+    const slug = data.slug.trim() || slugify(title);
+
+    if (!data.topic.trim() && !data.provisionalTitle.trim()) {
+      errors.topic = "Renseignez un sujet ou un titre provisoire.";
+    }
+    if (!title) errors.provisionalTitle = "Un titre provisoire est requis.";
+    if (!slug) errors.slug = "Le slug est requis.";
+    if (slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
       errors.slug = "Slug invalide : minuscules, chiffres et tirets uniquement.";
     }
-    if (data.excerpt.length > 500) errors.excerpt = "Maximum 500 caractères.";
+
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
     const selectedLocale = normalizeLocale(formData.get("locale"), data.locale);
     if (!validate()) return;
+
+    const title = getResolvedTitle();
+    const slug = data.slug.trim() || slugify(title);
+    const excerpt = buildExcerpt(data);
     setError(null);
 
     startTransition(async () => {
@@ -86,22 +137,20 @@ export default function NewArticleForm() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             locale: selectedLocale,
-            title: data.title.trim(),
-            slug: data.slug.trim(),
-            excerpt: data.excerpt.trim() || null,
+            title,
+            slug,
+            excerpt: excerpt || null,
             status: "DRAFT",
           }),
         });
 
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
-          // Erreur de validation Zod
           if (res.status === 422 && body.details) {
             const flat = body.details.fieldErrors as Record<string, string[]>;
             setFieldErrors({
-              title: flat.title?.[0],
+              provisionalTitle: flat.title?.[0],
               slug: flat.slug?.[0],
-              excerpt: flat.excerpt?.[0],
             });
             throw new Error("Veuillez corriger les erreurs ci-dessous.");
           }
@@ -109,123 +158,165 @@ export default function NewArticleForm() {
         }
 
         const article = await res.json();
-        // Redirige vers la page d'édition complète
+
+        await fetch(`/api/admin/articles/${article.id}/seo`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            noindex: false,
+            primaryQuestion: data.topic.trim() || null,
+            targetAudience: data.audience.trim() || null,
+            geoLocation: data.location.trim() || null,
+            businessGoal: data.businessGoal.trim() || null,
+            entityTargets: [],
+            faqItems: [],
+            evidenceNotes: { experience: "", precautions: "" },
+          }),
+        }).catch(() => undefined);
+
         router.push(`/admin/articles/${article.id}`);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Erreur inconnue.");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Erreur inconnue.");
       }
     });
   }
 
   return (
-    <form onSubmit={handleSubmit} className="new-article-form" noValidate>
+    <form onSubmit={handleSubmit} className="new-article-form new-studio-form" noValidate>
       {error && (
         <div className="admin-alert admin-alert--error" role="alert">
           {error}
         </div>
       )}
 
-      {/* Langue */}
-      <div className="admin-field">
-        <label className="admin-label" htmlFor="na-locale">
-          Langue <span className="admin-required">*</span>
+      <div className={`admin-field ${fieldErrors.topic ? "admin-field--error" : ""}`}>
+        <label className="admin-label" htmlFor="studio-topic">
+          Sujet brut <span className="admin-required">*</span>
         </label>
-        <select
-          id="na-locale"
-          name="locale"
-          className="admin-input"
-          value={data.locale}
-          onChange={(e) => set("locale", e.target.value as Locale)}
-          disabled={isPending}
-          required
-        >
-          <option value="FR">🇫🇷 Français</option>
-          <option value="EN">🇬🇧 English</option>
-          <option value="ES">🇪🇸 Español</option>
-        </select>
-        <span className="admin-hint">
-          Cette langue détermine la page publique de l&apos;article.
-        </span>
-      </div>
-
-      {/* Titre */}
-      <div className={`admin-field ${fieldErrors.title ? "admin-field--error" : ""}`}>
-        <label className="admin-label" htmlFor="na-title">
-          Titre <span className="admin-required">*</span>
-        </label>
-        <input
-          id="na-title"
-          type="text"
+        <textarea
+          id="studio-topic"
+          className={`admin-input admin-input--lg ${fieldErrors.topic ? "admin-input--invalid" : ""}`}
+          rows={4}
           autoFocus
-          className={`admin-input admin-input--lg ${fieldErrors.title ? "admin-input--invalid" : ""}`}
-          placeholder="Titre de l'article"
-          value={data.title}
-          onChange={handleTitleChange}
-          maxLength={200}
+          value={data.topic}
+          onChange={handleTopicChange}
+          placeholder="Ex. Soulager les tensions cervicales après un long voyage"
           disabled={isPending}
         />
-        {fieldErrors.title && (
-          <span className="admin-field-error">{fieldErrors.title}</span>
-        )}
+        {fieldErrors.topic && <span className="admin-field-error">{fieldErrors.topic}</span>}
       </div>
 
-      {/* Slug */}
-      <div className={`admin-field ${fieldErrors.slug ? "admin-field--error" : ""}`}>
-        <label className="admin-label" htmlFor="na-slug">
-          Slug URL <span className="admin-required">*</span>
-          {!slugEdited && data.slug && (
-            <span className="admin-label__hint">généré automatiquement</span>
-          )}
-        </label>
-        <div className="admin-input-group">
-          <span className="admin-input-prefix">
-            /{data.locale.toLowerCase()}/stories/
-          </span>
+      <div className="new-studio-form__grid">
+        <div className="admin-field">
+          <label className="admin-label" htmlFor="studio-locale">
+            Langue de départ
+          </label>
+          <select
+            id="studio-locale"
+            name="locale"
+            className="admin-input"
+            value={data.locale}
+            onChange={(event) => set("locale", event.target.value as Locale)}
+            disabled={isPending}
+          >
+            <option value="FR">Français</option>
+            <option value="EN">English</option>
+            <option value="ES">Español</option>
+          </select>
+        </div>
+
+        <div className="admin-field">
+          <label className="admin-label" htmlFor="studio-audience">Audience cible</label>
           <input
-            id="na-slug"
-            type="text"
-            className={`admin-input ${fieldErrors.slug ? "admin-input--invalid" : ""}`}
-            placeholder="mon-article"
-            value={data.slug}
-            onChange={handleSlugChange}
-            maxLength={200}
+            id="studio-audience"
+            className="admin-input"
+            value={data.audience}
+            onChange={(event) => set("audience", event.target.value)}
+            placeholder="Client privé, spa, hôtel, thérapeute..."
             disabled={isPending}
           />
         </div>
-        {fieldErrors.slug ? (
-          <span className="admin-field-error">{fieldErrors.slug}</span>
-        ) : (
-          <span className="admin-hint">
-            Minuscules, chiffres, tirets — modifiable après création
-          </span>
-        )}
+
+        <div className="admin-field">
+          <label className="admin-label" htmlFor="studio-location">Localisation</label>
+          <input
+            id="studio-location"
+            className="admin-input"
+            value={data.location}
+            onChange={(event) => set("location", event.target.value)}
+            placeholder="France, Sayulita, Caraïbes..."
+            disabled={isPending}
+          />
+        </div>
+
+        <div className="admin-field">
+          <label className="admin-label" htmlFor="studio-goal">Objectif business</label>
+          <input
+            id="studio-goal"
+            className="admin-input"
+            value={data.businessGoal}
+            onChange={(event) => set("businessGoal", event.target.value)}
+            placeholder="Qualifier une demande, rassurer, convertir..."
+            disabled={isPending}
+          />
+        </div>
       </div>
 
-      {/* Extrait */}
-      <div className={`admin-field ${fieldErrors.excerpt ? "admin-field--error" : ""}`}>
-        <label className="admin-label" htmlFor="na-excerpt">
-          Extrait
-          <span className="admin-label__optional">optionnel</span>
-        </label>
+      <div className="admin-field">
+        <label className="admin-label" htmlFor="studio-angle">Angle éditorial</label>
         <textarea
-          id="na-excerpt"
-          className={`admin-input ${fieldErrors.excerpt ? "admin-input--invalid" : ""}`}
+          id="studio-angle"
+          className="admin-input"
           rows={3}
-          placeholder="Bref résumé visible dans la liste des articles et sur les réseaux sociaux…"
-          value={data.excerpt}
           maxLength={500}
-          onChange={(e) => set("excerpt", e.target.value)}
+          value={data.editorialAngle}
+          onChange={(event) => set("editorialAngle", event.target.value)}
+          placeholder="Point de vue, promesse éditoriale ou extrait de départ."
           disabled={isPending}
         />
-        <span className={`admin-hint ${data.excerpt.length > 480 ? "admin-hint--warn" : ""}`}>
-          {data.excerpt.length}/500
-        </span>
-        {fieldErrors.excerpt && (
-          <span className="admin-field-error">{fieldErrors.excerpt}</span>
-        )}
+        <span className="admin-hint">{data.editorialAngle.length}/500</span>
       </div>
 
-      {/* Actions */}
+      <div className="new-studio-form__grid">
+        <div className={`admin-field ${fieldErrors.provisionalTitle ? "admin-field--error" : ""}`}>
+          <label className="admin-label" htmlFor="studio-title">
+            Titre provisoire
+            <span className="admin-label__optional">optionnel si sujet renseigné</span>
+          </label>
+          <input
+            id="studio-title"
+            className={`admin-input ${fieldErrors.provisionalTitle ? "admin-input--invalid" : ""}`}
+            value={data.provisionalTitle}
+            onChange={handleTitleChange}
+            maxLength={200}
+            placeholder={titleFromTopic(data.topic) || "Titre de départ"}
+            disabled={isPending}
+          />
+          {fieldErrors.provisionalTitle && (
+            <span className="admin-field-error">{fieldErrors.provisionalTitle}</span>
+          )}
+        </div>
+
+        <div className={`admin-field ${fieldErrors.slug ? "admin-field--error" : ""}`}>
+          <label className="admin-label" htmlFor="studio-slug">
+            Slug URL <span className="admin-required">*</span>
+            {!slugEdited && data.slug && <span className="admin-label__hint">auto</span>}
+          </label>
+          <div className="admin-input-group">
+            <span className="admin-input-prefix">/{data.locale.toLowerCase()}/stories/</span>
+            <input
+              id="studio-slug"
+              className={`admin-input ${fieldErrors.slug ? "admin-input--invalid" : ""}`}
+              value={data.slug}
+              onChange={handleSlugChange}
+              maxLength={200}
+              disabled={isPending}
+            />
+          </div>
+          {fieldErrors.slug && <span className="admin-field-error">{fieldErrors.slug}</span>}
+        </div>
+      </div>
+
       <div className="new-article-form__actions">
         <button
           type="button"
@@ -238,16 +329,9 @@ export default function NewArticleForm() {
         <button
           type="submit"
           className="admin-btn admin-btn--primary"
-          disabled={isPending || !data.title || !data.slug}
+          disabled={isPending || (!data.topic.trim() && !data.provisionalTitle.trim())}
         >
-          {isPending ? (
-            <span className="login-btn-inner">
-              <span className="login-spinner" aria-hidden="true" />
-              Création…
-            </span>
-          ) : (
-            "Créer et éditer →"
-          )}
+          {isPending ? "Création..." : "Lancer le Studio"}
         </button>
       </div>
     </form>

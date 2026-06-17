@@ -21,6 +21,12 @@ export type ContentStats = {
   characters: number;
 };
 
+export type TiptapContentCommand = {
+  id: string;
+  html: string;
+  mode: "insert" | "replace";
+};
+
 type TiptapEditorProps = {
   /**
    * Contenu initial au format JSON Tiptap (editorJson) ou null.
@@ -45,6 +51,7 @@ type TiptapEditorProps = {
    */
   placeholder?: string;
   locale?: "FR" | "EN" | "ES";
+  contentCommand?: TiptapContentCommand | null;
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -71,6 +78,18 @@ function computeStats(plainText: string, characters: number): ContentStats {
   return { wordCount: words, readingTime, characters };
 }
 
+function emitEditorChange(
+  editor: NonNullable<ReturnType<typeof useEditor>>,
+  onChange: TiptapEditorProps["onChange"]
+) {
+  const json = editor.getJSON() as TiptapContent;
+  const html = editor.getHTML();
+  const plainText = jsonToPlainText(json);
+  const characters = editor.storage.characterCount?.characters() ?? 0;
+  const stats = computeStats(plainText, characters);
+  onChange({ editorJson: json, html, plainText, stats });
+}
+
 // ─── Composant ───────────────────────────────────────────────────────────────
 
 export default function TiptapEditor({
@@ -79,9 +98,11 @@ export default function TiptapEditor({
   readOnly = false,
   placeholder = "Commencez à rédiger votre article…",
   locale = "FR",
+  contentCommand = null,
 }: TiptapEditorProps) {
   // Ref pour éviter les calls onChange pendant le chargement initial
   const isInitialized = useRef(false);
+  const lastCommandId = useRef<string | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -120,14 +141,7 @@ export default function TiptapEditor({
     },
     onUpdate: ({ editor }) => {
       if (!isInitialized.current) return;
-
-      const json = editor.getJSON() as TiptapContent;
-      const html = editor.getHTML();
-      const plainText = jsonToPlainText(json);
-      const characters = editor.storage.characterCount?.characters() ?? 0;
-      const stats = computeStats(plainText, characters);
-
-      onChange({ editorJson: json, html, plainText, stats });
+      emitEditorChange(editor, onChange);
     },
   });
 
@@ -149,6 +163,19 @@ export default function TiptapEditor({
       editor.commands.setContent(initialContent);
     }
   }, [editor, initialContent]);
+
+  useEffect(() => {
+    if (!editor || !contentCommand || !isInitialized.current) return;
+    if (lastCommandId.current === contentCommand.id) return;
+
+    lastCommandId.current = contentCommand.id;
+    if (contentCommand.mode === "replace") {
+      editor.commands.setContent(contentCommand.html);
+    } else {
+      editor.commands.insertContent(contentCommand.html);
+    }
+    emitEditorChange(editor, onChange);
+  }, [contentCommand, editor, onChange]);
 
   // Destroy proprement
   useEffect(() => {

@@ -11,6 +11,7 @@ type Props = {
   initialLocale: Locale;
   slug: string;
   status: ArticleStatus;
+  embedded?: boolean;
 };
 
 const LOCALE_LABELS: Record<Locale, string> = {
@@ -24,6 +25,7 @@ export default function ArticleLocaleSwitcher({
   initialLocale,
   slug,
   status,
+  embedded = false,
 }: Props) {
   const router = useRouter();
   const [locale, setLocale] = useState<Locale>(initialLocale);
@@ -70,7 +72,10 @@ export default function ArticleLocaleSwitcher({
   }
 
   return (
-    <form className="admin-panel article-locale-switcher" onSubmit={handleSubmit}>
+    <form
+      className={`${embedded ? "article-locale-switcher article-locale-switcher--embedded" : "admin-panel article-locale-switcher"}`}
+      onSubmit={handleSubmit}
+    >
       <div>
         <h2 className="admin-panel__title">Langue et URL publique</h2>
         <p className="article-locale-switcher__warning">

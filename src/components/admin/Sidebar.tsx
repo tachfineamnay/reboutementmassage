@@ -10,30 +10,35 @@ const NAV_ITEMS = [
     label: "Overview",
     icon: "◈",
     exact: false,
+    primary: false,
   },
   {
     href: "/admin/articles",
-    label: "Articles",
+    label: "Studio Articles",
     icon: "✦",
     exact: false,
+    primary: true,
   },
   {
     href: "/admin/demandes",
     label: "Demandes",
     icon: "☎",
     exact: false,
+    primary: false,
   },
   {
     href: "/admin/sections",
     label: "Landing Sections",
     icon: "⊞",
     exact: false,
+    primary: false,
   },
   {
     href: "/admin/settings",
     label: "Settings",
     icon: "⚙",
     exact: true,
+    primary: false,
   },
 ];
 
@@ -78,7 +83,7 @@ export default function AdminSidebar() {
                 href={item.href}
                 className={`admin-sidebar__link ${
                   isActive(item) ? "admin-sidebar__link--active" : ""
-                }`}
+                } ${item.primary ? "admin-sidebar__link--primary" : "admin-sidebar__link--secondary"}`}
               >
                 <span className="admin-sidebar__icon" aria-hidden="true">
                   {item.icon}

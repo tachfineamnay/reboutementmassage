@@ -3,7 +3,7 @@ import Link from "next/link";
 import NewArticleForm from "@/components/admin/NewArticleForm";
 
 export const metadata: Metadata = {
-  title: "Nouvel article — GT Dash",
+  title: "Nouveau Studio — GT Dash",
   robots: { index: false, follow: false },
 };
 
@@ -15,7 +15,7 @@ export default function NewArticlePage() {
           <Link href="/admin/articles" className="admin-breadcrumb">
             ← Articles
           </Link>
-          <h1 className="admin-page__title">Nouvel article</h1>
+          <h1 className="admin-page__title">Nouveau Studio Article</h1>
         </div>
       </div>
 

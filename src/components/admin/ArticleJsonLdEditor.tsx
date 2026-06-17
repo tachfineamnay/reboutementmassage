@@ -5,6 +5,7 @@ import { useMemo, useState, useTransition } from "react";
 type ArticleJsonLdEditorProps = {
   articleId: string;
   initialValue: unknown;
+  embedded?: boolean;
 };
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -50,6 +51,7 @@ const EXAMPLE_JSON_LD = `{
 export default function ArticleJsonLdEditor({
   articleId,
   initialValue,
+  embedded = false,
 }: ArticleJsonLdEditorProps) {
   const [isPending, startTransition] = useTransition();
   const initialText = useMemo(() => stringifyInitialValue(initialValue), [initialValue]);
@@ -108,7 +110,10 @@ export default function ArticleJsonLdEditor({
   }
 
   return (
-    <section className="admin-panel" style={{ marginTop: "24px" }}>
+    <section
+      className={embedded ? "article-jsonld-editor article-jsonld-editor--embedded" : "admin-panel"}
+      style={embedded ? undefined : { marginTop: "24px" }}
+    >
       <div className="seo-panel__heading">
         <div>
           <p className="seo-panel__eyebrow">Schema personnalisé</p>

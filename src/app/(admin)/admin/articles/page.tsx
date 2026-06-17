@@ -9,7 +9,7 @@ import SeoScoreBadge from "@/components/admin/SeoScoreBadge";
 import DeleteArticleButton from "./DeleteArticleButton";
 
 export const metadata: Metadata = {
-  title: "Articles — GT Dash",
+  title: "Studio Articles — GT Dash",
   robots: { index: false, follow: false },
 };
 
@@ -35,6 +35,13 @@ const fmt = new Intl.DateTimeFormat("fr-FR", {
   month: "short",
   year: "numeric",
 });
+
+const PRODUCTION_STATUS: Record<string, string> = {
+  DRAFT: "À écrire",
+  READY: "À valider",
+  PUBLISHED: "Publié",
+  ARCHIVED: "Archivé",
+};
 
 function getSuspectedLocale(title: string): "EN" | "ES" | null {
   const normalizedTitle = title.toLowerCase();
@@ -97,9 +104,12 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
             focusKeyword: true,
             ogImageId: true,
             score: true,
+            aeoScore: true,
+            geoScore: true,
+            atomicAnswerPresent: true,
           },
         },
-        content: { select: { wordCount: true } },
+        content: { select: { wordCount: true, readingTime: true } },
       },
     }),
     prisma.article.count({ where }),
@@ -121,9 +131,9 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
       excerpt: a.excerpt,
       wordCount: a.content?.wordCount,
     }),
-    aeoScore: 0,
-    geoScore: 0,
-    atomicAnswerPresent: false,
+    aeoScore: a.seo?.aeoScore ?? 0,
+    geoScore: a.seo?.geoScore ?? 0,
+    atomicAnswerPresent: a.seo?.atomicAnswerPresent ?? false,
   }));
 
   // Build filter URL helper
@@ -142,14 +152,14 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
       {/* Header */}
       <div className="admin-page__header">
         <div>
-          <h1 className="admin-page__title">Articles</h1>
+          <h1 className="admin-page__title">Studio Articles</h1>
           <p className="admin-page__meta">
-            {total} article{total !== 1 ? "s" : ""}
+            {total} studio{total !== 1 ? "s" : ""}
             {hasFilters && " (filtrés)"}
           </p>
         </div>
         <Link href="/admin/articles/new" className="admin-btn admin-btn--primary">
-          + Nouvel article
+          + Nouveau Studio
         </Link>
       </div>
 
@@ -171,8 +181,8 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
           className="admin-input admin-filters__select"
         >
           <option value="">Tous les statuts</option>
-          <option value="DRAFT">Brouillons</option>
-          <option value="READY">Prêts</option>
+          <option value="DRAFT">À écrire</option>
+          <option value="READY">À valider</option>
           <option value="PUBLISHED">Publiés</option>
           <option value="ARCHIVED">Archivés</option>
         </select>
@@ -214,7 +224,7 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
             <>
               <p>Aucun article pour l&apos;instant.</p>
               <Link href="/admin/articles/new" className="admin-btn admin-btn--primary">
-                Créer le premier article
+                Créer le premier Studio
               </Link>
             </>
           )}
@@ -228,9 +238,9 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
                   <th className="col-title">Titre</th>
                   <th className="col-lang">Langue</th>
                   <th className="col-slug">Slug</th>
-                  <th className="col-status">Statut</th>
+                  <th className="col-status">Production</th>
                   <th className="col-seo">SEO</th>
-                  <th className="col-pub">Publication</th>
+                  <th className="col-pub">Image</th>
                   <th className="col-upd">Modifié</th>
                   <th className="col-actions">Actions</th>
                 </tr>
@@ -249,6 +259,7 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
                       {article.content?.wordCount ? (
                         <span className="admin-table__meta">
                           {article.content.wordCount} mots
+                          {article.content.readingTime ? ` · ${article.content.readingTime} min` : ""}
                         </span>
                       ) : null}
                     </td>
@@ -277,7 +288,10 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
 
                     {/* Statut */}
                     <td>
-                      <ArticleStatusBadge status={article.status} />
+                      <span className="production-status">
+                        <ArticleStatusBadge status={article.status} />
+                        <span>{PRODUCTION_STATUS[article.status] ?? article.status}</span>
+                      </span>
                     </td>
 
                     {/* Score SEO */}
@@ -290,15 +304,15 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
                       />
                     </td>
 
-                    {/* Date publication */}
-                    <td className="admin-table__date">
-                      {article.publishedAt ? (
-                        <time dateTime={article.publishedAt.toISOString()}>
-                          {fmt.format(article.publishedAt)}
-                        </time>
-                      ) : (
-                        <span className="admin-table__na">—</span>
-                      )}
+                    {/* Image */}
+                    <td>
+                      <span
+                        className={`image-status ${
+                          article.coverImageId ? "image-status--ok" : "image-status--todo"
+                        }`}
+                      >
+                        {article.coverImageId ? "Image OK" : "Image à faire"}
+                      </span>
                     </td>
 
                     {/* Dernière modif */}
@@ -313,9 +327,9 @@ export default async function ArticlesListPage({ searchParams }: PageProps) {
                       <Link
                         href={`/admin/articles/${article.id}`}
                         className="admin-action"
-                        title="Éditer"
+                        title="Ouvrir Studio"
                       >
-                        Éditer
+                        Ouvrir Studio
                       </Link>
                       {article.status === "PUBLISHED" && (
                         <a
