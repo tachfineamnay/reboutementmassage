@@ -14,7 +14,7 @@ fi
 if [ "${RUN_DB_PUSH:-0}" = "1" ]; then
   if [ -n "${DATABASE_URL:-}" ]; then
     echo "Applying Prisma schema..."
-    if pnpm exec prisma db push; then
+    if node ./node_modules/prisma/build/index.js db push; then
       echo "Prisma schema synchronized."
     else
       echo "WARNING: Prisma schema synchronization failed; starting the web server anyway." >&2
