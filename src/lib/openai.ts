@@ -254,6 +254,7 @@ export async function cancelOpenAIResponse(responseId: string) {
 export async function createOpenAIJsonResponse<T>({
   system,
   user,
+  jsonSchema,
   schemaName,
   outputSchema,
 }: {
