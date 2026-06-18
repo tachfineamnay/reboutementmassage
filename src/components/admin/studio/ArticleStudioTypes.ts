@@ -5,6 +5,7 @@ export type Locale = "FR" | "EN" | "ES";
 export type ArticleStatus = "DRAFT" | "READY" | "PUBLISHED" | "ARCHIVED";
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
 export type StudioMobileTab = "chat" | "article" | "seo" | "image" | "langues" | "publish";
+export type StudioSection = "brief" | "draft" | "seo" | "image" | "publish";
 
 export type ArticleData = {
   id: string;

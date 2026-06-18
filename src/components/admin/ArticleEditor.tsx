@@ -17,6 +17,7 @@ import type {
   GoogleMetrics,
   SaveStatus,
   StudioMobileTab,
+  StudioSection,
   TiptapChangePayload,
   TiptapContentCommand,
 } from "./studio/ArticleStudioTypes";
@@ -82,7 +83,9 @@ export default function ArticleEditor({
   const [saveMessage, setSaveMessage] = useState("");
   const [isDirty, setIsDirty] = useState(false);
   const [activeMobileTab, setActiveMobileTab] = useState<StudioMobileTab>("article");
+  const [activeSection, setActiveSection] = useState<StudioSection>("draft");
   const [contentCommand, setContentCommand] = useState<TiptapContentCommand | null>(null);
+  const [showAssistant, setShowAssistant] = useState(true);
 
   const [ga4Data, setGa4Data] = useState<{
     sessions: number;
@@ -530,77 +533,132 @@ export default function ArticleEditor({
       }).format(new Date(data.updatedAt))
     : "";
 
+  const handleSectionChange = useCallback((section: StudioSection) => {
+    setActiveSection(section);
+    if (section === "seo" || section === "image" || section === "publish") {
+      setActiveMobileTab("seo");
+    } else {
+      setActiveMobileTab("article");
+    }
+  }, []);
+
   return (
-    <div className="article-studio">
+    <div className="article-studio article-studio--v2">
       <header className="article-studio__header">
-        <div className="article-studio__breadcrumb">
-          <Link href="/admin/articles">Articles</Link>
-          <span>/</span>
-          <span>Studio</span>
+        <div className="article-studio__header-top">
+          <div className="article-studio__breadcrumb">
+            <Link href="/admin/articles" className="article-studio__back">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M11 14L6 9L11 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Articles
+            </Link>
+          </div>
+          
+          <div className="article-studio__header-actions">
+            <div className="article-studio__save-indicator">
+              {isDirty && saveStatus === "idle" && (
+                <span className="save-indicator save-indicator--dirty">
+                  <span className="save-indicator__dot" />
+                  Non sauvegardé
+                </span>
+              )}
+              {saveStatus === "saving" && (
+                <span className="save-indicator save-indicator--saving">
+                  <span className="save-indicator__spinner" />
+                  Sauvegarde...
+                </span>
+              )}
+              {saveStatus === "saved" && (
+                <span className="save-indicator save-indicator--saved">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M2.5 7L5.5 10L11.5 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  {saveMessage}
+                </span>
+              )}
+              {saveStatus === "error" && (
+                <span className="save-indicator save-indicator--error">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M7 4v3M7 9.5v.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.5"/>
+                  </svg>
+                  {saveMessage}
+                </span>
+              )}
+            </div>
+
+            <button
+              type="button"
+              className="admin-btn admin-btn--ghost admin-btn--icon"
+              onClick={() => setShowAssistant(!showAssistant)}
+              title={showAssistant ? "Masquer l'assistant" : "Afficher l'assistant"}
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M4 5h12M4 10h8M4 15h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </button>
+
+            <button
+              type="button"
+              className="admin-btn admin-btn--secondary"
+              onClick={() => save()}
+              disabled={saveStatus === "saving" || !isDirty}
+            >
+              Sauvegarder
+            </button>
+
+            {data.status !== "PUBLISHED" && (
+              <button
+                type="button"
+                className="admin-btn admin-btn--primary"
+                onClick={() => handleStatusAction("PUBLISHED")}
+                disabled={isPending || saveStatus === "saving"}
+              >
+                Publier
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="article-studio__title-row">
           <input
             type="text"
-            className="article-editor__title-input article-studio__title-input"
+            className="article-studio__title-input"
             value={data.title}
             onChange={handleTitleChange}
             placeholder="Titre de l'article"
             maxLength={200}
           />
-          <ArticleStatusBadge status={data.status} />
+          <div className="article-studio__title-meta">
+            <ArticleStatusBadge status={data.status} />
+            <span className="article-studio__locale">{data.locale}</span>
+          </div>
         </div>
 
-        <div className="article-studio__toolbar">
-          <div className="article-editor__meta">
-            <span className="article-editor__stat">{data.locale}</span>
-            <span className="article-editor__stat">
-              {data.content.wordCount} mots · {data.content.readingTime || 0} min
+        <div className="article-studio__stats">
+          <span className="article-studio__stat">
+            <strong>{data.content.wordCount}</strong> mots
+          </span>
+          <span className="article-studio__stat">
+            <strong>{data.content.readingTime || 0}</strong> min
+          </span>
+          <span className="article-studio__stat">
+            <strong>{data.seo.score}</strong> SEO
+          </span>
+          {formattedUpdatedAt && (
+            <span className="article-studio__stat article-studio__stat--muted">
+              Modifié {formattedUpdatedAt}
             </span>
-            {formattedUpdatedAt && (
-              <span className="article-editor__stat">Modifié {formattedUpdatedAt}</span>
-            )}
-            {isDirty && saveStatus === "idle" && (
-              <span className="article-editor__stat article-editor__stat--dirty">
-                Modifications non sauvegardées
-              </span>
-            )}
-            {saveStatus !== "idle" && (
-              <span className={`save-status save-status--${saveStatus}`} role="status">
-                {saveStatus === "saving" && "Sauvegarde..."}
-                {saveStatus === "saved" && saveMessage}
-                {saveStatus === "error" && saveMessage}
-              </span>
-            )}
-          </div>
-
-          <div className="article-editor__actions">
-            <button
-              type="button"
-              className="admin-btn admin-btn--primary"
-              onClick={() => save()}
-              disabled={saveStatus === "saving"}
-            >
-              Sauvegarder
-            </button>
-            {STATUS_TRANSITIONS[data.status].map(({ label, next }) => (
-              <button
-                key={next}
-                type="button"
-                className={`admin-btn admin-btn--ghost ${
-                  next === "PUBLISHED" ? "admin-btn--success" : ""
-                } ${next === "ARCHIVED" ? "admin-btn--danger" : ""}`}
-                onClick={() => handleStatusAction(next)}
-                disabled={isPending || saveStatus === "saving"}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          )}
         </div>
       </header>
 
-      <ArticleStudioStepper article={data} />
+      <ArticleStudioStepper 
+        article={data} 
+        activeSection={activeSection}
+        onSectionChange={handleSectionChange}
+      />
 
       <nav className="article-studio-mobile-tabs" aria-label="Sections Studio">
         {MOBILE_TABS.map((tab) => (
@@ -615,46 +673,47 @@ export default function ArticleEditor({
         ))}
       </nav>
 
-      <div className="article-studio__layout">
-        <div
-          className={`article-studio__pane article-studio__pane--chat ${
-            activeMobileTab === "chat" ? "article-studio__pane--active" : ""
-          }`}
-        >
-          <ArticleAIAssistant
-            article={data}
-            onApplyPatch={applyArticlePatch}
-            onInsertHtml={insertHtml}
-          />
-        </div>
+      <div className={`article-studio__layout ${!showAssistant ? "article-studio__layout--no-chat" : ""}`}>
+        {showAssistant && (
+          <div
+            className={`article-studio__pane article-studio__pane--chat ${
+              activeMobileTab === "chat" ? "article-studio__pane--active" : ""
+            }`}
+          >
+            <ArticleAIAssistant
+              article={data}
+              onApplyPatch={applyArticlePatch}
+              onInsertHtml={insertHtml}
+            />
+          </div>
+        )}
 
         <main
           className={`article-studio__pane article-studio__canvas ${
             activeMobileTab === "article" ? "article-studio__pane--active" : ""
           }`}
         >
-          <div className="article-studio-canvas__meta">
-            <div className="admin-field">
+          <div className="article-studio-canvas__header">
+            <div className="admin-field admin-field--inline">
               <label className="admin-label" htmlFor="article-studio-excerpt">
                 Extrait
               </label>
               <textarea
                 id="article-studio-excerpt"
                 className="admin-input"
-                rows={3}
+                rows={2}
                 maxLength={500}
                 value={data.excerpt}
                 onChange={(event) => setArticleField("excerpt", event.target.value)}
-                placeholder="Résumé court pour la liste, les partages et la promesse éditoriale."
+                placeholder="Résumé court pour les partages et la promesse éditoriale."
               />
-              <span className="admin-hint">{data.excerpt.length}/500</span>
             </div>
 
-            <div className="admin-field">
+            <div className="admin-field admin-field--inline">
               <label className="admin-label" htmlFor="article-studio-slug">
-                Slug URL
+                URL
               </label>
-              <div className="admin-input-group">
+              <div className="admin-input-group admin-input-group--compact">
                 <span className="admin-input-prefix">/{data.locale.toLowerCase()}/stories/</span>
                 <input
                   id="article-studio-slug"
@@ -666,21 +725,18 @@ export default function ArticleEditor({
                   maxLength={200}
                 />
               </div>
-              {data.status === "PUBLISHED" && (
-                <span className="admin-hint admin-hint--warn">
-                  Modifier le slug d&apos;un article publié casse les liens existants.
-                </span>
-              )}
             </div>
           </div>
 
-          <TiptapEditor
-            initialContent={data.content.editorJson}
-            onChange={handleEditorChange}
-            placeholder="Rédigez l'article ici. L'assistant propose, ce canvas valide."
-            locale={data.locale}
-            contentCommand={contentCommand}
-          />
+          <div className="article-studio-canvas__editor">
+            <TiptapEditor
+              initialContent={data.content.editorJson}
+              onChange={handleEditorChange}
+              placeholder="Rédigez votre article ici..."
+              locale={data.locale}
+              contentCommand={contentCommand}
+            />
+          </div>
         </main>
 
         <div
