@@ -18,8 +18,29 @@ const schemaStatements = [
     )
   `,
   `
+    CREATE TABLE IF NOT EXISTS "seo_entities" (
+      "id" TEXT PRIMARY KEY,
+      "type" TEXT NOT NULL,
+      "name" TEXT NOT NULL,
+      "slug" TEXT NOT NULL UNIQUE,
+      "url" TEXT,
+      "description" TEXT,
+      "imageUrl" TEXT,
+      "sameAs" JSONB NOT NULL DEFAULT '[]',
+      "credentials" JSONB NOT NULL DEFAULT '[]',
+      "metadata" JSONB NOT NULL DEFAULT '{}',
+      "active" BOOLEAN NOT NULL DEFAULT true,
+      "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `,
+  `
     ALTER TABLE "articles"
       ADD COLUMN IF NOT EXISTS "translationGroupId" TEXT
+  `,
+  `
+    ALTER TABLE "articles"
+      ADD COLUMN IF NOT EXISTS "authorEntityId" TEXT
   `,
   `
     ALTER TABLE "article_seo"
@@ -70,6 +91,31 @@ const schemaStatements = [
   `
     CREATE INDEX IF NOT EXISTS "articles_translationGroupId_idx"
       ON "articles"("translationGroupId")
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS "articles_authorEntityId_idx"
+      ON "articles"("authorEntityId")
+  `,
+  `
+    CREATE INDEX IF NOT EXISTS "seo_entities_type_active_idx"
+      ON "seo_entities"("type", "active")
+  `,
+  `
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'articles_authorEntityId_fkey'
+      ) THEN
+        ALTER TABLE "articles"
+          ADD CONSTRAINT "articles_authorEntityId_fkey"
+          FOREIGN KEY ("authorEntityId")
+          REFERENCES "seo_entities"("id")
+          ON DELETE SET NULL
+          ON UPDATE CASCADE;
+      END IF;
+    END $$;
   `,
   `
     CREATE INDEX IF NOT EXISTS "lead_submissions_leadSegment_idx"
