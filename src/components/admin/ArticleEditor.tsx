@@ -32,22 +32,6 @@ const TiptapEditor = dynamic(() => import("./TiptapEditor"), {
   ),
 });
 
-const STATUS_TRANSITIONS: Record<ArticleStatus, { label: string; next: ArticleStatus }[]> = {
-  DRAFT: [
-    { label: "Marquer prêt", next: "READY" },
-    { label: "Publier", next: "PUBLISHED" },
-  ],
-  READY: [
-    { label: "Publier", next: "PUBLISHED" },
-    { label: "Brouillon", next: "DRAFT" },
-  ],
-  PUBLISHED: [
-    { label: "Archiver", next: "ARCHIVED" },
-    { label: "Brouillon", next: "DRAFT" },
-  ],
-  ARCHIVED: [{ label: "Brouillon", next: "DRAFT" }],
-};
-
 const MOBILE_TABS: { id: StudioMobileTab; label: string }[] = [
   { id: "chat", label: "Chat" },
   { id: "article", label: "Article" },

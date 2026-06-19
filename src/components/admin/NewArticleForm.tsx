@@ -348,8 +348,8 @@ export default function NewArticleForm() {
       {step === "context" && (
         <div className="wizard-step wizard-step--context">
           <div className="wizard-step__header">
-            <h2 className="wizard-step__title">Contexte de l'article</h2>
-            <p className="wizard-step__desc">Ces informations aident l'IA à générer un contenu plus pertinent.</p>
+            <h2 className="wizard-step__title">Contexte de l&apos;article</h2>
+            <p className="wizard-step__desc">Ces informations aident l&apos;IA à générer un contenu plus pertinent.</p>
           </div>
 
           <div className="admin-field">
@@ -363,7 +363,7 @@ export default function NewArticleForm() {
           </div>
 
           <div className="admin-field">
-            <label className="admin-label" htmlFor="studio-goal">Quel est l'objectif ?</label>
+            <label className="admin-label" htmlFor="studio-goal">Quel est l&apos;objectif ?</label>
             <ChipSelector
               options={GOAL_SUGGESTIONS}
               selected={data.businessGoal}
@@ -391,7 +391,7 @@ export default function NewArticleForm() {
         <div className="wizard-step wizard-step--details">
           <div className="wizard-step__header">
             <h2 className="wizard-step__title">Derniers détails</h2>
-            <p className="wizard-step__desc">Finalisez le titre et l'URL avant de lancer le studio.</p>
+            <p className="wizard-step__desc">Finalisez le titre et l&apos;URL avant de lancer le studio.</p>
           </div>
 
           <div className="wizard-preview">
@@ -404,7 +404,7 @@ export default function NewArticleForm() {
           </div>
 
           <div className={`admin-field ${fieldErrors.provisionalTitle ? "admin-field--error" : ""}`}>
-            <label className="admin-label" htmlFor="studio-title">Titre de l'article</label>
+            <label className="admin-label" htmlFor="studio-title">Titre de l&apos;article</label>
             <input
               id="studio-title"
               className={`admin-input admin-input--lg ${fieldErrors.provisionalTitle ? "admin-input--invalid" : ""}`}
