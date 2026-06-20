@@ -31,25 +31,50 @@ const EvidenceNotesSchema = z.object({
   precautions: z.string().max(4000).default(""),
 });
 
-const ArticlePatchSchema = z.object({
-  title: z.string().max(200).optional(),
-  excerpt: z.string().max(500).optional(),
-  contentHtml: z.string().max(60000).optional(),
-  seoTitle: z.string().max(60).optional(),
-  metaDescription: z.string().max(160).optional(),
-  focusKeyword: z.string().max(100).optional(),
-  primaryQuestion: z.string().max(300).optional(),
-  answerIntent: z.string().max(80).optional(),
-  targetAudience: z.string().max(300).optional(),
-  geoLocation: z.string().max(200).optional(),
-  businessGoal: z.string().max(300).optional(),
-  entityTargets: z.array(z.string().max(120)).max(20).optional(),
-  faqItems: z.array(FaqItemSchema).max(12).optional(),
-  evidenceNotes: EvidenceNotesSchema.optional(),
-  imagePrompt: z.string().max(3000).optional(),
-  altFr: z.string().max(200).optional(),
-  altEn: z.string().max(200).optional(),
-  altEs: z.string().max(200).optional(),
+const ArticlePatchFields = {
+  title: z.string().max(200),
+  excerpt: z.string().max(500),
+  contentHtml: z.string().max(60000),
+  seoTitle: z.string().max(60),
+  metaDescription: z.string().max(160),
+  focusKeyword: z.string().max(100),
+  primaryQuestion: z.string().max(300),
+  answerIntent: z.string().max(80),
+  targetAudience: z.string().max(300),
+  geoLocation: z.string().max(200),
+  businessGoal: z.string().max(300),
+  entityTargets: z.array(z.string().max(120)).max(20),
+  faqItems: z.array(FaqItemSchema).max(12),
+  evidenceNotes: EvidenceNotesSchema,
+  imagePrompt: z.string().max(3000),
+  altFr: z.string().max(200),
+  altEn: z.string().max(200),
+  altEs: z.string().max(200),
+};
+
+const ArticlePatchSchema = z.object(ArticlePatchFields).partial();
+
+// Structured Outputs requires every property to be present. The model uses
+// null for fields that should not be changed; normalizeResponse removes them.
+const ArticleAiPatchSchema = z.object({
+  title: ArticlePatchFields.title.nullable(),
+  excerpt: ArticlePatchFields.excerpt.nullable(),
+  contentHtml: ArticlePatchFields.contentHtml.nullable(),
+  seoTitle: ArticlePatchFields.seoTitle.nullable(),
+  metaDescription: ArticlePatchFields.metaDescription.nullable(),
+  focusKeyword: ArticlePatchFields.focusKeyword.nullable(),
+  primaryQuestion: ArticlePatchFields.primaryQuestion.nullable(),
+  answerIntent: ArticlePatchFields.answerIntent.nullable(),
+  targetAudience: ArticlePatchFields.targetAudience.nullable(),
+  geoLocation: ArticlePatchFields.geoLocation.nullable(),
+  businessGoal: ArticlePatchFields.businessGoal.nullable(),
+  entityTargets: ArticlePatchFields.entityTargets.nullable(),
+  faqItems: ArticlePatchFields.faqItems.nullable(),
+  evidenceNotes: ArticlePatchFields.evidenceNotes.nullable(),
+  imagePrompt: ArticlePatchFields.imagePrompt.nullable(),
+  altFr: ArticlePatchFields.altFr.nullable(),
+  altEn: ArticlePatchFields.altEn.nullable(),
+  altEs: ArticlePatchFields.altEs.nullable(),
 });
 
 const ArticleAiRequestSchema = z.object({
@@ -67,11 +92,14 @@ const ArticleAiRequestSchema = z.object({
 
 const ArticleAiResponseSchema = z.object({
   message: z.string().max(4000),
-  patch: ArticlePatchSchema.default({}),
-  warnings: z.array(z.string().max(500)).default([]),
+  patch: ArticleAiPatchSchema,
+  warnings: z.array(z.string().max(500)),
 });
 
 type ArticleAiResponse = z.infer<typeof ArticleAiResponseSchema>;
+type NormalizedArticleAiResponse = Omit<ArticleAiResponse, "patch"> & {
+  patch: z.infer<typeof ArticlePatchSchema>;
+};
 
 const ARTICLE_AI_JSON_SCHEMA = {
   type: "object",
@@ -159,13 +187,19 @@ function buildPrompt(input: z.infer<typeof ArticleAiRequestSchema>) {
   ].join("\n\n");
 }
 
-function normalizeResponse(response: ArticleAiResponse): ArticleAiResponse {
+function normalizeResponse(response: ArticleAiResponse): NormalizedArticleAiResponse {
+  const patch = ArticlePatchSchema.parse(
+    Object.fromEntries(
+      Object.entries(response.patch).filter(([, value]) => value !== null)
+    )
+  );
+
   return {
     ...response,
     patch: {
-      ...response.patch,
-      ...(response.patch.contentHtml
-        ? { contentHtml: sanitizeHtml(response.patch.contentHtml) }
+      ...patch,
+      ...(patch.contentHtml
+        ? { contentHtml: sanitizeHtml(patch.contentHtml) }
         : {}),
     },
   };
@@ -190,6 +224,7 @@ export async function POST(req: NextRequest) {
     "Tu es un assistant éditorial senior pour un studio d'articles SEO, AEO et GEO.",
     "Tu proposes des changements, tu ne publies jamais et tu ne supprimes rien.",
     "Réponds uniquement avec le JSON demandé.",
+    "Dans patch, renseigne chaque champ et utilise null pour tout champ qui ne doit pas être modifié.",
     "Si tu proposes du contenu d'article, utilise du HTML simple compatible Tiptap: h2, h3, p, ul, ol, li, strong, em, blockquote.",
     "Évite les promesses médicales, reste prudent, factuel et utile.",
   ].join("\n");
@@ -226,6 +261,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    console.error("[article-ai] Unexpected error:", error);
     return NextResponse.json({ error: "Erreur IA inattendue." }, { status: 500 });
   }
 }
