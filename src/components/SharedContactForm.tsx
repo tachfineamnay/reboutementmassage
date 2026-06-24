@@ -8,6 +8,7 @@ import BookingExperience, {
 } from "@/components/BookingExperience";
 import { createGoogleCalendarUrl } from "@/lib/calendar-link";
 import { INTENT_LABELS, ConversionIntent } from "@/config/conversionRoutes";
+import { trackMetaLead } from "@/components/MetaPixel";
 
 /* ─────────────────────────────────────────────────────────────
    HandLogo SVG
@@ -618,6 +619,8 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
       }
       throw new Error("Lead submission failed");
     }
+
+    trackMetaLead(lang);
 
     return {
       ok: true,
