@@ -123,5 +123,58 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // DB non disponible au build time → sitemap partiel
   }
 
-  return [...staticPages, ...CAMPAIGN_ROUTES, ...articlePages];
+  return [...staticPages, ...CAMPAIGN_ROUTES, ...articlePages, ...(await getGrowthLandingPages())];
+}
+
+async function getGrowthLandingPages(): Promise<MetadataRoute.Sitemap> {
+  try {
+    const landings = await prisma.landingPage.findMany({
+      where: { status: "LIVE", noindex: false },
+      select: {
+        slug: true,
+        locale: true,
+        updatedAt: true,
+        hreflangGroupId: true,
+        xDefault: true,
+      },
+    });
+
+    const grouped = new Map<string, typeof landings>();
+    for (const landing of landings) {
+      if (!landing.hreflangGroupId) continue;
+      const group = grouped.get(landing.hreflangGroupId) ?? [];
+      group.push(landing);
+      grouped.set(landing.hreflangGroupId, group);
+    }
+
+    return landings.map((landing) => {
+      const path = `/${landing.locale.toLowerCase()}/${landing.slug}`;
+      const group = landing.hreflangGroupId ? grouped.get(landing.hreflangGroupId) : null;
+
+      const languages: Record<string, string> = {};
+      if (group && group.length > 0) {
+        for (const item of group) {
+          languages[item.locale.toLowerCase()] = absoluteUrl(
+            `/${item.locale.toLowerCase()}/${item.slug}`
+          );
+        }
+        const xDefault = group.find((item) => item.xDefault) ?? group[0];
+        languages["x-default"] = absoluteUrl(
+          `/${xDefault.locale.toLowerCase()}/${xDefault.slug}`
+        );
+      } else {
+        languages[landing.locale.toLowerCase()] = absoluteUrl(path);
+      }
+
+      return {
+        url: absoluteUrl(path),
+        lastModified: landing.updatedAt,
+        changeFrequency: "weekly" as const,
+        priority: 0.82,
+        alternates: { languages },
+      };
+    });
+  } catch {
+    return [];
+  }
 }

@@ -118,6 +118,10 @@ export default async function DemandesPage({ searchParams }: PageProps) {
         contact: true,
         type: true,
         locale: true,
+        intent: true,
+        preferredChannel: true,
+        leadSegment: true,
+        branchData: true,
         selectedDayLabel: true,
         selectedTime: true,
         timezone: true,
@@ -133,13 +137,7 @@ export default async function DemandesPage({ searchParams }: PageProps) {
       select: { type: true },
     }),
   ]);
-  const leads = legacyLeads.map((lead) => ({
-    ...lead,
-    intent: null,
-    preferredChannel: null,
-    leadSegment: null,
-    branchData: {},
-  }));
+  const leads = legacyLeads;
 
   const pages = Math.ceil(total / LIMIT);
   const hasFilters = !!(validStatus || validLocale || type || q || period);

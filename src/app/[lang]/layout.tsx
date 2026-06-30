@@ -5,6 +5,7 @@ import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import MetaContactTracker from "@/components/MetaContactTracker";
 import MetaPageViewTracker from "@/components/MetaPageViewTracker";
 import { MetaPixel } from "@/components/MetaPixel";
+import { TikTokPixel } from "@/components/TikTokPixel";
 import { absoluteUrl, isLocale } from "@/lib/seo";
 import "../globals.css";
 
@@ -50,6 +51,7 @@ export default async function RootLayout({
       <body>
         <GoogleAnalytics />
         <MetaPixel />
+        <TikTokPixel />
         <Suspense fallback={null}>
           <MetaPageViewTracker />
           <MetaContactTracker lang={htmlLang.toUpperCase() as "FR" | "EN" | "ES"} />

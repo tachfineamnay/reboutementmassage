@@ -7,7 +7,7 @@ import { trackMetaContact } from "@/components/MetaPixel";
 type MetaLanguage = "FR" | "EN" | "ES";
 type ContactChannel = "whatsapp" | "phone" | "email" | "form_cta";
 
-const CONTACT_HASHES = new Set(["#contact", "#demande", "#inscription"]);
+const CONTACT_HASHES = new Set(["#contact", "#demande", "#inscription", "#solicitud"]);
 const PATH_LANG_MAP: Record<string, MetaLanguage> = {
   fr: "FR",
   en: "EN",
@@ -50,6 +50,8 @@ export default function MetaContactTracker({ lang }: { lang?: MetaLanguage }) {
 
   useEffect(() => {
     function handleClick(event: MouseEvent) {
+      if (document.body.classList.contains("has-campaign-sticky")) return;
+
       const target = event.target;
       if (!(target instanceof Element)) return;
 

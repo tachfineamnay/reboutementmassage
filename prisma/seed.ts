@@ -13,6 +13,7 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
+import { seedGrowthCdmx } from "./seed-growth-cdmx";
 
 async function main() {
   const email = process.env.ADMIN_EMAIL;
@@ -40,6 +41,10 @@ async function main() {
     });
 
     console.log(`✅ Admin créé / mis à jour : ${user.email} (id: ${user.id})`);
+
+    if (process.env.SEED_GROWTH_CDMX !== "0") {
+      await seedGrowthCdmx(prisma);
+    }
   } finally {
     await prisma.$disconnect();
   }

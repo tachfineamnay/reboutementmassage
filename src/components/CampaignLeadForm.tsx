@@ -1,11 +1,58 @@
 "use client";
 
 import React, { useMemo, useRef, useState } from "react";
-import type { CampaignLandingConfig } from "@/data/campaign-landings";
 import { trackMetaLead } from "@/components/MetaPixel";
 
+export type CampaignLegacyFormConfig = {
+  language: "FR" | "EN" | "ES";
+  cityName: string;
+  destination: string;
+  offer: string;
+  leadType: string;
+  leadSegment: string;
+  tracking: { contentCategory: "manual_therapy" };
+  branchData: Record<string, string>;
+  form: {
+    label: string;
+    headline: string;
+    sub: string;
+    steps: string[];
+    needQuestion: string;
+    locationQuestion: string;
+    identityQuestion: string;
+    contextQuestion: string;
+    availabilityLabel: string;
+    needOptions: Array<{ value: string; label: string }>;
+    urgencyOptions: Array<{ value: string; label: string }>;
+    fields: {
+      location: string;
+      locationPlaceholder: string;
+      firstName: string;
+      firstNamePlaceholder: string;
+      contact: string;
+      contactPlaceholder: string;
+      context: string;
+      contextPlaceholder: string;
+    };
+    next: string;
+    back: string;
+    submit: string;
+    submitting: string;
+    contactError: string;
+    requiredError: string;
+    submitError: string;
+    successTitle: string;
+    successBody: string;
+    successNote: string;
+    newRequest: string;
+    whatsappLabel: string;
+    whatsappUrl: string;
+    whatsappText: string;
+  };
+};
+
 type CampaignLeadFormProps = {
-  config: CampaignLandingConfig;
+  config: CampaignLegacyFormConfig;
   id?: string;
 };
 

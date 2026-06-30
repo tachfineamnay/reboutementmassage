@@ -119,6 +119,140 @@ enum SeoEntityType {
   LOCAL_BUSINESS
 }
 
+// ── Growth CMS enums ────────────────────────────────────────────────────────
+
+enum DestinationStatus {
+  DRAFT
+  READY
+  LIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum DestinationMaturity {
+  TEST
+  ACTIVE
+  PREMIUM
+  PARTNERSHIP
+}
+
+enum OfferType {
+  PRIVATE_SESSION
+  FOUNDER_SESSION
+  HOTEL_EXPERIENCE
+  HOSPITALITY_PARTNER
+  WORKSHOP
+  TRAINING
+  RETREAT
+  CORPORATE
+  VIP_SIGNATURE
+}
+
+enum OfferStatus {
+  DRAFT
+  READY
+  LIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum LandingTemplate {
+  MOBILE_WHATSAPP_FIRST
+  PREMIUM_PRIVATE_SESSION
+  B2B_HOSPITALITY
+  FORMATION_LEADGEN
+  SEO_LOCAL_SERVICE
+  EVENT_WORKSHOP
+}
+
+enum LandingStatus {
+  DRAFT
+  READY
+  LIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum WhatsappProvider {
+  WHATSAPP_APP
+  GHL_WHATSAPP_PLATFORM
+  META_CLOUD_API
+}
+
+enum WhatsappChannelStatus {
+  NOT_CONFIGURED
+  APP_ONLY
+  CONNECTED_GHL
+  ACTIVE
+  PAUSED
+  BLOCKED
+}
+
+enum TrackingProfileStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum CrmRoutingStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum TestimonialStatus {
+  DRAFT
+  READY
+  LIVE
+  ARCHIVED
+}
+
+enum CampaignPlatform {
+  META
+  TIKTOK
+  GOOGLE
+  ORGANIC
+  DIRECT
+  PARTNER
+  EMAIL
+  OTHER
+}
+
+enum CampaignSourceStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum ExperimentStatus {
+  DRAFT
+  RUNNING
+  PAUSED
+  COMPLETED
+  ARCHIVED
+}
+
+enum MediaAssetType {
+  IMAGE
+  VIDEO
+  POSTER
+  DOCUMENT
+}
+
+enum NormalizedNeedType {
+  back
+  neck
+  stress
+  fatigue
+  travel
+  mobility
+  recovery
+  other
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // AdminUser — authentification admin
 // ─────────────────────────────────────────────────────────────────────────────
@@ -191,6 +325,21 @@ model LeadSubmission {
   notificationSentAt DateTime?
   notificationError  String?   @db.Text
 
+  // Growth CMS attribution
+  eventId        String?
+  landingPageId  String?
+  landingPage    LandingPage?  @relation(fields: [landingPageId], references: [id], onDelete: SetNull)
+  destinationId  String?
+  growthDestination Destination? @relation(fields: [destinationId], references: [id], onDelete: SetNull)
+  offerId        String?
+  growthOffer    Offer?        @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  source         String?
+  medium         String?
+  campaign       String?
+  content        String?
+  creativeAngle  String?
+  ctaLocation    String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -198,6 +347,10 @@ model LeadSubmission {
   @@index([locale, createdAt])
   @@index([leadSegment])
   @@index([selectedAt])
+  @@index([landingPageId])
+  @@index([destinationId])
+  @@index([offerId])
+  @@index([eventId])
   @@map("lead_submissions")
 }
 
@@ -221,6 +374,14 @@ model MediaAsset {
   altEn String?
   altEs String?
 
+  assetType    MediaAssetType @default(IMAGE)
+  externalUrl  String?
+  consentNotes String?        @db.Text
+  usageNotes   String?        @db.Text
+
+  destinationId String?
+  destination   Destination? @relation(fields: [destinationId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
 
   // Relations inverses
@@ -228,7 +389,13 @@ model MediaAsset {
   articlesSeo     ArticleSeo[]          @relation("ArticleOgImage")
   articleVariants ArticleImageVariant[]
   landingSections LandingSection[]      @relation("SectionImage")
+  landingHeroImages    LandingPage[]    @relation("LandingHeroImage")
+  landingOgImages      LandingPage[]    @relation("LandingOgImage")
+  testimonialMedia     Testimonial[]    @relation("TestimonialMedia")
+  testimonialPosters   Testimonial[]    @relation("TestimonialPoster")
 
+  @@index([destinationId])
+  @@index([assetType])
   @@map("media_assets")
 }
 
@@ -869,4 +1036,425 @@ model LandingSection {
   @@index([locale, status])
   @@index([type, locale])
   @@map("landing_sections")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Growth CMS — destinations, landings, offers, tracking, CRM
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Destination {
+  id          String              @id @default(cuid())
+  slug        String              @unique
+  cityName    String
+  displayNameFr String
+  displayNameEn String
+  displayNameEs String
+  country     String
+  region      String?
+  timezone    String              @default("UTC")
+  currency    String              @default("USD")
+  locales     Locale[]            @default([FR, EN, ES])
+  neighborhoods Json              @default("[]")
+  targetSegments Json             @default("[]")
+  status      DestinationStatus   @default(DRAFT)
+  maturity    DestinationMaturity @default(TEST)
+  startAt     DateTime?
+  endAt       DateTime?
+  defaultWhatsappChannelId String? @unique
+  defaultTrackingProfileId String? @unique
+  defaultOfferId           String? @unique
+  internalNotes String?         @db.Text
+  publicNotes   String?         @db.Text
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  defaultWhatsappChannel WhatsappChannel? @relation("DestinationDefaultWhatsapp", fields: [defaultWhatsappChannelId], references: [id], onDelete: SetNull)
+  defaultTrackingProfile TrackingProfile? @relation("DestinationDefaultTracking", fields: [defaultTrackingProfileId], references: [id], onDelete: SetNull)
+  defaultOffer           Offer?           @relation("DestinationDefaultOffer", fields: [defaultOfferId], references: [id], onDelete: SetNull)
+
+  offers            Offer[]            @relation("DestinationOffers")
+  landingPages      LandingPage[]
+  whatsappChannels  WhatsappChannel[]  @relation("DestinationWhatsappChannels")
+  trackingProfiles  TrackingProfile[]
+  testimonials      Testimonial[]
+  crmRoutingRules   CrmRoutingRule[]
+  campaignSources   CampaignSource[]
+  mediaAssets       MediaAsset[]
+  leadSubmissions   LeadSubmission[]
+  pixelEventLogs    PixelEventLog[]
+
+  @@index([status])
+  @@index([country])
+  @@map("destinations")
+}
+
+model Offer {
+  id              String      @id @default(cuid())
+  destinationId   String
+  destination     Destination @relation("DestinationOffers", fields: [destinationId], references: [id], onDelete: Cascade)
+  type            OfferType
+  internalName    String
+  publicNameFr      String
+  publicNameEn      String
+  publicNameEs      String
+  shortDescriptionFr String?  @db.Text
+  shortDescriptionEn String?  @db.Text
+  shortDescriptionEs String?  @db.Text
+  durationMinutes   Int?
+  priceAmount       Decimal?  @db.Decimal(10, 2)
+  currency          String?
+  showPrice         Boolean   @default(false)
+  priceNoteFr       String?
+  priceNoteEn       String?
+  priceNoteEs       String?
+  bookingUrl        String?
+  paymentUrl        String?
+  primaryCtaFr      String?
+  primaryCtaEn      String?
+  primaryCtaEs      String?
+  secondaryCtaFr    String?
+  secondaryCtaEn    String?
+  secondaryCtaEs    String?
+  conditionsFr      String?   @db.Text
+  conditionsEn      String?   @db.Text
+  conditionsEs      String?   @db.Text
+  status            OfferStatus @default(DRAFT)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  landingPages    LandingPage[]
+  testimonials    Testimonial[]
+  campaignSources CampaignSource[]
+  leadSubmissions LeadSubmission[]
+  defaultForDestination Destination? @relation("DestinationDefaultOffer")
+
+  @@index([destinationId, status])
+  @@index([type])
+  @@map("offers")
+}
+
+model WhatsappChannel {
+  id                      String                @id @default(cuid())
+  destinationId           String
+  destination             Destination           @relation("DestinationWhatsappChannels", fields: [destinationId], references: [id], onDelete: Cascade)
+  label                   String
+  phoneE164               String
+  provider                WhatsappProvider      @default(WHATSAPP_APP)
+  status                  WhatsappChannelStatus @default(NOT_CONFIGURED)
+  defaultLocale           Locale                @default(FR)
+  prefilledMessageFr       String                @db.Text
+  prefilledMessageEn       String                @db.Text
+  prefilledMessageEs       String                @db.Text
+  ghlWorkflowHotLeadId    String?
+  ghlWorkflowInfoNeededId String?
+  ghlWorkflowBookingId    String?
+  fallbackUrl             String?
+  ownerName               String?
+  businessHours           Json                  @default("{}")
+  lastVerifiedAt          DateTime?
+  notes                   String?               @db.Text
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+
+  landingPages      LandingPage[]
+  defaultForDestination Destination? @relation("DestinationDefaultWhatsapp")
+
+  @@index([destinationId, status])
+  @@map("whatsapp_channels")
+}
+
+model TrackingProfile {
+  id                 String                @id @default(cuid())
+  destinationId      String
+  destination        Destination           @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  label              String
+  metaPixelId        String?
+  tiktokPixelId      String?
+  ga4MeasurementId   String?
+  googleAdsId        String?
+  gtmContainerId     String?
+  consentMode        String                @default("basic")
+  enableMeta         Boolean               @default(true)
+  enableTikTok       Boolean               @default(false)
+  enableGA4          Boolean               @default(true)
+  enableGTM          Boolean               @default(false)
+  enableGoogleAds    Boolean               @default(false)
+  status             TrackingProfileStatus @default(DRAFT)
+  notes              String?               @db.Text
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+
+  landingPages      LandingPage[]
+  defaultForDestination Destination? @relation("DestinationDefaultTracking")
+
+  @@index([destinationId, status])
+  @@map("tracking_profiles")
+}
+
+model CrmRoutingRule {
+  id                  String           @id @default(cuid())
+  destinationId       String
+  destination         Destination      @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  locale              Locale?
+  offerType           OfferType?
+  source              String?
+  intent              String?
+  leadSegment         String?
+  ghlPipelineId       String?
+  ghlPipelineStageId  String?
+  ghlWorkflowId       String?
+  ghlAssignedUserId   String?
+  tags                Json             @default("[]")
+  customFields        Json             @default("{}")
+  priority            Int              @default(100)
+  status              CrmRoutingStatus @default(DRAFT)
+  notes               String?          @db.Text
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+
+  landingPages LandingPage[]
+
+  @@index([destinationId, status, priority])
+  @@map("crm_routing_rules")
+}
+
+model LandingPage {
+  id                String          @id @default(cuid())
+  destinationId     String
+  destination       Destination     @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  offerId           String?
+  offer             Offer?          @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  locale            Locale
+  template          LandingTemplate @default(MOBILE_WHATSAPP_FIRST)
+  slug              String
+  status            LandingStatus   @default(DRAFT)
+  heroTitle         String
+  heroSubtitle      String?         @db.Text
+  microNote         String?
+  primaryCta        String?
+  secondaryCta      String?
+  painChips         Json            @default("[]")
+  proofBadges       Json            @default("[]")
+  processSteps      Json            @default("[]")
+  faq               Json            @default("[]")
+  content           Json            @default("{}")
+  complianceText    String?         @db.Text
+  heroImageId       String?
+  heroImage         MediaAsset?     @relation("LandingHeroImage", fields: [heroImageId], references: [id], onDelete: SetNull)
+  ogImageId         String?
+  ogImage           MediaAsset?     @relation("LandingOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+  testimonialIds    Json            @default("[]")
+  whatsappChannelId String?
+  whatsappChannel   WhatsappChannel? @relation(fields: [whatsappChannelId], references: [id], onDelete: SetNull)
+  trackingProfileId String?
+  trackingProfile   TrackingProfile? @relation(fields: [trackingProfileId], references: [id], onDelete: SetNull)
+  crmRoutingRuleId  String?
+  crmRoutingRule    CrmRoutingRule?  @relation(fields: [crmRoutingRuleId], references: [id], onDelete: SetNull)
+  seoTitle          String?
+  metaDescription   String?         @db.Text
+  canonical         String?
+  noindex           Boolean         @default(true)
+  hreflangGroupId   String?
+  xDefault          Boolean         @default(false)
+  areaServed        String?
+  schemaConfig      Json            @default("{}")
+  readinessScore    Int             @default(0)
+  readinessIssues   Json            @default("[]")
+  previewToken      String?         @unique @default(cuid())
+  publishedAt       DateTime?
+  publishOverride   Boolean         @default(false)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  leadSubmissions   LeadSubmission[]
+  pixelEventLogs    PixelEventLog[]
+  campaignSources   CampaignSource[]
+  experiments       Experiment[]
+  dailyMetrics      LandingMetricDaily[]
+
+  @@unique([locale, slug])
+  @@index([destinationId, locale, status])
+  @@index([hreflangGroupId])
+  @@index([status, noindex])
+  @@map("landing_pages")
+}
+
+model PixelEventLog {
+  id              String              @id @default(cuid())
+  eventId         String
+  eventName       String
+  landingPageId   String?
+  landingPage     LandingPage?        @relation(fields: [landingPageId], references: [id], onDelete: SetNull)
+  destinationId   String?
+  destination     Destination?        @relation(fields: [destinationId], references: [id], onDelete: SetNull)
+  locale          Locale?
+  offerId         String?
+  source          String?
+  medium          String?
+  campaign        String?
+  content         String?
+  creativeAngle   String?
+  ctaLocation     String?
+  needType        NormalizedNeedType?
+  pageUrl         String?
+  sessionId       String?
+  sentToMeta      Boolean             @default(false)
+  sentToTikTok    Boolean             @default(false)
+  sentToGA4       Boolean             @default(false)
+  sentToGTM       Boolean             @default(false)
+  errors          Json                @default("[]")
+  createdAt       DateTime            @default(now())
+
+  @@index([eventName, createdAt])
+  @@index([landingPageId, createdAt])
+  @@index([destinationId, createdAt])
+  @@index([eventId])
+  @@map("pixel_event_logs")
+}
+
+model Testimonial {
+  id              String            @id @default(cuid())
+  firstName       String?
+  displayName     String
+  locale          Locale
+  country         String?
+  city            String?
+  profile         String?
+  ageRange        String?
+  occupation      String?
+  destinationId   String?
+  destination     Destination?      @relation(fields: [destinationId], references: [id], onDelete: SetNull)
+  offerId         String?
+  offer           Offer?            @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  mediaAssetId    String?
+  mediaAsset      MediaAsset?       @relation("TestimonialMedia", fields: [mediaAssetId], references: [id], onDelete: SetNull)
+  posterImageId   String?
+  posterImage     MediaAsset?       @relation("TestimonialPoster", fields: [posterImageId], references: [id], onDelete: SetNull)
+  transcript      String?           @db.Text
+  subtitlesUrl    String?
+  quoteShort      String?
+  quoteLong       String?           @db.Text
+  consentWebsite  Boolean           @default(false)
+  consentAds      Boolean           @default(false)
+  consentOrganic  Boolean           @default(true)
+  emotionalScore  Int               @default(0)
+  credibilityScore Int              @default(0)
+  priority        Int               @default(0)
+  status          TestimonialStatus @default(DRAFT)
+  notes           String?           @db.Text
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  experimentVariants ExperimentVariant[]
+
+  @@index([destinationId, locale, status])
+  @@index([priority])
+  @@map("testimonials")
+}
+
+model CampaignSource {
+  id              String               @id @default(cuid())
+  name            String
+  source          String
+  medium          String
+  platform        CampaignPlatform
+  destinationId   String?
+  destination     Destination?         @relation(fields: [destinationId], references: [id], onDelete: SetNull)
+  landingPageId   String?
+  landingPage     LandingPage?         @relation(fields: [landingPageId], references: [id], onDelete: SetNull)
+  offerId         String?
+  offer           Offer?               @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  locale          Locale?
+  campaignName    String?
+  adsetName       String?
+  adName          String?
+  creativeAngle   String?
+  utmTemplate     String?
+  status          CampaignSourceStatus @default(DRAFT)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@index([destinationId, platform])
+  @@index([landingPageId])
+  @@map("campaign_sources")
+}
+
+model Experiment {
+  id              String           @id @default(cuid())
+  landingPageId   String
+  landingPage     LandingPage      @relation(fields: [landingPageId], references: [id], onDelete: Cascade)
+  name            String
+  hypothesis      String?          @db.Text
+  status          ExperimentStatus @default(DRAFT)
+  startAt         DateTime?
+  endAt           DateTime?
+  primaryMetric   String           @default("whatsapp_clicks")
+  notes           String?          @db.Text
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  variants ExperimentVariant[]
+
+  @@index([landingPageId, status])
+  @@map("experiments")
+}
+
+model ExperimentVariant {
+  id               String       @id @default(cuid())
+  experimentId     String
+  experiment       Experiment   @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  name             String
+  trafficSplit     Int          @default(50)
+  heroTitle        String?
+  heroSubtitle     String?      @db.Text
+  primaryCta       String?
+  testimonialId    String?
+  testimonial      Testimonial? @relation(fields: [testimonialId], references: [id], onDelete: SetNull)
+  contentOverrides Json         @default("{}")
+  impressions      Int          @default(0)
+  whatsappClicks   Int          @default(0)
+  formSubmits      Int          @default(0)
+  bookingClicks    Int          @default(0)
+  leads            Int          @default(0)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@index([experimentId])
+  @@map("experiment_variants")
+}
+
+model RedirectRule {
+  id          String   @id @default(cuid())
+  sourcePath  String   @unique
+  targetPath  String
+  statusCode  Int      @default(301)
+  active      Boolean  @default(true)
+  reason      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([active])
+  @@map("redirect_rules")
+}
+
+model LandingMetricDaily {
+  id              String      @id @default(cuid())
+  landingPageId   String
+  landingPage     LandingPage @relation(fields: [landingPageId], references: [id], onDelete: Cascade)
+  date            DateTime    @db.Date
+  views           Int         @default(0)
+  whatsappClicks  Int         @default(0)
+  stickyClicks    Int         @default(0)
+  formStarts      Int         @default(0)
+  formSubmits     Int         @default(0)
+  bookingClicks   Int         @default(0)
+  paymentClicks   Int         @default(0)
+  videoPlays      Int         @default(0)
+  leads           Int         @default(0)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@unique([landingPageId, date])
+  @@index([date])
+  @@map("landing_metric_daily")
 }

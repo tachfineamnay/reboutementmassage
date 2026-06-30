@@ -3,6 +3,7 @@ import "server-only";
 import type { Prisma } from "@prisma/client";
 import { Resend } from "resend";
 import { z } from "zod";
+import { matchCrmRoutingRule, parseCustomFields, parseTags } from "@/lib/growth/crm-routing";
 import { prisma } from "@/lib/prisma";
 
 type LeadSubmissionStatus = "CAPTURED" | "MOCKED" | "SENT_TO_GHL" | "FAILED" | "ARCHIVED";
@@ -19,6 +20,15 @@ type LeadPayload = {
   timezone: string | null;
   pageUrl: string | null;
   eventId: string | null;
+  landingPageId: string | null;
+  destinationId: string | null;
+  offerId: string | null;
+  source: string | null;
+  medium: string | null;
+  campaign: string | null;
+  content: string | null;
+  creativeAngle: string | null;
+  ctaLocation: string | null;
   utm: Record<string, string>;
   branchData: unknown;
   companyName: string | null;
@@ -118,6 +128,15 @@ const LeadRequestSchema = z
     timezone: z.string().trim().max(120).optional().nullable(),
     pageUrl: z.string().trim().max(1000).optional().nullable(),
     eventId: z.string().trim().max(120).optional().nullable(),
+    landingPageId: z.string().trim().max(120).optional().nullable(),
+    destinationId: z.string().trim().max(120).optional().nullable(),
+    offerId: z.string().trim().max(120).optional().nullable(),
+    source: z.string().trim().max(120).optional().nullable(),
+    medium: z.string().trim().max(120).optional().nullable(),
+    campaign: z.string().trim().max(120).optional().nullable(),
+    content: z.string().trim().max(120).optional().nullable(),
+    creativeAngle: z.string().trim().max(120).optional().nullable(),
+    ctaLocation: z.string().trim().max(80).optional().nullable(),
     utm: z.unknown().optional(),
     branchData: z.unknown().optional(),
     companyName: z.string().trim().max(180).optional().nullable(),
@@ -200,6 +219,113 @@ function inferLeadSegment(payload: Omit<LeadPayload, "leadSegment">, explicitSeg
   }
 }
 
+function utmField(utm: Record<string, string>, key: string) {
+  const value = utm[key] ?? utm[key.replace("utm_", "")];
+  return typeof value === "string" && value.trim() ? value.trim().slice(0, 120) : null;
+}
+
+async function resolveGrowthAttribution(
+  data: z.infer<typeof LeadRequestSchema>,
+  utm: Record<string, string>
+) {
+  let landingPageId = nullableText(data.landingPageId);
+  let destinationId = nullableText(data.destinationId);
+  let offerId = nullableText(data.offerId);
+
+  if (!landingPageId && data.pageUrl) {
+    try {
+      const url = new URL(data.pageUrl);
+      const segments = url.pathname.split("/").filter(Boolean);
+      if (segments.length >= 2) {
+        const locale = segments[0].toUpperCase();
+        const slug = segments[1];
+        if (locale === "FR" || locale === "EN" || locale === "ES") {
+          const landing = await prisma.landingPage.findFirst({
+            where: { locale, slug },
+            select: { id: true, destinationId: true, offerId: true },
+          });
+          if (landing) {
+            landingPageId = landing.id;
+            destinationId = destinationId ?? landing.destinationId;
+            offerId = offerId ?? landing.offerId;
+          }
+        }
+      }
+    } catch {
+      // ignore invalid pageUrl
+    }
+  }
+
+  return {
+    landingPageId,
+    destinationId,
+    offerId,
+    source: nullableText(data.source) ?? utmField(utm, "utm_source"),
+    medium: nullableText(data.medium) ?? utmField(utm, "utm_medium"),
+    campaign: nullableText(data.campaign) ?? utmField(utm, "utm_campaign"),
+    content: nullableText(data.content) ?? utmField(utm, "utm_content"),
+    creativeAngle: nullableText(data.creativeAngle) ?? utmField(utm, "creative_angle"),
+    ctaLocation: nullableText(data.ctaLocation),
+  };
+}
+
+async function applyCrmRouting(
+  payload: LeadPayload,
+  tags: string[]
+): Promise<{
+  tags: string[];
+  workflowId?: string;
+  pipelineId?: string;
+  pipelineStageId?: string;
+  assignedUserId?: string;
+}> {
+  if (!payload.destinationId) return { tags };
+
+  try {
+    const rules = await prisma.crmRoutingRule.findMany({
+      where: { destinationId: payload.destinationId, status: "ACTIVE" },
+    });
+
+    const offer = payload.offerId
+      ? await prisma.offer.findUnique({
+          where: { id: payload.offerId },
+          select: { type: true },
+        })
+      : null;
+
+    const matched = matchCrmRoutingRule(rules, {
+      destinationId: payload.destinationId,
+      locale: normalizeLocale(payload.lang),
+      offerType: offer?.type ?? null,
+      source: payload.source,
+      intent: payload.intent,
+      leadSegment: payload.leadSegment,
+    });
+
+    if (!matched) return { tags };
+
+    const ruleTags = parseTags(matched.tags);
+    const mergedTags = Array.from(new Set([...tags, ...ruleTags].map((tag) => slugTag(tag)).filter(Boolean)));
+
+    const customFields = parseCustomFields(matched.customFields);
+    if (Object.keys(customFields).length > 0) {
+      const branch = isRecord(payload.branchData) ? { ...payload.branchData } : {};
+      payload.branchData = { ...branch, crmRoutingCustomFields: customFields };
+    }
+
+    return {
+      tags: mergedTags,
+      workflowId: matched.ghlWorkflowId ?? undefined,
+      pipelineId: matched.ghlPipelineId ?? undefined,
+      pipelineStageId: matched.ghlPipelineStageId ?? undefined,
+      assignedUserId: matched.ghlAssignedUserId ?? undefined,
+    };
+  } catch (error) {
+    console.error("CRM routing match failed", error);
+    return { tags };
+  }
+}
+
 function normalizePayload(raw: unknown): LeadPayload | null {
   const parsed = LeadRequestSchema.safeParse(raw);
   if (!parsed.success) {
@@ -239,6 +365,33 @@ function normalizePayload(raw: unknown): LeadPayload | null {
   return {
     ...payloadWithoutSegment,
     leadSegment: inferLeadSegment(payloadWithoutSegment, nullableText(data.leadSegment)),
+    landingPageId: nullableText(data.landingPageId),
+    destinationId: nullableText(data.destinationId),
+    offerId: nullableText(data.offerId),
+    source: nullableText(data.source),
+    medium: nullableText(data.medium),
+    campaign: nullableText(data.campaign),
+    content: nullableText(data.content),
+    creativeAngle: nullableText(data.creativeAngle),
+    ctaLocation: nullableText(data.ctaLocation),
+  };
+}
+
+async function enrichLeadPayload(payload: LeadPayload, raw: unknown): Promise<LeadPayload> {
+  const parsed = LeadRequestSchema.safeParse(raw);
+  if (!parsed.success) return payload;
+
+  const utm = payload.utm;
+  const attribution = await resolveGrowthAttribution(parsed.data, utm);
+
+  return {
+    ...payload,
+    ...attribution,
+    source: attribution.source ?? payload.source,
+    medium: attribution.medium ?? payload.medium,
+    campaign: attribution.campaign ?? payload.campaign,
+    content: attribution.content ?? payload.content,
+    creativeAngle: attribution.creativeAngle ?? payload.creativeAngle,
   };
 }
 
@@ -332,6 +485,16 @@ async function createLeadSubmission(payload: LeadPayload, tags: string[]) {
         selectedAt: payload.selectedDateTime ? new Date(payload.selectedDateTime) : null,
         timezone: payload.timezone,
         pageUrl: payload.pageUrl,
+        eventId: payload.eventId,
+        landingPageId: payload.landingPageId,
+        destinationId: payload.destinationId,
+        offerId: payload.offerId,
+        source: payload.source,
+        medium: payload.medium,
+        campaign: payload.campaign,
+        content: payload.content,
+        creativeAngle: payload.creativeAngle,
+        ctaLocation: payload.ctaLocation,
         utm: payload.utm,
         branchData: (payload.branchData ?? {}) as Prisma.InputJsonValue,
         tags,
@@ -772,13 +935,17 @@ export async function handleLeadRequest(request: Request) {
     return jsonError(400, "INVALID_JSON");
   }
 
-  const payload = normalizePayload(raw);
-  if (!payload) return jsonError(400, "INVALID_LEAD");
+  const basePayload = normalizePayload(raw);
+  if (!basePayload) return jsonError(400, "INVALID_LEAD");
+
+  const payload = await enrichLeadPayload(basePayload, raw);
 
   const parsedContact = splitContact(payload.contact);
   if (!parsedContact) return jsonError(400, "INVALID_CONTACT");
 
-  const tags = configuredTags(payload);
+  let tags = configuredTags(payload);
+  const routing = await applyCrmRouting(payload, tags);
+  tags = routing.tags;
   const leadSubmissionId = await createLeadSubmission(payload, tags);
   if (!leadSubmissionId) return jsonError(500, "LEAD_PERSISTENCE_FAILED");
 
@@ -804,17 +971,25 @@ export async function handleLeadRequest(request: Request) {
     });
   }
 
+  const ghlConfig = {
+    ...config,
+    workflowId: routing.workflowId ?? config.workflowId,
+    pipelineId: routing.pipelineId ?? config.pipelineId,
+    pipelineStageId: routing.pipelineStageId ?? config.pipelineStageId,
+    assignedUserId: routing.assignedUserId ?? config.assignedUserId,
+  };
+
   try {
-    const customFields = await makeGhlCustomFields(config, payload);
-    const contactResponse = await ghlFetch<GhlContactResponse>(config, "/contacts/upsert", {
+    const customFields = await makeGhlCustomFields(ghlConfig, payload);
+    const contactResponse = await ghlFetch<GhlContactResponse>(ghlConfig, "/contacts/upsert", {
       body: {
-        locationId: config.locationId,
+        locationId: ghlConfig.locationId,
         firstName: payload.firstName,
         name: payload.firstName,
         ...parsedContact,
-        source: config.source,
+        source: ghlConfig.source,
         ...(customFields.length > 0 ? { customFields } : {}),
-        ...(config.assignedUserId ? { assignedTo: config.assignedUserId } : {}),
+        ...(ghlConfig.assignedUserId ? { assignedTo: ghlConfig.assignedUserId } : {}),
       },
     });
 
@@ -844,11 +1019,11 @@ export async function handleLeadRequest(request: Request) {
     ].filter(Boolean).join("\n");
     const taskTitle = getTaskTitle(payload.intent);
 
-    await ghlFetch(config, `/contacts/${contactId}/tags`, {
+    await ghlFetch(ghlConfig, `/contacts/${contactId}/tags`, {
       body: { tags },
     });
 
-    await ghlFetch(config, `/contacts/${contactId}/notes`, {
+    await ghlFetch(ghlConfig, `/contacts/${contactId}/notes`, {
       body: {
         title: `${getIntentLabel(payload.intent)} — Méthode TMS®`,
         body: noteBody,
@@ -857,37 +1032,37 @@ export async function handleLeadRequest(request: Request) {
     });
 
     const createTask = () =>
-      ghlFetch(config, `/contacts/${contactId}/tasks`, {
+      ghlFetch(ghlConfig, `/contacts/${contactId}/tasks`, {
         body: {
           title: taskTitle,
           body: taskBody,
           ...(payload.selectedDateTime ? { dueDate: payload.selectedDateTime } : {}),
           completed: false,
-          ...(config.assignedUserId ? { assignedTo: config.assignedUserId } : {}),
+          ...(ghlConfig.assignedUserId ? { assignedTo: ghlConfig.assignedUserId } : {}),
         },
       });
 
     await createTask();
 
-    if (config.pipelineId && config.pipelineStageId) {
+    if (ghlConfig.pipelineId && ghlConfig.pipelineStageId) {
       await optionalGhlStep("create opportunity", () =>
-        ghlFetch(config, "/opportunities/", {
+        ghlFetch(ghlConfig, "/opportunities/", {
           body: {
-            pipelineId: config.pipelineId,
-            pipelineStageId: config.pipelineStageId,
-            locationId: config.locationId,
+            pipelineId: ghlConfig.pipelineId,
+            pipelineStageId: ghlConfig.pipelineStageId,
+            locationId: ghlConfig.locationId,
             name: `${getIntentLabel(payload.intent)} - ${payload.firstName}`,
             status: "open",
             contactId,
-            ...(config.assignedUserId ? { assignedTo: config.assignedUserId } : {}),
+            ...(ghlConfig.assignedUserId ? { assignedTo: ghlConfig.assignedUserId } : {}),
           },
         })
       );
     }
 
-    if (config.workflowId) {
+    if (ghlConfig.workflowId) {
       await optionalGhlStep("add contact to workflow", () =>
-        ghlFetch(config, `/contacts/${contactId}/workflow/${config.workflowId}`, {
+        ghlFetch(ghlConfig, `/contacts/${contactId}/workflow/${ghlConfig.workflowId}`, {
           body: payload.selectedDateTime
             ? { eventStartTime: payload.selectedDateTime }
             : {},

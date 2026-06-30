@@ -88,6 +88,14 @@ function structuredData(config: CampaignLandingConfig) {
           name: "Grégory Tordjman",
         },
         serviceType: ["Méthode TMS®", "Private manual therapy", "French Body Reset"],
+        offers: {
+          "@type": "Offer",
+          availability: "https://schema.org/LimitedAvailability",
+          description: "75-minute private French Body Reset session in Mexico City",
+          ...(config.offerBlock.showPrice && config.offerBlock.priceValue
+            ? { price: config.offerBlock.priceValue, priceCurrency: "MXN" }
+            : {}),
+        },
       },
     ],
   };

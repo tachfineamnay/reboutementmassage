@@ -72,16 +72,49 @@ export default async function DemandeDetailPage({ params }: Props) {
       type: true,
       context: true,
       locale: true,
+      companyName: true,
+      jobTitle: true,
+      propertyType: true,
+      destination: true,
+      leadSegment: true,
+      intent: true,
+      preferredChannel: true,
+      routedToUrl: true,
+      urgency: true,
+      needType: true,
+      volumePotential: true,
+      participantCount: true,
+      currentLocation: true,
       selectedDayLabel: true,
       selectedTime: true,
       selectedAt: true,
       timezone: true,
       pageUrl: true,
       utm: true,
+      branchData: true,
       tags: true,
       status: true,
       ghlContactId: true,
       errorMessage: true,
+      eventId: true,
+      source: true,
+      medium: true,
+      campaign: true,
+      content: true,
+      creativeAngle: true,
+      ctaLocation: true,
+      landingPageId: true,
+      destinationId: true,
+      offerId: true,
+      landingPage: {
+        select: { slug: true, locale: true, title: true },
+      },
+      growthDestination: {
+        select: { slug: true, cityName: true },
+      },
+      growthOffer: {
+        select: { publicNameFr: true, type: true },
+      },
       createdAt: true,
       updatedAt: true,
     },
@@ -89,22 +122,7 @@ export default async function DemandeDetailPage({ params }: Props) {
 
   if (!legacyLead) notFound();
 
-  const lead = {
-    ...legacyLead,
-    branchData: {},
-    companyName: null,
-    jobTitle: null,
-    propertyType: null,
-    destination: null,
-    intent: null,
-    preferredChannel: null,
-    routedToUrl: null,
-    urgency: null,
-    needType: null,
-    volumePotential: null,
-    participantCount: null,
-    currentLocation: null,
-  };
+  const lead = legacyLead;
 
   const phone = normalizePhoneContact(lead.contact);
   const isEmail = isEmailContact(lead.contact);
@@ -179,6 +197,24 @@ export default async function DemandeDetailPage({ params }: Props) {
           {lead.jobTitle && <DetailItem label="Fonction / Poste" value={lead.jobTitle} />}
           {lead.propertyType && <DetailItem label="Type d'établissement" value={lead.propertyType} />}
           {lead.destination && <DetailItem label="Destination" value={lead.destination} />}
+          {lead.growthDestination && (
+            <DetailItem
+              label="Destination CMS"
+              value={`${lead.growthDestination.cityName} (${lead.growthDestination.slug})`}
+            />
+          )}
+          {lead.growthOffer && (
+            <DetailItem
+              label="Offre CMS"
+              value={`${lead.growthOffer.publicNameFr} (${lead.growthOffer.type})`}
+            />
+          )}
+          {lead.landingPage && (
+            <DetailItem
+              label="Landing CMS"
+              value={`/${lead.landingPage.locale.toLowerCase()}/${lead.landingPage.slug}`}
+            />
+          )}
 
           {lead.intent && <DetailItem label="Intention" value={lead.intent} />}
           <DetailItem label="Canal" value={formatLeadChannel(lead.preferredChannel)} />
@@ -219,6 +255,18 @@ export default async function DemandeDetailPage({ params }: Props) {
       </section>
 
       <section className="lead-detail-columns">
+        <div className="admin-panel">
+          <h2 className="admin-panel__title">Attribution Growth</h2>
+          <div className="lead-detail-grid">
+            <DetailItem label="Event ID" value={lead.eventId ?? "—"} />
+            <DetailItem label="Source" value={lead.source ?? "—"} />
+            <DetailItem label="Medium" value={lead.medium ?? "—"} />
+            <DetailItem label="Campaign" value={lead.campaign ?? "—"} />
+            <DetailItem label="Content" value={lead.content ?? "—"} />
+            <DetailItem label="Creative angle" value={lead.creativeAngle ?? "—"} />
+            <DetailItem label="CTA location" value={lead.ctaLocation ?? "—"} />
+          </div>
+        </div>
         <div className="admin-panel">
           <h2 className="admin-panel__title">UTM</h2>
           <pre className="lead-detail-code">{stringifyJson(lead.utm)}</pre>

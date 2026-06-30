@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Language } from "@/data/copy";
+import { trackCampaignEvent } from "@/lib/campaign-tracking";
 
 /* ──────────────────────────────────────────────────────────
    Types
@@ -18,6 +19,7 @@ interface SharedHeaderProps {
   heroStyle?: "dark" | "light";
   ctaHrefOverride?: string;
   ctaLabelOverride?: string;
+  ctaExternal?: boolean;
 }
 
 const LANGUAGE_ROUTES: Record<Language, string> = {
@@ -78,6 +80,7 @@ export default function SharedHeader({
   heroStyle = "dark",
   ctaHrefOverride,
   ctaLabelOverride,
+  ctaExternal = false,
 }: SharedHeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -91,6 +94,19 @@ export default function SharedHeader({
       window.requestAnimationFrame(() => menuButtonRef.current?.focus());
     }
   }, []);
+
+  const handleLanguageSwitch = useCallback(
+    (nextLang: Language) => {
+      if (ctaExternal && nextLang !== lang) {
+        trackCampaignEvent("language_switched", {
+          language: lang.toLowerCase(),
+          source: lang.toLowerCase(),
+          utm_medium: nextLang.toLowerCase(),
+        });
+      }
+    },
+    [ctaExternal, lang]
+  );
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -130,6 +146,10 @@ export default function SharedHeader({
   const navLinks = getNavLinks(lang);
   const ctaLabel = ctaLabelOverride ?? getCtaLabel(lang);
   const ctaHref = ctaHrefOverride ?? `${LANGUAGE_ROUTES[lang]}#contact`;
+  const ctaProps = ctaExternal
+    ? { href: ctaHref, target: "_blank", rel: "noreferrer" as const }
+    : { href: ctaHref };
+  const CtaTag = ctaExternal ? "a" : Link;
 
   /* Couleur header non scrollé selon le fond du hero */
   const isLightHero = heroStyle === "light";
@@ -198,6 +218,7 @@ export default function SharedHeader({
                     className={`lang-btn${lang === code ? " is-active" : ""}`}
                     aria-current={lang === code ? "page" : undefined}
                     hrefLang={LANGUAGE_ROUTES[code].slice(1)}
+                    onClick={() => handleLanguageSwitch(code)}
                   >
                     {code}
                   </Link>
@@ -206,10 +227,10 @@ export default function SharedHeader({
             </nav>
 
             {/* CTA desktop */}
-            <Link href={ctaHref} className="header-cta" id="shared-header-cta">
+            <CtaTag {...ctaProps} className="header-cta" id="shared-header-cta">
               {ctaLabel}
               <Arrow />
-            </Link>
+            </CtaTag>
 
             {/* Hamburger — mobile only */}
             <button
@@ -265,14 +286,14 @@ export default function SharedHeader({
           </ul>
 
           {/* CTA mobile */}
-          <Link
-            href={ctaHref}
+          <CtaTag
+            {...ctaProps}
             className="mobile-menu__cta"
             onClick={() => closeMenu()}
           >
             {ctaLabel}
             <Arrow />
-          </Link>
+          </CtaTag>
 
           {/* Language switcher mobile */}
           <div className="mobile-menu__langs">
@@ -283,7 +304,10 @@ export default function SharedHeader({
                 className={`mobile-menu__lang${lang === code ? " is-active" : ""}`}
                 aria-current={lang === code ? "page" : undefined}
                 hrefLang={LANGUAGE_ROUTES[code].slice(1)}
-                onClick={() => closeMenu()}
+                onClick={() => {
+                  handleLanguageSwitch(code);
+                  closeMenu();
+                }}
               >
                 {code}
               </Link>
