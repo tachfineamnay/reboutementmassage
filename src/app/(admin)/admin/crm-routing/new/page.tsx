@@ -37,24 +37,46 @@ export default async function NewCrmRoutingPage() {
             </select>
           </label>
           <label className="admin-field">
+            <span className="admin-field__label">Type d'offre</span>
+            <select name="offerType" className="admin-input">
+              <option value="">Tous</option>
+              <option value="private_session">Séance privée</option>
+              <option value="hospitality_partner">Partenaire hospitalité</option>
+              <option value="training">Formation</option>
+              <option value="workshop">Atelier / Workshop</option>
+            </select>
+          </label>
+          <label className="admin-field">
             <span className="admin-field__label">Segment lead</span>
-            <input name="leadSegment" className="admin-input" />
+            <input name="leadSegment" className="admin-input" placeholder="ex: b2c_premium" />
           </label>
           <label className="admin-field">
             <span className="admin-field__label">Intent</span>
-            <input name="intent" className="admin-input" />
+            <input name="intent" className="admin-input" placeholder="ex: private_session" />
           </label>
           <label className="admin-field">
             <span className="admin-field__label">Source UTM</span>
-            <input name="source" className="admin-input" />
+            <input name="source" className="admin-input" placeholder="ex: facebook" />
           </label>
           <label className="admin-field">
             <span className="admin-field__label">GHL Pipeline ID</span>
             <input name="ghlPipelineId" className="admin-input" />
           </label>
           <label className="admin-field">
+            <span className="admin-field__label">GHL Pipeline Stage ID</span>
+            <input name="ghlPipelineStageId" className="admin-input" />
+          </label>
+          <label className="admin-field">
             <span className="admin-field__label">GHL Workflow ID</span>
             <input name="ghlWorkflowId" className="admin-input" />
+          </label>
+          <label className="admin-field">
+            <span className="admin-field__label">ID utilisateur assigné GHL</span>
+            <input name="ghlAssignedUserId" className="admin-input" />
+          </label>
+          <label className="admin-field">
+            <span className="admin-field__label">Tags (séparés par des virgules)</span>
+            <input name="tags" className="admin-input" placeholder="tag1, tag2" />
           </label>
           <label className="admin-field">
             <span className="admin-field__label">Statut</span>
@@ -64,7 +86,10 @@ export default async function NewCrmRoutingPage() {
             </select>
           </label>
         </div>
-        <input type="hidden" name="tags" value="[]" />
+        <label className="admin-field">
+          <span className="admin-field__label">Custom Fields GHL (JSON)</span>
+          <textarea name="customFields" rows={3} defaultValue="{}" className="admin-input" placeholder="{}" style={{ fontFamily: "monospace" }} />
+        </label>
         <div className="admin-form__actions">
           <button type="submit" className="admin-btn admin-btn--primary">Créer</button>
         </div>

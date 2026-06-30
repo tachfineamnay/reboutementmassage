@@ -3,12 +3,10 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { CampaignLandingConfig } from "@/data/campaign-landings";
-import { getCdmxLocaleFromLanguage, getCdmxWhatsappUrl } from "@/data/campaign-landings";
 import { trackCampaignEvent } from "@/lib/campaign-tracking";
 
 export default function TestimonialVideoBlock({ config }: { config: CampaignLandingConfig }) {
-  const locale = getCdmxLocaleFromLanguage(config.language);
-  const whatsappUrl = getCdmxWhatsappUrl(locale, "testimonial_cta");
+  const whatsappUrl = config.whatsappUrls.testimonial_cta;
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -26,6 +24,9 @@ export default function TestimonialVideoBlock({ config }: { config: CampaignLand
           trackCampaignEvent("testimonial_viewed", {
             language: config.htmlLang,
             cta_location: "testimonial",
+            city: config.destinationSlug,
+            offer: config.offerType,
+            session_duration: config.durationMinutes ? `${config.durationMinutes}_min` : undefined,
           });
           observer.disconnect();
         }
@@ -44,6 +45,9 @@ export default function TestimonialVideoBlock({ config }: { config: CampaignLand
     trackCampaignEvent("video_played", {
       language: config.htmlLang,
       cta_location: "testimonial",
+      city: config.destinationSlug,
+      offer: config.offerType,
+      session_duration: config.durationMinutes ? `${config.durationMinutes}_min` : undefined,
     });
   }
 
@@ -51,6 +55,9 @@ export default function TestimonialVideoBlock({ config }: { config: CampaignLand
     trackCampaignEvent("hero_whatsapp_clicked", {
       language: config.htmlLang,
       cta_location: "testimonial",
+      city: config.destinationSlug,
+      offer: config.offerType,
+      session_duration: config.durationMinutes ? `${config.durationMinutes}_min` : undefined,
     });
   }
 

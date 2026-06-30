@@ -115,6 +115,23 @@ export type CampaignLandingConfig = {
     faqTitle: string;
   };
   faq: Array<{ question: string; answer: string }>;
+  landingPageId?: string;
+  destinationId?: string;
+  offerId?: string | null;
+  destinationSlug: string;
+  country: string;
+  currency: string;
+  durationMinutes: number;
+  offerType: string;
+  bookingUrl: string | null;
+  paymentUrl: string | null;
+  whatsappUrls: {
+    default: string;
+    book_intent: string;
+    more_info_intent: string;
+    testimonial_cta: string;
+    sticky_cta: string;
+  };
 };
 
 const DEFAULT_WHATSAPP_NUMBER = "33665517735";
@@ -123,10 +140,52 @@ export function getCdmxWhatsappNumber() {
   return process.env.NEXT_PUBLIC_CDMX_WHATSAPP_NUMBER?.replace(/\D/g, "") || DEFAULT_WHATSAPP_NUMBER;
 }
 
-export function getCdmxWhatsappUrl(locale: "fr" | "en" | "es", intent: WhatsappIntent = "default") {
-  const config = CDMX_PRIVATE_SESSION_CAMPAIGNS[locale];
-  const text = config.whatsapp.messages[intent];
+const CDMX_WHATSAPP_MESSAGES: Record<"fr" | "en" | "es", Record<WhatsappIntent, string>> = {
+  es: {
+    default:
+      "Hola Grégory, estoy en CDMX y quiero consultar disponibilidad para una sesión de 75 min de Reset Corporal Francés.",
+    book_intent:
+      "Hola Grégory, estoy en CDMX y quiero reservar una sesión de 75 min de Reset Corporal Francés.",
+    more_info_intent:
+      "Hola Grégory, estoy en CDMX y me gustaría más información sobre el Reset Corporal Francés.",
+    testimonial_cta:
+      "Hola Grégory, vi el testimonio y me gustaría saber si una sesión de Reset Corporal Francés es adecuada para mí en CDMX.",
+    sticky_cta:
+      "Hola Grégory, estoy en CDMX y quiero consultar disponibilidad para una sesión de 75 min.",
+  },
+  en: {
+    default:
+      "Hi Grégory, I'm in Mexico City and I'd like to check availability for a 75-min French Body Reset session.",
+    book_intent:
+      "Hi Grégory, I'm in Mexico City and I'd like to book a 75-min French Body Reset session.",
+    more_info_intent:
+      "Hi Grégory, I'm in Mexico City and I'd like more information about the French Body Reset.",
+    testimonial_cta:
+      "Hi Grégory, I watched the testimonial and would like to know if a French Body Reset session is right for me in Mexico City.",
+    sticky_cta:
+      "Hi Grégory, I'm in Mexico City and I'd like to check availability for a 75-min session.",
+  },
+  fr: {
+    default:
+      "Bonjour Grégory, je suis à Mexico City et je souhaite vérifier une disponibilité pour une séance de 75 min de French Body Reset.",
+    book_intent:
+      "Bonjour Grégory, je suis à Mexico City et je souhaite réserver une séance de 75 min de French Body Reset.",
+    more_info_intent:
+      "Bonjour Grégory, je suis à Mexico City et j'aimerais plus d'informations sur le French Body Reset.",
+    testimonial_cta:
+      "Bonjour Grégory, j'ai vu le témoignage et j'aimerais savoir si une séance de French Body Reset est adaptée pour moi à Mexico City.",
+    sticky_cta:
+      "Bonjour Grégory, je suis à Mexico City et je souhaite vérifier une disponibilité pour une séance de 75 min.",
+  },
+};
+
+function buildCdmxWhatsappUrl(locale: "fr" | "en" | "es", intent: WhatsappIntent) {
+  const text = CDMX_WHATSAPP_MESSAGES[locale][intent];
   return `https://wa.me/${getCdmxWhatsappNumber()}?text=${encodeURIComponent(text)}`;
+}
+
+export function getCdmxWhatsappUrl(locale: "fr" | "en" | "es", intent: WhatsappIntent = "default") {
+  return buildCdmxWhatsappUrl(locale, intent);
 }
 
 const campaignCore = {
@@ -145,6 +204,16 @@ const campaignCore = {
     offer: "private_session",
     landing: "cdmx_private_session",
   },
+  landingPageId: "cdmx_private_session",
+  destinationId: "cdmx",
+  offerId: "private_session",
+  destinationSlug: "cdmx",
+  country: "Mexico",
+  currency: "MXN",
+  durationMinutes: 75,
+  offerType: "private_session",
+  bookingUrl: null,
+  paymentUrl: null,
 };
 
 const sharedNeedOptions: Record<"fr" | "en" | "es", CampaignLeadOption[]> = {
@@ -183,6 +252,13 @@ export const CDMX_PRIVATE_SESSION_CAMPAIGNS: Record<"fr" | "en" | "es", Campaign
     route: "/es/sesion-privada-cdmx",
     language: "ES",
     htmlLang: "es",
+    whatsappUrls: {
+      default: getCdmxWhatsappUrl("es", "default"),
+      book_intent: getCdmxWhatsappUrl("es", "book_intent"),
+      more_info_intent: getCdmxWhatsappUrl("es", "more_info_intent"),
+      testimonial_cta: getCdmxWhatsappUrl("es", "testimonial_cta"),
+      sticky_cta: getCdmxWhatsappUrl("es", "sticky_cta"),
+    },
     meta: {
       title: "Reset Corporal Francés en CDMX | No es un masaje clásico | Grégory Tordjman",
       description:
@@ -331,6 +407,13 @@ export const CDMX_PRIVATE_SESSION_CAMPAIGNS: Record<"fr" | "en" | "es", Campaign
     route: "/en/mexico-city-private-session",
     language: "EN",
     htmlLang: "en",
+    whatsappUrls: {
+      default: getCdmxWhatsappUrl("en", "default"),
+      book_intent: getCdmxWhatsappUrl("en", "book_intent"),
+      more_info_intent: getCdmxWhatsappUrl("en", "more_info_intent"),
+      testimonial_cta: getCdmxWhatsappUrl("en", "testimonial_cta"),
+      sticky_cta: getCdmxWhatsappUrl("en", "sticky_cta"),
+    },
     meta: {
       title: "French Body Reset in Mexico City | Not a regular massage | Grégory Tordjman",
       description:
@@ -479,6 +562,13 @@ export const CDMX_PRIVATE_SESSION_CAMPAIGNS: Record<"fr" | "en" | "es", Campaign
     route: "/fr/seance-privee-mexico-city",
     language: "FR",
     htmlLang: "fr",
+    whatsappUrls: {
+      default: getCdmxWhatsappUrl("fr", "default"),
+      book_intent: getCdmxWhatsappUrl("fr", "book_intent"),
+      more_info_intent: getCdmxWhatsappUrl("fr", "more_info_intent"),
+      testimonial_cta: getCdmxWhatsappUrl("fr", "testimonial_cta"),
+      sticky_cta: getCdmxWhatsappUrl("fr", "sticky_cta"),
+    },
     meta: {
       title: "French Body Reset à Mexico City | Pas un massage classique | Grégory Tordjman",
       description:

@@ -14,12 +14,10 @@ import TestimonialVideoBlock from "@/components/campaign/TestimonialVideoBlock";
 import SharedFooter from "@/components/SharedFooter";
 import SharedHeader from "@/components/SharedHeader";
 import type { CampaignLandingConfig } from "@/data/campaign-landings";
-import { getCdmxLocaleFromLanguage, getCdmxWhatsappUrl } from "@/data/campaign-landings";
 import { trackLandingViewed } from "@/lib/campaign-tracking";
 
-export default function CdmxPrivateSessionPage({ config }: { config: CampaignLandingConfig }) {
-  const locale = getCdmxLocaleFromLanguage(config.language);
-  const headerWhatsappUrl = getCdmxWhatsappUrl(locale, "default");
+export default function MobileWhatsappFirstLanding({ config }: { config: CampaignLandingConfig }) {
+  const headerWhatsappUrl = config.whatsappUrls.default;
 
   useEffect(() => {
     document.documentElement.setAttribute("data-density", "compact");
@@ -27,12 +25,18 @@ export default function CdmxPrivateSessionPage({ config }: { config: CampaignLan
     document.documentElement.setAttribute("data-layout", "editorial");
     document.documentElement.lang = config.htmlLang;
     document.body.classList.add("has-campaign-sticky");
-    trackLandingViewed(config.htmlLang);
+
+    trackLandingViewed(config.htmlLang, {
+      city: config.destinationSlug || config.branchData.campaignCity,
+      offer: config.offerType || config.branchData.offer,
+      session_duration: config.durationMinutes ? `${config.durationMinutes}_min` : undefined,
+      content_name: config.tracking?.viewContentName,
+    });
 
     return () => {
       document.body.classList.remove("has-campaign-sticky");
     };
-  }, [config.htmlLang]);
+  }, [config]);
 
   return (
     <>

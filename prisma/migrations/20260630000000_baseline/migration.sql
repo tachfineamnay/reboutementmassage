@@ -107,16 +107,6 @@ CREATE TABLE IF NOT EXISTS "lead_submissions" (
     "resendEmailId" TEXT,
     "notificationSentAt" TIMESTAMP(3),
     "notificationError" TEXT,
-    "eventId" TEXT,
-    "landingPageId" TEXT,
-    "destinationId" TEXT,
-    "offerId" TEXT,
-    "source" TEXT,
-    "medium" TEXT,
-    "campaign" TEXT,
-    "content" TEXT,
-    "creativeAngle" TEXT,
-    "ctaLocation" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -137,11 +127,6 @@ CREATE TABLE IF NOT EXISTS "media_assets" (
     "altFr" TEXT,
     "altEn" TEXT,
     "altEs" TEXT,
-    "assetType" "MediaAssetType" NOT NULL DEFAULT 'IMAGE',
-    "externalUrl" TEXT,
-    "consentNotes" TEXT,
-    "usageNotes" TEXT,
-    "destinationId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "media_assets_pkey" PRIMARY KEY ("id")

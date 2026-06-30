@@ -29,6 +29,26 @@ export async function POST(request: Request) {
     const body = await request.json();
     const data = eventSchema.parse(body);
 
+    let sentToMeta = false;
+    let sentToTikTok = false;
+    let sentToGA4 = false;
+    let sentToGTM = false;
+
+    if (data.landingPageId) {
+      const landing = await prisma.landingPage.findUnique({
+        where: { id: data.landingPageId },
+        include: { trackingProfile: true },
+      });
+
+      if (landing?.trackingProfile?.status === "ACTIVE") {
+        const tp = landing.trackingProfile;
+        sentToMeta = tp.enableMeta && Boolean(tp.metaPixelId);
+        sentToTikTok = tp.enableTikTok && Boolean(tp.tiktokPixelId);
+        sentToGA4 = tp.enableGA4 && Boolean(tp.ga4MeasurementId);
+        sentToGTM = tp.enableGTM && Boolean(tp.gtmContainerId);
+      }
+    }
+
     await prisma.pixelEventLog.create({
       data: {
         eventId: data.eventId,
@@ -46,6 +66,10 @@ export async function POST(request: Request) {
         needType: data.needType ?? undefined,
         pageUrl: data.pageUrl ?? undefined,
         sessionId: data.sessionId ?? undefined,
+        sentToMeta,
+        sentToTikTok,
+        sentToGA4,
+        sentToGTM,
       },
     });
 

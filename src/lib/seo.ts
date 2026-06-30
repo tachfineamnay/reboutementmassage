@@ -129,6 +129,28 @@ export function routeAlternates(routeKey: LocalizedRouteKey) {
   };
 }
 
+export function isGrowthLandingPath(pathname: string): boolean {
+  const parts = pathname.split("/").filter(Boolean);
+  if (parts.length !== 2) return false;
+  const [lang, slug] = parts;
+  if (!["fr", "en", "es"].includes(lang.toLowerCase())) return false;
+  const RESERVED_SLUGS = new Set([
+    "biography",
+    "biographie",
+    "biografia",
+    "sessions",
+    "seances",
+    "sesiones",
+    "stories",
+    "stages-workshops",
+    "luxury-hospitality",
+    "hotellerie-luxe",
+    "hospitalidad-lujo",
+    "llms.txt",
+  ]);
+  return !RESERVED_SLUGS.has(slug.toLowerCase());
+}
+
 export function getCanonicalLocalizedPath(pathname: string) {
   const normalized = pathname === "/" ? pathname : pathname.replace(/\/+$/, "");
   return NON_CANONICAL_ROUTE_MAP.get(normalized) ?? null;

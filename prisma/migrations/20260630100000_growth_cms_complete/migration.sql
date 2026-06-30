@@ -1,22 +1,22 @@
 -- Growth CMS complete migration
 
 -- CreateEnum
-CREATE TYPE "DestinationStatus" AS ENUM ('DRAFT', 'READY', 'LIVE', 'PAUSED', 'ARCHIVED');
-CREATE TYPE "DestinationMaturity" AS ENUM ('TEST', 'ACTIVE', 'PREMIUM', 'PARTNERSHIP');
-CREATE TYPE "OfferType" AS ENUM ('PRIVATE_SESSION', 'FOUNDER_SESSION', 'HOTEL_EXPERIENCE', 'HOSPITALITY_PARTNER', 'WORKSHOP', 'TRAINING', 'RETREAT', 'CORPORATE', 'VIP_SIGNATURE');
-CREATE TYPE "OfferStatus" AS ENUM ('DRAFT', 'READY', 'LIVE', 'PAUSED', 'ARCHIVED');
-CREATE TYPE "LandingTemplate" AS ENUM ('MOBILE_WHATSAPP_FIRST', 'PREMIUM_PRIVATE_SESSION', 'B2B_HOSPITALITY', 'FORMATION_LEADGEN', 'SEO_LOCAL_SERVICE', 'EVENT_WORKSHOP');
-CREATE TYPE "LandingStatus" AS ENUM ('DRAFT', 'READY', 'LIVE', 'PAUSED', 'ARCHIVED');
-CREATE TYPE "WhatsappProvider" AS ENUM ('WHATSAPP_APP', 'GHL_WHATSAPP_PLATFORM', 'META_CLOUD_API');
-CREATE TYPE "WhatsappChannelStatus" AS ENUM ('NOT_CONFIGURED', 'APP_ONLY', 'CONNECTED_GHL', 'ACTIVE', 'PAUSED', 'BLOCKED');
-CREATE TYPE "TrackingProfileStatus" AS ENUM ('DRAFT', 'ACTIVE', 'PAUSED', 'ARCHIVED');
-CREATE TYPE "CrmRoutingStatus" AS ENUM ('DRAFT', 'ACTIVE', 'PAUSED', 'ARCHIVED');
-CREATE TYPE "TestimonialStatus" AS ENUM ('DRAFT', 'READY', 'LIVE', 'ARCHIVED');
-CREATE TYPE "CampaignPlatform" AS ENUM ('META', 'TIKTOK', 'GOOGLE', 'ORGANIC', 'DIRECT', 'PARTNER', 'EMAIL', 'OTHER');
-CREATE TYPE "CampaignSourceStatus" AS ENUM ('DRAFT', 'ACTIVE', 'PAUSED', 'ARCHIVED');
-CREATE TYPE "ExperimentStatus" AS ENUM ('DRAFT', 'RUNNING', 'PAUSED', 'COMPLETED', 'ARCHIVED');
-CREATE TYPE "MediaAssetType" AS ENUM ('IMAGE', 'VIDEO', 'POSTER', 'DOCUMENT');
-CREATE TYPE "NormalizedNeedType" AS ENUM ('back', 'neck', 'stress', 'fatigue', 'travel', 'mobility', 'recovery', 'other');
+DO $$ BEGIN CREATE TYPE "DestinationStatus" AS ENUM ('DRAFT', 'READY', 'LIVE', 'PAUSED', 'ARCHIVED'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "DestinationMaturity" AS ENUM ('TEST', 'ACTIVE', 'PREMIUM', 'PARTNERSHIP'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "OfferType" AS ENUM ('PRIVATE_SESSION', 'FOUNDER_SESSION', 'HOTEL_EXPERIENCE', 'HOSPITALITY_PARTNER', 'WORKSHOP', 'TRAINING', 'RETREAT', 'CORPORATE', 'VIP_SIGNATURE'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "OfferStatus" AS ENUM ('DRAFT', 'READY', 'LIVE', 'PAUSED', 'ARCHIVED'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "LandingTemplate" AS ENUM ('MOBILE_WHATSAPP_FIRST', 'PREMIUM_PRIVATE_SESSION', 'B2B_HOSPITALITY', 'FORMATION_LEADGEN', 'SEO_LOCAL_SERVICE', 'EVENT_WORKSHOP'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "LandingStatus" AS ENUM ('DRAFT', 'READY', 'LIVE', 'PAUSED', 'ARCHIVED'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "WhatsappProvider" AS ENUM ('WHATSAPP_APP', 'GHL_WHATSAPP_PLATFORM', 'META_CLOUD_API'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "WhatsappChannelStatus" AS ENUM ('NOT_CONFIGURED', 'APP_ONLY', 'CONNECTED_GHL', 'ACTIVE', 'PAUSED', 'BLOCKED'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "TrackingProfileStatus" AS ENUM ('DRAFT', 'ACTIVE', 'PAUSED', 'ARCHIVED'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "CrmRoutingStatus" AS ENUM ('DRAFT', 'ACTIVE', 'PAUSED', 'ARCHIVED'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "TestimonialStatus" AS ENUM ('DRAFT', 'READY', 'LIVE', 'ARCHIVED'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "CampaignPlatform" AS ENUM ('META', 'TIKTOK', 'GOOGLE', 'ORGANIC', 'DIRECT', 'PARTNER', 'EMAIL', 'OTHER'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "CampaignSourceStatus" AS ENUM ('DRAFT', 'ACTIVE', 'PAUSED', 'ARCHIVED'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "ExperimentStatus" AS ENUM ('DRAFT', 'RUNNING', 'PAUSED', 'COMPLETED', 'ARCHIVED'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "MediaAssetType" AS ENUM ('IMAGE', 'VIDEO', 'POSTER', 'DOCUMENT'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE "NormalizedNeedType" AS ENUM ('back', 'neck', 'stress', 'fatigue', 'travel', 'mobility', 'recovery', 'other'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- AlterTable media_assets
 ALTER TABLE "media_assets" ADD COLUMN IF NOT EXISTS "assetType" "MediaAssetType" NOT NULL DEFAULT 'IMAGE';
@@ -38,7 +38,7 @@ ALTER TABLE "lead_submissions" ADD COLUMN IF NOT EXISTS "creativeAngle" TEXT;
 ALTER TABLE "lead_submissions" ADD COLUMN IF NOT EXISTS "ctaLocation" TEXT;
 
 -- CreateTable destinations
-CREATE TABLE "destinations" (
+CREATE TABLE IF NOT EXISTS "destinations" (
     "id" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "cityName" TEXT NOT NULL,
@@ -74,7 +74,7 @@ CREATE INDEX "destinations_status_idx" ON "destinations"("status");
 CREATE INDEX "destinations_country_idx" ON "destinations"("country");
 
 -- CreateTable offers
-CREATE TABLE "offers" (
+CREATE TABLE IF NOT EXISTS "offers" (
     "id" TEXT NOT NULL,
     "destinationId" TEXT NOT NULL,
     "type" "OfferType" NOT NULL,
@@ -113,7 +113,7 @@ CREATE INDEX "offers_destinationId_status_idx" ON "offers"("destinationId", "sta
 CREATE INDEX "offers_type_idx" ON "offers"("type");
 
 -- CreateTable whatsapp_channels
-CREATE TABLE "whatsapp_channels" (
+CREATE TABLE IF NOT EXISTS "whatsapp_channels" (
     "id" TEXT NOT NULL,
     "destinationId" TEXT NOT NULL,
     "label" TEXT NOT NULL,
@@ -140,7 +140,7 @@ CREATE TABLE "whatsapp_channels" (
 CREATE INDEX "whatsapp_channels_destinationId_status_idx" ON "whatsapp_channels"("destinationId", "status");
 
 -- CreateTable tracking_profiles
-CREATE TABLE "tracking_profiles" (
+CREATE TABLE IF NOT EXISTS "tracking_profiles" (
     "id" TEXT NOT NULL,
     "destinationId" TEXT NOT NULL,
     "label" TEXT NOT NULL,
@@ -165,7 +165,7 @@ CREATE TABLE "tracking_profiles" (
 CREATE INDEX "tracking_profiles_destinationId_status_idx" ON "tracking_profiles"("destinationId", "status");
 
 -- CreateTable crm_routing_rules
-CREATE TABLE "crm_routing_rules" (
+CREATE TABLE IF NOT EXISTS "crm_routing_rules" (
     "id" TEXT NOT NULL,
     "destinationId" TEXT NOT NULL,
     "locale" "Locale",
@@ -190,7 +190,7 @@ CREATE TABLE "crm_routing_rules" (
 CREATE INDEX "crm_routing_rules_destinationId_status_priority_idx" ON "crm_routing_rules"("destinationId", "status", "priority");
 
 -- CreateTable landing_pages
-CREATE TABLE "landing_pages" (
+CREATE TABLE IF NOT EXISTS "landing_pages" (
     "id" TEXT NOT NULL,
     "destinationId" TEXT NOT NULL,
     "offerId" TEXT,
@@ -240,7 +240,7 @@ CREATE INDEX "landing_pages_hreflangGroupId_idx" ON "landing_pages"("hreflangGro
 CREATE INDEX "landing_pages_status_noindex_idx" ON "landing_pages"("status", "noindex");
 
 -- CreateTable pixel_event_logs
-CREATE TABLE "pixel_event_logs" (
+CREATE TABLE IF NOT EXISTS "pixel_event_logs" (
     "id" TEXT NOT NULL,
     "eventId" TEXT NOT NULL,
     "eventName" TEXT NOT NULL,
@@ -272,7 +272,7 @@ CREATE INDEX "pixel_event_logs_destinationId_createdAt_idx" ON "pixel_event_logs
 CREATE INDEX "pixel_event_logs_eventId_idx" ON "pixel_event_logs"("eventId");
 
 -- CreateTable testimonials
-CREATE TABLE "testimonials" (
+CREATE TABLE IF NOT EXISTS "testimonials" (
     "id" TEXT NOT NULL,
     "firstName" TEXT,
     "displayName" TEXT NOT NULL,
@@ -307,7 +307,7 @@ CREATE INDEX "testimonials_destinationId_locale_status_idx" ON "testimonials"("d
 CREATE INDEX "testimonials_priority_idx" ON "testimonials"("priority");
 
 -- CreateTable campaign_sources
-CREATE TABLE "campaign_sources" (
+CREATE TABLE IF NOT EXISTS "campaign_sources" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "source" TEXT NOT NULL,
@@ -332,7 +332,7 @@ CREATE INDEX "campaign_sources_destinationId_platform_idx" ON "campaign_sources"
 CREATE INDEX "campaign_sources_landingPageId_idx" ON "campaign_sources"("landingPageId");
 
 -- CreateTable experiments
-CREATE TABLE "experiments" (
+CREATE TABLE IF NOT EXISTS "experiments" (
     "id" TEXT NOT NULL,
     "landingPageId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -350,7 +350,7 @@ CREATE TABLE "experiments" (
 CREATE INDEX "experiments_landingPageId_status_idx" ON "experiments"("landingPageId", "status");
 
 -- CreateTable experiment_variants
-CREATE TABLE "experiment_variants" (
+CREATE TABLE IF NOT EXISTS "experiment_variants" (
     "id" TEXT NOT NULL,
     "experimentId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -373,7 +373,7 @@ CREATE TABLE "experiment_variants" (
 CREATE INDEX "experiment_variants_experimentId_idx" ON "experiment_variants"("experimentId");
 
 -- CreateTable redirect_rules
-CREATE TABLE "redirect_rules" (
+CREATE TABLE IF NOT EXISTS "redirect_rules" (
     "id" TEXT NOT NULL,
     "sourcePath" TEXT NOT NULL,
     "targetPath" TEXT NOT NULL,
@@ -389,7 +389,7 @@ CREATE UNIQUE INDEX "redirect_rules_sourcePath_key" ON "redirect_rules"("sourceP
 CREATE INDEX "redirect_rules_active_idx" ON "redirect_rules"("active");
 
 -- CreateTable landing_metric_daily
-CREATE TABLE "landing_metric_daily" (
+CREATE TABLE IF NOT EXISTS "landing_metric_daily" (
     "id" TEXT NOT NULL,
     "landingPageId" TEXT NOT NULL,
     "date" DATE NOT NULL,

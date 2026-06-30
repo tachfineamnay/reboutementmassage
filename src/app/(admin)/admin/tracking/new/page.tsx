@@ -40,6 +40,21 @@ export default async function NewTrackingPage() {
             <input name="tiktokPixelId" className="admin-input" />
           </label>
           <label className="admin-field">
+            <span className="admin-field__label">GTM Container ID</span>
+            <input name="gtmContainerId" className="admin-input" />
+          </label>
+          <label className="admin-field">
+            <span className="admin-field__label">Google Ads ID</span>
+            <input name="googleAdsId" className="admin-input" />
+          </label>
+          <label className="admin-field">
+            <span className="admin-field__label">Consent Mode</span>
+            <select name="consentMode" defaultValue="basic" className="admin-input">
+              <option value="basic">Basic (sans cookies initiaux)</option>
+              <option value="advanced">Advanced (Google Consent Mode v2)</option>
+            </select>
+          </label>
+          <label className="admin-field">
             <span className="admin-field__label">Statut</span>
             <select name="status" defaultValue="DRAFT" className="admin-input">
               <option value="DRAFT">Brouillon</option>
@@ -57,6 +72,14 @@ export default async function NewTrackingPage() {
           <label className="admin-field admin-field--checkbox">
             <input name="enableTikTok" type="checkbox" />
             <span>TikTok</span>
+          </label>
+          <label className="admin-field admin-field--checkbox">
+            <input name="enableGTM" type="checkbox" />
+            <span>GTM</span>
+          </label>
+          <label className="admin-field admin-field--checkbox">
+            <input name="enableGoogleAds" type="checkbox" />
+            <span>Google Ads</span>
           </label>
         </div>
         <div className="admin-form__actions">

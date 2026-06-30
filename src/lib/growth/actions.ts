@@ -153,8 +153,19 @@ export async function upsertWhatsappChannelAction(formData: FormData) {
     prefilledMessageEn: str(formData, "prefilledMessageEn"),
     prefilledMessageEs: str(formData, "prefilledMessageEs"),
     ghlWorkflowHotLeadId: optStr(formData, "ghlWorkflowHotLeadId"),
+    ghlWorkflowInfoNeededId: optStr(formData, "ghlWorkflowInfoNeededId"),
+    ghlWorkflowBookingId: optStr(formData, "ghlWorkflowBookingId"),
     fallbackUrl: optStr(formData, "fallbackUrl"),
     ownerName: optStr(formData, "ownerName"),
+    businessHours: (() => {
+      const bh = optStr(formData, "businessHours");
+      if (!bh) return {};
+      try {
+        return JSON.parse(bh);
+      } catch {
+        return {};
+      }
+    })(),
     notes: optStr(formData, "notes"),
   };
 
@@ -239,7 +250,23 @@ export async function upsertCrmRoutingRuleAction(formData: FormData) {
     ghlPipelineStageId: optStr(formData, "ghlPipelineStageId"),
     ghlWorkflowId: optStr(formData, "ghlWorkflowId"),
     ghlAssignedUserId: optStr(formData, "ghlAssignedUserId"),
-    tags: parseJsonField(formData.get("tags"), []),
+    tags: (() => {
+      const t = optStr(formData, "tags");
+      if (!t) return [];
+      try {
+        if (t.trim().startsWith("[")) return JSON.parse(t);
+      } catch {}
+      return t.split(",").map(x => x.trim()).filter(Boolean);
+    })(),
+    customFields: (() => {
+      const c = optStr(formData, "customFields");
+      if (!c) return {};
+      try {
+        return JSON.parse(c);
+      } catch {
+        return {};
+      }
+    })(),
     priority: intOrNull(formData, "priority") ?? 100,
     status: str(formData, "status", "DRAFT") as "DRAFT" | "ACTIVE" | "PAUSED" | "ARCHIVED",
     notes: optStr(formData, "notes"),

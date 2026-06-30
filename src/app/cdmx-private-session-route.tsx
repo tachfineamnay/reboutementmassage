@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import CdmxPrivateSessionPage from "@/app/cdmx-private-session-page";
+import MobileWhatsappFirstLanding from "@/app/mobile-whatsapp-first-landing";
 import {
   getCdmxCampaignAlternates,
   getCdmxPrivateSessionCampaign,
@@ -118,7 +118,7 @@ export async function renderCdmxPrivateSessionRoute(
         suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: renderJsonLd(structuredData(config)) }}
       />
-      <CdmxPrivateSessionPage config={config} />
+      <MobileWhatsappFirstLanding config={config} />
     </>
   );
 }

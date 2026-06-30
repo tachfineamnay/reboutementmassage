@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from "react";
 import type { CampaignLandingConfig } from "@/data/campaign-landings";
-import { getCdmxLocaleFromLanguage, getCdmxWhatsappUrl } from "@/data/campaign-landings";
 import { trackCampaignEvent } from "@/lib/campaign-tracking";
 
 export default function MobileStickyCta({ config }: { config: CampaignLandingConfig }) {
-  const locale = getCdmxLocaleFromLanguage(config.language);
-  const whatsappUrl = getCdmxWhatsappUrl(locale, "sticky_cta");
+  const whatsappUrl = config.whatsappUrls.sticky_cta;
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -24,6 +22,9 @@ export default function MobileStickyCta({ config }: { config: CampaignLandingCon
     trackCampaignEvent("sticky_whatsapp_clicked", {
       language: config.htmlLang,
       cta_location: "sticky",
+      city: config.destinationSlug,
+      offer: config.offerType,
+      session_duration: config.durationMinutes ? `${config.durationMinutes}_min` : undefined,
     });
   }
 
@@ -31,6 +32,9 @@ export default function MobileStickyCta({ config }: { config: CampaignLandingCon
     trackCampaignEvent("booking_clicked", {
       language: config.htmlLang,
       cta_location: "sticky",
+      city: config.destinationSlug,
+      offer: config.offerType,
+      session_duration: config.durationMinutes ? `${config.durationMinutes}_min` : undefined,
     });
   }
 

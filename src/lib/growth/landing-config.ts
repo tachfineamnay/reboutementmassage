@@ -174,6 +174,24 @@ export function landingPageToCampaignConfig(landing: LandingPageWithRelations): 
 
   const channel = landing.whatsappChannel;
   const messages = buildWhatsappMessages(channel, content, lang);
+  const cityContext = { city: landing.destination.cityName };
+  const whatsappUrls = {
+    default: channel
+      ? generateWhatsappUrl(channel, landing.locale, "default", cityContext)
+      : "#",
+    book_intent: channel
+      ? generateWhatsappUrl(channel, landing.locale, "book_intent", cityContext)
+      : "#",
+    more_info_intent: channel
+      ? generateWhatsappUrl(channel, landing.locale, "more_info_intent", cityContext)
+      : "#",
+    testimonial_cta: channel
+      ? generateWhatsappUrl(channel, landing.locale, "testimonial_cta", cityContext)
+      : "#",
+    sticky_cta: channel
+      ? generateWhatsappUrl(channel, landing.locale, "sticky_cta", cityContext)
+      : "#",
+  };
 
   return {
     id: landing.id,
@@ -185,6 +203,17 @@ export function landingPageToCampaignConfig(landing: LandingPageWithRelations): 
     offer: "private_session",
     leadType: `Client privé ${landing.destination.slug.toUpperCase()}`,
     leadSegment: "b2c_premium",
+    landingPageId: landing.id,
+    destinationId: landing.destinationId,
+    offerId: landing.offerId,
+    destinationSlug: landing.destination.slug,
+    country: landing.destination.country,
+    currency: landing.destination.currency,
+    durationMinutes: offer?.durationMinutes ?? 75,
+    offerType: offer?.type ?? "private_session",
+    bookingUrl: offer?.bookingUrl ?? null,
+    paymentUrl: offer?.paymentUrl ?? null,
+    whatsappUrls,
     meta: {
       title: landing.seoTitle ?? landing.heroTitle,
       description: landing.metaDescription ?? landing.heroSubtitle ?? "",

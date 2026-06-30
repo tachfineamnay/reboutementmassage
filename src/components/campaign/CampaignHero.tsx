@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import type { CampaignLandingConfig } from "@/data/campaign-landings";
-import { getCdmxLocaleFromLanguage, getCdmxWhatsappUrl } from "@/data/campaign-landings";
 import { trackCampaignEvent } from "@/lib/campaign-tracking";
 
 function WhatsAppIcon() {
@@ -14,13 +13,15 @@ function WhatsAppIcon() {
 }
 
 export default function CampaignHero({ config }: { config: CampaignLandingConfig }) {
-  const locale = getCdmxLocaleFromLanguage(config.language);
-  const whatsappUrl = getCdmxWhatsappUrl(locale, "default");
+  const whatsappUrl = config.whatsappUrls.default;
 
   function handleWhatsappClick() {
     trackCampaignEvent("hero_whatsapp_clicked", {
       language: config.htmlLang,
       cta_location: "hero",
+      city: config.destinationSlug,
+      offer: config.offerType,
+      session_duration: config.durationMinutes ? `${config.durationMinutes}_min` : undefined,
     });
   }
 
@@ -28,6 +29,9 @@ export default function CampaignHero({ config }: { config: CampaignLandingConfig
     trackCampaignEvent("booking_clicked", {
       language: config.htmlLang,
       cta_location: "hero",
+      city: config.destinationSlug,
+      offer: config.offerType,
+      session_duration: config.durationMinutes ? `${config.durationMinutes}_min` : undefined,
     });
   }
 

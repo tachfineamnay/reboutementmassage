@@ -334,7 +334,7 @@ function normalizePayload(raw: unknown): LeadPayload | null {
   }
 
   const data = parsed.data;
-  const payloadWithoutSegment = {
+  const payloadWithoutSegment: Omit<LeadPayload, "leadSegment"> = {
     firstName: data.firstName,
     contact: data.contact,
     type: data.type,
@@ -346,6 +346,15 @@ function normalizePayload(raw: unknown): LeadPayload | null {
     timezone: nullableText(data.timezone),
     pageUrl: nullableText(data.pageUrl),
     eventId: nullableText(data.eventId),
+    landingPageId: nullableText(data.landingPageId),
+    destinationId: nullableText(data.destinationId),
+    offerId: nullableText(data.offerId),
+    source: nullableText(data.source),
+    medium: nullableText(data.medium),
+    campaign: nullableText(data.campaign),
+    content: nullableText(data.content),
+    creativeAngle: nullableText(data.creativeAngle),
+    ctaLocation: nullableText(data.ctaLocation),
     utm: parseUtm(data.utm),
     branchData: data.branchData ?? {},
     companyName: nullableText(data.companyName),
@@ -365,15 +374,6 @@ function normalizePayload(raw: unknown): LeadPayload | null {
   return {
     ...payloadWithoutSegment,
     leadSegment: inferLeadSegment(payloadWithoutSegment, nullableText(data.leadSegment)),
-    landingPageId: nullableText(data.landingPageId),
-    destinationId: nullableText(data.destinationId),
-    offerId: nullableText(data.offerId),
-    source: nullableText(data.source),
-    medium: nullableText(data.medium),
-    campaign: nullableText(data.campaign),
-    content: nullableText(data.content),
-    creativeAngle: nullableText(data.creativeAngle),
-    ctaLocation: nullableText(data.ctaLocation),
   };
 }
 
@@ -671,6 +671,31 @@ async function makeGhlCustomFields(
     }
 
     customFields.push({ id, fieldValue: value });
+  }
+
+  // Map dynamic custom fields from CRM routing rule:
+  const ruleCustomFields = branchData.crmRoutingCustomFields;
+  if (ruleCustomFields && typeof ruleCustomFields === "object" && !Array.isArray(ruleCustomFields)) {
+    const allFieldIds = new Set(fieldIds.values());
+    for (const [key, value] of Object.entries(ruleCustomFields)) {
+      if (value === null || value === undefined) continue;
+      const strVal = String(value);
+
+      // If key is already a GHL field ID
+      if (allFieldIds.has(key)) {
+        customFields.push({ id: key, fieldValue: strVal });
+        continue;
+      }
+
+      // If key matches a field name
+      const normalizedKey = normalizeCustomFieldName(key);
+      const id = fieldIds.get(normalizedKey);
+      if (id) {
+        customFields.push({ id, fieldValue: strVal });
+      } else {
+        missingFields.push(key);
+      }
+    }
   }
 
   if (missingFields.length > 0) {
@@ -1092,5 +1117,191 @@ export async function handleLeadRequest(request: Request) {
       ghlStatus: "failed",
       notification: notification.status,
     });
+  }
+}
+
+export async function retryLeadSubmissionGhl(leadId: string): Promise<{ ok: boolean; error?: string }> {
+  const lead = await prisma.leadSubmission.findUnique({
+    where: { id: leadId },
+  });
+  if (!lead) {
+    return { ok: false, error: "Lead introuvable" };
+  }
+
+  const payload: LeadPayload = {
+    firstName: lead.firstName,
+    contact: lead.contact,
+    type: lead.type,
+    context: lead.context,
+    lang: lead.locale || "FR",
+    selectedDayLabel: lead.selectedDayLabel,
+    selectedTime: lead.selectedTime,
+    selectedDateTime: lead.selectedAt ? lead.selectedAt.toISOString() : null,
+    timezone: lead.timezone,
+    pageUrl: lead.pageUrl,
+    eventId: lead.eventId,
+    landingPageId: lead.landingPageId,
+    destinationId: lead.destinationId,
+    offerId: lead.offerId,
+    source: lead.source,
+    medium: lead.medium,
+    campaign: lead.campaign,
+    content: lead.content,
+    creativeAngle: lead.creativeAngle,
+    ctaLocation: lead.ctaLocation,
+    utm: (lead.utm as Record<string, string>) || {},
+    branchData: lead.branchData || {},
+    companyName: lead.companyName,
+    jobTitle: lead.jobTitle,
+    propertyType: lead.propertyType,
+    destination: lead.destination,
+    leadSegment: lead.leadSegment,
+    intent: lead.intent,
+    preferredChannel: lead.preferredChannel || "ghl",
+    routedToUrl: lead.routedToUrl,
+    urgency: lead.urgency,
+    needType: lead.needType,
+    volumePotential: lead.volumePotential,
+    participantCount: lead.participantCount,
+    currentLocation: lead.currentLocation,
+  };
+
+  const parsedContact = splitContact(payload.contact);
+  if (!parsedContact) {
+    const err = "Format de contact invalide";
+    await updateLeadSubmission(leadId, { status: "FAILED", errorMessage: err });
+    return { ok: false, error: err };
+  }
+
+  let tags = configuredTags(payload);
+  const routing = await applyCrmRouting(payload, tags);
+  tags = routing.tags;
+
+  await prisma.leadSubmission.update({
+    where: { id: leadId },
+    data: { tags },
+  });
+
+  const config = getGhlConfig();
+  if (!config) {
+    const err = "GHL non configuré";
+    await updateLeadSubmission(leadId, { status: "FAILED", errorMessage: err });
+    return { ok: false, error: err };
+  }
+
+  const ghlConfig = {
+    ...config,
+    workflowId: routing.workflowId ?? config.workflowId,
+    pipelineId: routing.pipelineId ?? config.pipelineId,
+    pipelineStageId: routing.pipelineStageId ?? config.pipelineStageId,
+    assignedUserId: routing.assignedUserId ?? config.assignedUserId,
+  };
+
+  try {
+    const customFields = await makeGhlCustomFields(ghlConfig, payload);
+    const contactResponse = await ghlFetch<GhlContactResponse>(ghlConfig, "/contacts/upsert", {
+      body: {
+        locationId: ghlConfig.locationId,
+        firstName: payload.firstName,
+        name: payload.firstName,
+        ...parsedContact,
+        source: ghlConfig.source,
+        ...(customFields.length > 0 ? { customFields } : {}),
+        ...(ghlConfig.assignedUserId ? { assignedTo: ghlConfig.assignedUserId } : {}),
+      },
+    });
+
+    const contactId = contactResponse.contact?.id ?? contactResponse.id;
+    if (!contactId) {
+      throw new Error(`GHL upsert did not return a contact id: ${contactResponse.traceId ?? "no traceId"}`);
+    }
+
+    const noteBody = makeNoteBody(payload);
+    const branchData = getBranchData(payload);
+    const bookingFormat = branchText(branchData, "bookingFormat");
+    const durationMinutes = branchNumber(branchData, "durationMinutes");
+    const taskBody = [
+      payload.selectedTime
+        ? `Créneau demandé: ${payload.selectedDayLabel ?? "date non précisée"} à ${payload.selectedTime}`
+        : "Créneau demandé: non précisé",
+      payload.timezone ? `Fuseau horaire: ${payload.timezone}` : "",
+      bookingFormat ? `Format: ${bookingFormat}` : "",
+      durationMinutes ? `Durée: ${durationMinutes} minutes` : "",
+      `Type: ${payload.type}`,
+      payload.intent ? `Intention: ${payload.intent}` : "",
+      `Contact: ${payload.contact}`,
+      payload.companyName ? `Entreprise: ${payload.companyName}` : "",
+      payload.leadSegment ? `Segment: ${payload.leadSegment}` : "",
+      payload.destination ? `Destination: ${payload.destination}` : "",
+      payload.context ? `Contexte:\n${payload.context}` : "",
+    ].filter(Boolean).join("\n");
+    const taskTitle = getTaskTitle(payload.intent);
+
+    await ghlFetch(ghlConfig, `/contacts/${contactId}/tags`, {
+      body: { tags },
+    });
+
+    await ghlFetch(ghlConfig, `/contacts/${contactId}/notes`, {
+      body: {
+        title: `${getIntentLabel(payload.intent)} — Méthode TMS®`,
+        body: noteBody,
+        pinned: false,
+      },
+    });
+
+    const createTask = () =>
+      ghlFetch(ghlConfig, `/contacts/${contactId}/tasks`, {
+        body: {
+          title: taskTitle,
+          body: taskBody,
+          ...(payload.selectedDateTime ? { dueDate: payload.selectedDateTime } : {}),
+          completed: false,
+          ...(ghlConfig.assignedUserId ? { assignedTo: ghlConfig.assignedUserId } : {}),
+        },
+      });
+
+    await createTask();
+
+    if (ghlConfig.pipelineId && ghlConfig.pipelineStageId) {
+      await optionalGhlStep("create opportunity", () =>
+        ghlFetch(ghlConfig, "/opportunities/", {
+          body: {
+            pipelineId: ghlConfig.pipelineId,
+            pipelineStageId: ghlConfig.pipelineStageId,
+            locationId: ghlConfig.locationId,
+            name: `${getIntentLabel(payload.intent)} - ${payload.firstName}`,
+            status: "open",
+            contactId,
+            ...(ghlConfig.assignedUserId ? { assignedTo: ghlConfig.assignedUserId } : {}),
+          },
+        })
+      );
+    }
+
+    if (ghlConfig.workflowId) {
+      await optionalGhlStep("add contact to workflow", () =>
+        ghlFetch(ghlConfig, `/contacts/${contactId}/workflow/${ghlConfig.workflowId}`, {
+          body: payload.selectedDateTime
+            ? { eventStartTime: payload.selectedDateTime }
+            : {},
+        })
+      );
+    }
+
+    await updateLeadSubmission(leadId, {
+      status: "SENT_TO_GHL",
+      ghlContactId: contactId,
+      errorMessage: null,
+    });
+
+    return { ok: true };
+  } catch (error) {
+    const errMsg = error instanceof Error ? error.message.slice(0, 4000) : "GHL_SUBMISSION_FAILED";
+    console.error("GHL lead submission failed", error);
+    await updateLeadSubmission(leadId, {
+      status: "FAILED",
+      errorMessage: errMsg,
+    });
+    return { ok: false, error: errMsg };
   }
 }

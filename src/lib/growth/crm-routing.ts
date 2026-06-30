@@ -11,6 +11,7 @@ export type CrmRoutingMatchInput = {
 
 function ruleMatches(rule: CrmRoutingRule, input: CrmRoutingMatchInput): boolean {
   if (rule.status !== "ACTIVE") return false;
+  if (rule.destinationId !== input.destinationId) return false;
   if (rule.locale && input.locale && rule.locale !== input.locale) return false;
   if (rule.offerType && input.offerType && rule.offerType !== input.offerType) return false;
   if (rule.source && input.source && rule.source !== input.source) return false;

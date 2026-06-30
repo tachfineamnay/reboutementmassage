@@ -4,7 +4,6 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ensureAdminSchema } from "@/lib/admin-schema";
 import {
-  formatBookingFormat,
   formatLeadChannel,
   formatLeadSlot,
   formatSourcePage,
@@ -31,6 +30,14 @@ type PageProps = {
     q?: string;
     period?: string;
     page?: string;
+    destinationId?: string;
+    landingPageId?: string;
+    offerId?: string;
+    source?: string;
+    campaign?: string;
+    intent?: string;
+    leadSegment?: string;
+    needType?: string;
   }>;
 };
 
@@ -87,6 +94,15 @@ export default async function DemandesPage({ searchParams }: PageProps) {
   const period = one(params.period);
   const page = Math.max(1, Number(one(params.page) ?? "1"));
 
+  const destinationId = one(params.destinationId);
+  const landingPageId = one(params.landingPageId);
+  const offerId = one(params.offerId);
+  const source = one(params.source);
+  const campaign = one(params.campaign);
+  const intent = one(params.intent);
+  const leadSegment = one(params.leadSegment);
+  const needType = one(params.needType);
+
   const validStatus = isLeadStatus(status) ? status : undefined;
   const validLocale = LOCALES.includes(locale as Locale) ? (locale as Locale) : undefined;
   const periodStart = getPeriodStart(period);
@@ -96,6 +112,14 @@ export default async function DemandesPage({ searchParams }: PageProps) {
     ...(validLocale ? { locale: validLocale } : {}),
     ...(type ? { type } : {}),
     ...(periodStart ? { createdAt: { gte: periodStart } } : {}),
+    ...(destinationId ? { destinationId } : {}),
+    ...(landingPageId ? { landingPageId } : {}),
+    ...(offerId ? { offerId } : {}),
+    ...(source ? { source } : {}),
+    ...(campaign ? { campaign } : {}),
+    ...(intent ? { intent } : {}),
+    ...(leadSegment ? { leadSegment } : {}),
+    ...(needType ? { needType } : {}),
     ...(q
       ? {
           OR: [
@@ -106,28 +130,28 @@ export default async function DemandesPage({ searchParams }: PageProps) {
       : {}),
   };
 
-  const [legacyLeads, total, typeRows] = await Promise.all([
+  const [
+    legacyLeads,
+    total,
+    typeRows,
+    destinations,
+    landings,
+    offers,
+    sources,
+    campaigns,
+    intents,
+    segments,
+    needs,
+  ] = await Promise.all([
     prisma.leadSubmission.findMany({
       where,
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * LIMIT,
       take: LIMIT,
-      select: {
-        id: true,
-        firstName: true,
-        contact: true,
-        type: true,
-        locale: true,
-        intent: true,
-        preferredChannel: true,
-        leadSegment: true,
-        branchData: true,
-        selectedDayLabel: true,
-        selectedTime: true,
-        timezone: true,
-        pageUrl: true,
-        status: true,
-        createdAt: true,
+      include: {
+        landingPage: { select: { slug: true, locale: true } },
+        growthDestination: { select: { cityName: true } },
+        growthOffer: { select: { publicNameFr: true } },
       },
     }),
     prisma.leadSubmission.count({ where }),
@@ -136,11 +160,33 @@ export default async function DemandesPage({ searchParams }: PageProps) {
       orderBy: { type: "asc" },
       select: { type: true },
     }),
+    prisma.destination.findMany({ select: { id: true, cityName: true }, orderBy: { cityName: "asc" } }),
+    prisma.landingPage.findMany({ select: { id: true, slug: true, locale: true }, orderBy: { slug: "asc" } }),
+    prisma.offer.findMany({ select: { id: true, publicNameFr: true }, orderBy: { publicNameFr: "asc" } }),
+    prisma.leadSubmission.findMany({ distinct: ["source"], select: { source: true }, where: { source: { not: null } } }),
+    prisma.leadSubmission.findMany({ distinct: ["campaign"], select: { campaign: true }, where: { campaign: { not: null } } }),
+    prisma.leadSubmission.findMany({ distinct: ["intent"], select: { intent: true }, where: { intent: { not: null } } }),
+    prisma.leadSubmission.findMany({ distinct: ["leadSegment"], select: { leadSegment: true }, where: { leadSegment: { not: null } } }),
+    prisma.leadSubmission.findMany({ distinct: ["needType"], select: { needType: true }, where: { needType: { not: null } } }),
   ]);
-  const leads = legacyLeads;
 
+  const leads = legacyLeads;
   const pages = Math.ceil(total / LIMIT);
-  const hasFilters = !!(validStatus || validLocale || type || q || period);
+  const hasFilters = !!(
+    validStatus ||
+    validLocale ||
+    type ||
+    q ||
+    period ||
+    destinationId ||
+    landingPageId ||
+    offerId ||
+    source ||
+    campaign ||
+    intent ||
+    leadSegment ||
+    needType
+  );
 
   return (
     <div className="admin-page admin-page--wide">
@@ -154,19 +200,44 @@ export default async function DemandesPage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      <form className="admin-filters" method="GET" action="/admin/demandes">
+      <form className="admin-filters" method="GET" action="/admin/demandes" style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "20px" }}>
         <input
           type="text"
           name="q"
           defaultValue={q}
-          placeholder="Prénom ou contact"
+          placeholder="Recherche prénom..."
           className="admin-input admin-filters__search"
+          style={{ minWidth: "180px" }}
         />
         <select name="status" defaultValue={validStatus ?? ""} className="admin-input admin-filters__select">
-          <option value="">Tous les statuts</option>
-          {Object.entries(LEAD_STATUS_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>
+          <option value="">Tous statuts</option>
+          {Object.entries(LEAD_STATUS_LABELS).map(([val, label]) => (
+            <option key={val} value={val}>
               {label}
+            </option>
+          ))}
+        </select>
+        <select name="destinationId" defaultValue={destinationId ?? ""} className="admin-input admin-filters__select">
+          <option value="">Destinations CMS</option>
+          {destinations.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.cityName}
+            </option>
+          ))}
+        </select>
+        <select name="landingPageId" defaultValue={landingPageId ?? ""} className="admin-input admin-filters__select">
+          <option value="">Landings CMS</option>
+          {landings.map((l) => (
+            <option key={l.id} value={l.id}>
+              /{l.locale.toLowerCase()}/{l.slug}
+            </option>
+          ))}
+        </select>
+        <select name="offerId" defaultValue={offerId ?? ""} className="admin-input admin-filters__select">
+          <option value="">Offres CMS</option>
+          {offers.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.publicNameFr}
             </option>
           ))}
         </select>
@@ -176,17 +247,49 @@ export default async function DemandesPage({ searchParams }: PageProps) {
           <option value="EN">EN</option>
           <option value="ES">ES</option>
         </select>
-        <select name="type" defaultValue={type ?? ""} className="admin-input admin-filters__select">
-          <option value="">Tous types</option>
-          {typeRows.map((row) => (
-            <option key={row.type} value={row.type}>
-              {row.type}
+        <select name="source" defaultValue={source ?? ""} className="admin-input admin-filters__select">
+          <option value="">Sources</option>
+          {sources.map((s) => (
+            <option key={s.source} value={s.source ?? ""}>
+              {s.source}
+            </option>
+          ))}
+        </select>
+        <select name="campaign" defaultValue={campaign ?? ""} className="admin-input admin-filters__select">
+          <option value="">Campagnes</option>
+          {campaigns.map((c) => (
+            <option key={c.campaign} value={c.campaign ?? ""}>
+              {c.campaign}
+            </option>
+          ))}
+        </select>
+        <select name="intent" defaultValue={intent ?? ""} className="admin-input admin-filters__select">
+          <option value="">Intentions</option>
+          {intents.map((i) => (
+            <option key={i.intent} value={i.intent ?? ""}>
+              {i.intent}
+            </option>
+          ))}
+        </select>
+        <select name="leadSegment" defaultValue={leadSegment ?? ""} className="admin-input admin-filters__select">
+          <option value="">Segments</option>
+          {segments.map((seg) => (
+            <option key={seg.leadSegment} value={seg.leadSegment ?? ""}>
+              {seg.leadSegment}
+            </option>
+          ))}
+        </select>
+        <select name="needType" defaultValue={needType ?? ""} className="admin-input admin-filters__select">
+          <option value="">Besoins</option>
+          {needs.map((n) => (
+            <option key={n.needType} value={n.needType ?? ""}>
+              {n.needType}
             </option>
           ))}
         </select>
         <select name="period" defaultValue={period ?? ""} className="admin-input admin-filters__select">
-          <option value="">Toute période</option>
-          <option value="today">Aujourd&apos;hui</option>
+          <option value="">Toutes périodes</option>
+          <option value="today">Aujourd'hui</option>
           <option value="week">7 derniers jours</option>
           <option value="month">30 derniers jours</option>
         </select>
@@ -211,21 +314,21 @@ export default async function DemandesPage({ searchParams }: PageProps) {
         </div>
       ) : (
         <div className="admin-table-wrapper">
-          <table className="admin-table admin-table--leads">
+          <table className="admin-table admin-table--leads" style={{ fontSize: "12px" }}>
             <thead>
               <tr>
                 <th>Date</th>
                 <th>Prénom</th>
                 <th>Contact</th>
-                <th>Type</th>
+                <th>Destination</th>
+                <th>Landing</th>
+                <th>Offre</th>
+                <th>Besoin</th>
                 <th>Intention</th>
-                <th>Canal</th>
                 <th>Segment</th>
-                <th>Format</th>
                 <th>Langue</th>
-                <th>Créneau choisi</th>
                 <th>Statut GHL</th>
-                <th>Source / page</th>
+                <th>Source</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -245,21 +348,29 @@ export default async function DemandesPage({ searchParams }: PageProps) {
                       </Link>
                     </td>
                     <td className="admin-table__contact">{lead.contact}</td>
-                    <td>{lead.type}</td>
+                    <td>{lead.growthDestination?.cityName ?? lead.destination ?? "—"}</td>
+                    <td>
+                      {lead.landingPage ? (
+                        <Link href={`/admin/landings/${lead.landingPageId}/edit`} style={{ textDecoration: "underline" }}>
+                          /{lead.landingPage.locale.toLowerCase()}/{lead.landingPage.slug}
+                        </Link>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td>{lead.growthOffer?.publicNameFr ?? "—"}</td>
+                    <td>{lead.needType ?? "—"}</td>
                     <td>{lead.intent ?? "—"}</td>
-                    <td>{formatLeadChannel(lead.preferredChannel)}</td>
                     <td>{lead.leadSegment ?? "—"}</td>
-                    <td>{formatBookingFormat(lead.branchData)}</td>
                     <td>
                       <span className="badge badge--locale">{lead.locale}</span>
                     </td>
-                    <td className="admin-table__date">{formatLeadSlot(lead)}</td>
                     <td>
                       <span className={LEAD_STATUS_CLASSES[lead.status]}>
                         {LEAD_STATUS_LABELS[lead.status]}
                       </span>
                     </td>
-                    <td className="admin-table__source">{formatSourcePage(lead.pageUrl)}</td>
+                    <td>{lead.source ?? "—"}</td>
                     <td className="admin-table__actions">
                       <Link href={`/admin/demandes/${lead.id}`} className="admin-action">
                         Détail
@@ -295,7 +406,22 @@ export default async function DemandesPage({ searchParams }: PageProps) {
         <div className="admin-pagination">
           {page > 1 && (
             <Link
-              href={filterUrl({ status, locale, type, q, period, page: String(page - 1) })}
+              href={filterUrl({
+                status,
+                locale,
+                type,
+                q,
+                period,
+                destinationId,
+                landingPageId,
+                offerId,
+                source,
+                campaign,
+                intent,
+                leadSegment,
+                needType,
+                page: String(page - 1),
+              })}
               className="admin-btn admin-btn--ghost admin-btn--sm"
             >
               Précédent
@@ -306,7 +432,22 @@ export default async function DemandesPage({ searchParams }: PageProps) {
           </span>
           {page < pages && (
             <Link
-              href={filterUrl({ status, locale, type, q, period, page: String(page + 1) })}
+              href={filterUrl({
+                status,
+                locale,
+                type,
+                q,
+                period,
+                destinationId,
+                landingPageId,
+                offerId,
+                source,
+                campaign,
+                intent,
+                leadSegment,
+                needType,
+                page: String(page + 1),
+              })}
               className="admin-btn admin-btn--ghost admin-btn--sm"
             >
               Suivant

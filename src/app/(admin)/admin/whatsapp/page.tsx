@@ -5,6 +5,7 @@ import { ensureAdminSchema } from "@/lib/admin-schema";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import AdminEmptyState from "@/components/admin/growth/AdminEmptyState";
 import AdminStatusBadge from "@/components/admin/growth/AdminStatusBadge";
+import { isValidE164 } from "@/lib/growth/whatsapp";
 
 export const metadata: Metadata = { title: "WhatsApp — Growth CMS", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -65,18 +66,43 @@ export default async function WhatsappPage({ searchParams }: PageProps) {
               </tr>
             </thead>
             <tbody>
-              {items.map((c) => (
-                <tr key={c.id}>
-                  <td className="admin-table__title">
-                    <Link href={`/admin/whatsapp/${c.id}/edit`} className="admin-table__title-link">{c.label}</Link>
-                  </td>
-                  <td>{c.phoneE164}</td>
-                  <td>{c.destination.cityName}</td>
-                  <td><code className="admin-table__code">{c.provider}</code></td>
-                  <td><AdminStatusBadge status={c.status} /></td>
-                  <td><Link href={`/admin/whatsapp/${c.id}/edit`} className="admin-action">Éditer</Link></td>
-                </tr>
-              ))}
+              {items.map((c) => {
+                const warnings: string[] = [];
+                if (c.status !== "ACTIVE") {
+                  warnings.push("Statut non ACTIVE");
+                }
+                if (!isValidE164(c.phoneE164)) {
+                  warnings.push("Numéro de téléphone invalide");
+                }
+                if (
+                  c.provider === "GHL_WHATSAPP_PLATFORM" &&
+                  !c.ghlWorkflowHotLeadId &&
+                  !c.ghlWorkflowInfoNeededId &&
+                  !c.ghlWorkflowBookingId
+                ) {
+                  warnings.push("Provider GHL mais workflow vide");
+                }
+
+                return (
+                  <tr key={c.id}>
+                    <td className="admin-table__title">
+                      <Link href={`/admin/whatsapp/${c.id}/edit`} className="admin-table__title-link">{c.label}</Link>
+                    </td>
+                    <td>
+                      <div>{c.phoneE164}</div>
+                      {warnings.map((w) => (
+                        <div key={w} style={{ color: "#d97706", fontSize: "11px", marginTop: "2px", fontWeight: 500 }}>
+                          ⚠️ {w}
+                        </div>
+                      ))}
+                    </td>
+                    <td>{c.destination.cityName}</td>
+                    <td><code className="admin-table__code">{c.provider}</code></td>
+                    <td><AdminStatusBadge status={c.status} /></td>
+                    <td><Link href={`/admin/whatsapp/${c.id}/edit`} className="admin-action">Éditer</Link></td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

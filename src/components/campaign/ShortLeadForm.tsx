@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import type { CampaignLandingConfig, CampaignNeedCategory } from "@/data/campaign-landings";
-import { getCdmxLocaleFromLanguage, getCdmxWhatsappUrl } from "@/data/campaign-landings";
 import { trackCampaignEvent } from "@/lib/campaign-tracking";
 
 type ShortFormState = {
@@ -43,7 +42,6 @@ export default function ShortLeadForm({
   id?: string;
 }) {
   const copy = config.shortForm;
-  const locale = getCdmxLocaleFromLanguage(config.language);
   const [form, setForm] = useState<ShortFormState>({
     needType: "",
     contact: "",
@@ -60,6 +58,9 @@ export default function ShortLeadForm({
       trackCampaignEvent("form_started", {
         language: config.htmlLang,
         cta_location: "form",
+        city: config.destinationSlug,
+        offer: config.offerType,
+        session_duration: config.durationMinutes ? `${config.durationMinutes}_min` : undefined,
       });
     }
   }
@@ -82,7 +83,7 @@ export default function ShortLeadForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          firstName: "CDMX",
+          firstName: "Landing lead",
           contact: form.contact.trim(),
           type: config.leadType,
           context: `Langue préférée: ${form.preferredLanguage}`,
@@ -96,21 +97,26 @@ export default function ShortLeadForm({
           utm: getUrlUtm(),
           branchData: {
             ...config.branchData,
-            durationMinutes: 75,
+            durationMinutes: String(config.durationMinutes),
+            destinationSlug: config.destinationSlug,
+            offerType: config.offerType,
           },
           companyName: null,
           jobTitle: null,
           propertyType: null,
-          destination: config.destination,
+          destination: config.cityName,
           leadSegment: config.leadSegment,
-          intent: "private_session",
+          intent: config.offerType || "private_session",
           preferredChannel: "ghl",
           routedToUrl: null,
           urgency: "Cette semaine",
           needType: form.needType,
           volumePotential: null,
           participantCount: null,
-          currentLocation: "Ciudad de México",
+          currentLocation: config.cityName,
+          landingPageId: config.landingPageId,
+          destinationId: config.destinationId,
+          offerId: config.offerId,
         }),
       });
 
@@ -125,6 +131,11 @@ export default function ShortLeadForm({
         cta_location: "form",
         need_type: form.needType,
         meta_event_id: eventId,
+        city: config.destinationSlug,
+        offer: config.offerType,
+        session_duration: config.durationMinutes ? `${config.durationMinutes}_min` : undefined,
+        content_name: config.tracking.viewContentName,
+        lead_segment: config.leadSegment,
       });
 
       setSubmitted(true);
@@ -139,7 +150,7 @@ export default function ShortLeadForm({
     }
   }
 
-  const whatsappAfterUrl = getCdmxWhatsappUrl(locale, "more_info_intent");
+  const whatsappAfterUrl = config.whatsappUrls.more_info_intent;
 
   if (submitted) {
     return (

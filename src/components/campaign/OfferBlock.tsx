@@ -1,16 +1,17 @@
 import type { CampaignLandingConfig } from "@/data/campaign-landings";
-import { getCdmxLocaleFromLanguage, getCdmxWhatsappUrl } from "@/data/campaign-landings";
 import { trackCampaignEvent } from "@/lib/campaign-tracking";
 
 export default function OfferBlock({ config }: { config: CampaignLandingConfig }) {
-  const locale = getCdmxLocaleFromLanguage(config.language);
-  const whatsappUrl = getCdmxWhatsappUrl(locale, "book_intent");
+  const whatsappUrl = config.whatsappUrls.book_intent;
   const offer = config.offerBlock;
 
   function handleWhatsappClick() {
     trackCampaignEvent("hero_whatsapp_clicked", {
       language: config.htmlLang,
       cta_location: "offer",
+      city: config.destinationSlug,
+      offer: config.offerType,
+      session_duration: config.durationMinutes ? `${config.durationMinutes}_min` : undefined,
     });
   }
 

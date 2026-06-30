@@ -1,57 +1,12 @@
-import type { NormalizedNeedType } from "@prisma/client";
-import { trackCampaignEvent, type CampaignEventName, type CampaignTrackingParams } from "@/lib/campaign-tracking";
+import { trackCampaignEvent, type CampaignEventName, type CampaignTrackingParams, normalizeNeedType } from "@/lib/campaign-tracking";
 
 export type GrowthTrackPayload = CampaignTrackingParams & {
   landingPageId?: string;
   destinationId?: string;
-  offerId?: string;
+  offerId?: string | null;
   eventId?: string;
   sessionId?: string;
 };
-
-export async function logEventServer(payload: {
-  eventId: string;
-  eventName: string;
-  landingPageId?: string;
-  destinationId?: string;
-  locale?: string;
-  offerId?: string;
-  source?: string;
-  medium?: string;
-  campaign?: string;
-  content?: string;
-  creativeAngle?: string;
-  ctaLocation?: string;
-  needType?: NormalizedNeedType;
-  pageUrl?: string;
-  sessionId?: string;
-}) {
-  try {
-    const { prisma } = await import("@/lib/prisma");
-    await prisma.pixelEventLog.create({
-      data: {
-        eventId: payload.eventId,
-        eventName: payload.eventName,
-        landingPageId: payload.landingPageId,
-        destinationId: payload.destinationId,
-        locale: payload.locale as "FR" | "EN" | "ES" | undefined,
-        offerId: payload.offerId,
-        source: payload.source,
-        medium: payload.medium,
-        campaign: payload.campaign,
-        content: payload.content,
-        creativeAngle: payload.creativeAngle,
-        ctaLocation: payload.ctaLocation,
-        needType: payload.needType,
-        pageUrl: payload.pageUrl,
-        sessionId: payload.sessionId,
-        sentToMeta: true,
-      },
-    });
-  } catch {
-    // Non-blocking if DB unavailable
-  }
-}
 
 export function trackGrowthEvent(event: CampaignEventName, payload: GrowthTrackPayload = {}) {
   trackCampaignEvent(event, payload);
@@ -79,7 +34,7 @@ export function trackGrowthEvent(event: CampaignEventName, payload: GrowthTrackP
         content: payload.utm_content,
         creativeAngle: payload.creative_angle,
         ctaLocation: payload.cta_location,
-        needType: payload.need_type,
+        needType: payload.need_type ? normalizeNeedType(payload.need_type) : undefined,
         pageUrl: window.location.href,
         sessionId: payload.sessionId,
       }),

@@ -1,4 +1,8 @@
+"use client";
+
 import Script from "next/script";
+import { usePathname } from "next/navigation";
+import { isGrowthLandingPath } from "@/lib/seo";
 
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
@@ -35,7 +39,7 @@ declare global {
 }
 
 function canTrackMeta() {
-  return typeof window !== "undefined" && Boolean(window.fbq) && Boolean(META_PIXEL_ID);
+  return typeof window !== "undefined" && Boolean(window.fbq);
 }
 
 export function trackMetaPageView() {
@@ -58,8 +62,15 @@ export function trackMetaLead(params: LeadParams, options?: MetaEventOptions) {
   window.fbq?.("track", "Lead", params, options?.eventID ? { eventID: options.eventID } : undefined);
 }
 
-export function MetaPixel() {
-  if (!META_PIXEL_ID) return null;
+export function MetaPixel({ pixelId, enabled = true }: { pixelId?: string | null; enabled?: boolean }) {
+  const pathname = usePathname();
+
+  if (!pixelId && isGrowthLandingPath(pathname)) {
+    return null;
+  }
+
+  const activeId = pixelId || META_PIXEL_ID;
+  if (!activeId || !enabled) return null;
 
   return (
     <>
@@ -74,7 +85,7 @@ export function MetaPixel() {
             if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
             n.queue=[]}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '${META_PIXEL_ID}');
+            fbq('init', '${activeId}');
             fbq('track', 'PageView');
           `,
         }}
@@ -85,12 +96,11 @@ export function MetaPixel() {
         strategy="afterInteractive"
       />
       <noscript>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           height="1"
           width="1"
           style={{ display: "none" }}
-          src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+          src={`https://www.facebook.com/tr?id=${activeId}&ev=PageView&noscript=1`}
           alt=""
         />
       </noscript>

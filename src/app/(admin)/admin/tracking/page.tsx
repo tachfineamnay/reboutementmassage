@@ -67,19 +67,43 @@ export default async function TrackingPage({ searchParams }: PageProps) {
               </tr>
             </thead>
             <tbody>
-              {items.map((p) => (
-                <tr key={p.id}>
-                  <td className="admin-table__title">
-                    <Link href={`/admin/tracking/${p.id}/edit`} className="admin-table__title-link">{p.label}</Link>
-                  </td>
-                  <td>{p.destination.cityName}</td>
-                  <td>{p.enableMeta ? (p.metaPixelId ?? "✓") : "—"}</td>
-                  <td>{p.enableGA4 ? (p.ga4MeasurementId ?? "✓") : "—"}</td>
-                  <td>{p.enableTikTok ? (p.tiktokPixelId ?? "✓") : "—"}</td>
-                  <td><AdminStatusBadge status={p.status} /></td>
-                  <td><Link href={`/admin/tracking/${p.id}/edit`} className="admin-action">Éditer</Link></td>
-                </tr>
-              ))}
+              {items.map((p) => {
+                const warnings: string[] = [];
+                if (p.status === "ACTIVE") {
+                  const hasAnyPixel = Boolean(p.metaPixelId || p.tiktokPixelId || p.ga4MeasurementId || p.googleAdsId || p.gtmContainerId);
+                  if (!hasAnyPixel) {
+                    warnings.push("Profil ACTIVE mais aucun pixel ID configuré");
+                  }
+                }
+                if (p.enableMeta && !p.metaPixelId?.trim()) {
+                  warnings.push("Meta activé mais Pixel ID vide");
+                }
+                if (p.enableTikTok && !p.tiktokPixelId?.trim()) {
+                  warnings.push("TikTok activé mais Pixel ID vide");
+                }
+                if (p.enableGA4 && !p.ga4MeasurementId?.trim()) {
+                  warnings.push("GA4 activé mais Measurement ID vide");
+                }
+
+                return (
+                  <tr key={p.id}>
+                    <td className="admin-table__title">
+                      <Link href={`/admin/tracking/${p.id}/edit`} className="admin-table__title-link">{p.label}</Link>
+                      {warnings.map((w) => (
+                        <div key={w} style={{ color: "#d97706", fontSize: "11px", marginTop: "2px", fontWeight: 500 }}>
+                          ⚠️ {w}
+                        </div>
+                      ))}
+                    </td>
+                    <td>{p.destination.cityName}</td>
+                    <td>{p.enableMeta ? (p.metaPixelId ?? "✓") : "—"}</td>
+                    <td>{p.enableGA4 ? (p.ga4MeasurementId ?? "✓") : "—"}</td>
+                    <td>{p.enableTikTok ? (p.tiktokPixelId ?? "✓") : "—"}</td>
+                    <td><AdminStatusBadge status={p.status} /></td>
+                    <td><Link href={`/admin/tracking/${p.id}/edit`} className="admin-action">Éditer</Link></td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

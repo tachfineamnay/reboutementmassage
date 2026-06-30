@@ -1,6 +1,6 @@
 import type { LandingPageWithRelations, ReadinessIssue, ReadinessResult } from "@/lib/growth/types";
 import { COMPLIANCE_DEFAULT_FR, FORBIDDEN_MEDICAL_TERMS } from "@/lib/growth/types";
-import { isWhatsappChannelActive } from "@/lib/growth/whatsapp";
+import { isWhatsappChannelActive, isValidE164 } from "@/lib/growth/whatsapp";
 import { hasComplianceIssues } from "@/lib/growth/compliance";
 
 function issue(
@@ -22,10 +22,12 @@ export function computeLandingReadiness(landing: LandingPageWithRelations): Read
     issues.push(issue("hero_missing", "critical", "Hero title manquant", `/admin/landings/${landing.id}/edit`));
   }
 
-  if (landing.primaryCta?.trim() && landing.whatsappChannelId) {
-    score += 10;
+  let hasWhatsapp = false;
+  if (!landing.whatsappChannelId || !landing.whatsappChannel) {
+    issues.push(issue("whatsapp_missing", "critical", "Canal WhatsApp manquant", `/admin/whatsapp`));
   } else {
-    issues.push(issue("whatsapp_cta", "critical", "CTA WhatsApp ou canal manquant", `/admin/whatsapp`));
+    hasWhatsapp = true;
+    score += 10;
   }
 
   if (landing.template === "MOBILE_WHATSAPP_FIRST") {
@@ -42,10 +44,34 @@ export function computeLandingReadiness(landing: LandingPageWithRelations): Read
     issues.push(issue("offer_missing", "warning", "Offre non reliée", `/admin/offers`));
   }
 
-  if (isWhatsappChannelActive(landing.whatsappChannel)) {
-    score += 10;
-  } else {
-    issues.push(issue("whatsapp_inactive", "critical", "Canal WhatsApp non actif", `/admin/whatsapp`));
+  if (hasWhatsapp && landing.whatsappChannel) {
+    if (landing.whatsappChannel.status === "ACTIVE") {
+      score += 10;
+    } else {
+      issues.push(issue("whatsapp_inactive", "critical", "Canal WhatsApp non actif", `/admin/whatsapp`));
+    }
+
+    if (!isValidE164(landing.whatsappChannel.phoneE164)) {
+      issues.push(issue("whatsapp_phone_invalid", "critical", "Numéro de téléphone WhatsApp invalide (doit être au format E.164)", `/admin/whatsapp`));
+    }
+
+    const lang = landing.locale;
+    const message =
+      lang === "EN"
+        ? landing.whatsappChannel.prefilledMessageEn
+        : lang === "ES"
+          ? landing.whatsappChannel.prefilledMessageEs
+          : landing.whatsappChannel.prefilledMessageFr;
+    if (!message || !message.trim()) {
+      issues.push(
+        issue(
+          "whatsapp_message_missing",
+          "warning",
+          `Message prérempli manquant dans la langue de la landing (${lang})`,
+          `/admin/whatsapp/${landing.whatsappChannelId}/edit`
+        )
+      );
+    }
   }
 
   if (landing.trackingProfile?.status === "ACTIVE") {

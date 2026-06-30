@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import CdmxPrivateSessionPage from "@/app/cdmx-private-session-page";
+import MobileWhatsappFirstLanding from "@/app/mobile-whatsapp-first-landing";
 import { TrackingProvider } from "@/components/TrackingProvider";
+import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { MetaPixel } from "@/components/MetaPixel";
+import { TikTokPixel } from "@/components/TikTokPixel";
 import type { LandingPageWithRelations } from "@/lib/growth/types";
 import { landingPageToDynamicConfig } from "@/lib/growth/landing-config";
 import { trackGrowthEvent } from "@/lib/growth/tracking";
@@ -22,14 +25,16 @@ export default function DynamicLandingPage({
     if (!isPreview) {
       trackGrowthEvent("landing_viewed", {
         language: lang,
-        landingPageId: landing.id,
-        destinationId: landing.destinationId,
-        offerId: landing.offerId ?? undefined,
-        city: landing.destination.slug,
-        offer: "private_session",
+        landingPageId: config.landingPageId,
+        destinationId: config.destinationId,
+        offerId: config.offerId ?? undefined,
+        city: config.destinationSlug,
+        offer: config.offerType,
+        session_duration: config.durationMinutes ? `${config.durationMinutes}_min` : undefined,
+        content_name: config.tracking.viewContentName,
       });
     }
-  }, [isPreview, lang, landing]);
+  }, [isPreview, lang, config]);
 
   return (
     <TrackingProvider
@@ -38,13 +43,21 @@ export default function DynamicLandingPage({
       destinationId={landing.destinationId}
       offerId={landing.offerId ?? undefined}
       language={lang}
+      city={config.destinationSlug}
+      country={config.country}
+      locale={config.htmlLang}
+      offerType={config.offerType}
+      session_duration={config.durationMinutes ? `${config.durationMinutes}_min` : undefined}
     >
+      <GoogleAnalytics measurementId={landing.trackingProfile?.ga4MeasurementId} enabled={landing.trackingProfile?.enableGA4} />
+      <MetaPixel pixelId={landing.trackingProfile?.metaPixelId} enabled={landing.trackingProfile?.enableMeta} />
+      <TikTokPixel pixelId={landing.trackingProfile?.tiktokPixelId} enabled={landing.trackingProfile?.enableTikTok} />
       {isPreview && (
         <div className="campaign-preview-banner" role="status">
           Preview mode — landing not indexed
         </div>
       )}
-      <CdmxPrivateSessionPage config={config} />
+      <MobileWhatsappFirstLanding config={config} />
     </TrackingProvider>
   );
 }

@@ -16,10 +16,18 @@ export type CampaignEventName =
 export type CtaLocation = "hero" | "sticky" | "testimonial" | "form" | "footer" | "offer";
 
 export type CampaignTrackingParams = {
+  landingPageId?: string;
+  destinationId?: string;
+  offerId?: string | null;
   city?: string;
+  country?: string;
+  locale?: string;
   offer?: string;
+  offerType?: string;
   session_duration?: string;
   language?: string;
+  content_name?: string;
+  lead_segment?: string;
   source?: string;
   utm_source?: string;
   utm_medium?: string;
@@ -59,13 +67,46 @@ function getUtmParams(): Record<string, string> {
   return utm;
 }
 
+const ALLOWED_NEED_TYPES = new Set([
+  "back",
+  "neck",
+  "stress",
+  "fatigue",
+  "travel",
+  "mobility",
+  "recovery",
+  "other",
+]);
+
+export function normalizeNeedType(value: any): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const val = value.toLowerCase();
+  return ALLOWED_NEED_TYPES.has(val) ? val : undefined;
+}
+
 function pushDataLayer(event: CampaignEventName, params: CampaignTrackingParams) {
   if (typeof window === "undefined") return;
+
+  const normalizedNeed = params.need_type ? normalizeNeedType(params.need_type) : undefined;
 
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push({
     event,
-    ...params,
+    landingPageId: params.landingPageId,
+    destinationId: params.destinationId,
+    offerId: params.offerId,
+    city: params.city,
+    country: params.country,
+    locale: params.locale || params.language,
+    offerType: params.offerType,
+    session_duration: params.session_duration,
+    cta_location: params.cta_location,
+    utm_source: params.utm_source,
+    utm_medium: params.utm_medium,
+    utm_campaign: params.utm_campaign,
+    utm_content: params.utm_content,
+    creative_angle: params.creative_angle,
+    need_type: normalizedNeed,
   });
 }
 
@@ -80,13 +121,13 @@ function bridgeMetaEvent(event: CampaignEventName, params: CampaignTrackingParam
 
   if (event === "landing_viewed") {
     trackMetaViewContent({
-      content_name: "cdmx_private_session",
+      content_name: params.content_name || "cdmx_private_session",
       content_category: "manual_therapy",
       lang,
       page_path: pagePath,
     });
     trackTikTok("ViewContent", {
-      content_name: "cdmx_private_session",
+      content_name: params.content_name || "cdmx_private_session",
       content_category: "manual_therapy",
     });
     return;
@@ -130,24 +171,23 @@ function bridgeMetaEvent(event: CampaignEventName, params: CampaignTrackingParam
         content_name: "lead_form_submission",
         content_category: "manual_therapy",
         lang,
-        intent: "private_session",
+        intent: params.offer || "private_session",
         preferred_channel: "ghl",
-        lead_segment: "b2c_premium",
+        lead_segment: params.lead_segment || "b2c_premium",
         page_path: pagePath,
       },
       params.meta_event_id ? { eventID: params.meta_event_id } : undefined
     );
+    const normalizedNeed = params.need_type ? normalizeNeedType(params.need_type) : undefined;
     trackTikTok("SubmitForm", {
-      content_name: "cdmx_short_form",
+      content_name: params.content_name ? `${params.content_name}_short_form` : "cdmx_short_form",
+      need_type: normalizedNeed,
     });
   }
 }
 
 export function getCampaignBaseParams(language: string): CampaignTrackingParams {
   return {
-    city: "cdmx",
-    offer: "private_session",
-    session_duration: "75_min",
     language,
     ...getUtmParams(),
   };
@@ -159,6 +199,6 @@ export function trackCampaignEvent(event: CampaignEventName, params: CampaignTra
   bridgeMetaEvent(event, merged);
 }
 
-export function trackLandingViewed(language: string) {
-  trackCampaignEvent("landing_viewed", { language });
+export function trackLandingViewed(language: string, params: CampaignTrackingParams = {}) {
+  trackCampaignEvent("landing_viewed", { language, ...params });
 }

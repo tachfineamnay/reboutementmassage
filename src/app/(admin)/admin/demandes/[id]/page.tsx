@@ -12,7 +12,7 @@ import {
   LEAD_STATUS_LABELS,
   normalizePhoneContact,
 } from "@/lib/admin-leads";
-import { archiveLeadAction } from "../actions";
+import { archiveLeadAction, retryLeadToGhlAction } from "../actions";
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -63,7 +63,7 @@ export default async function DemandeDetailPage({ params }: Props) {
   await ensureAdminSchema();
 
   const { id } = await params;
-  const legacyLead = await prisma.leadSubmission.findUnique({
+  const lead = await prisma.leadSubmission.findUnique({
     where: { id },
     select: {
       id: true,
@@ -96,6 +96,9 @@ export default async function DemandeDetailPage({ params }: Props) {
       status: true,
       ghlContactId: true,
       errorMessage: true,
+      resendEmailId: true,
+      notificationSentAt: true,
+      notificationError: true,
       eventId: true,
       source: true,
       medium: true,
@@ -107,7 +110,7 @@ export default async function DemandeDetailPage({ params }: Props) {
       destinationId: true,
       offerId: true,
       landingPage: {
-        select: { slug: true, locale: true, title: true },
+        select: { slug: true, locale: true },
       },
       growthDestination: {
         select: { slug: true, cityName: true },
@@ -120,9 +123,7 @@ export default async function DemandeDetailPage({ params }: Props) {
     },
   });
 
-  if (!legacyLead) notFound();
-
-  const lead = legacyLead;
+  if (!lead) notFound();
 
   const phone = normalizePhoneContact(lead.contact);
   const isEmail = isEmailContact(lead.contact);
@@ -169,6 +170,21 @@ export default async function DemandeDetailPage({ params }: Props) {
         </div>
       </div>
 
+      {lead.status === "FAILED" && (
+        <div style={{ padding: "16px", borderRadius: "8px", background: "rgba(239, 68, 68, 0.08)", border: "1px solid #ef4444", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <h4 style={{ fontWeight: 600, fontSize: "14px", margin: "0 0 4px 0", color: "#ef4444" }}>⚠️ L'envoi GHL a échoué</h4>
+            <p style={{ fontSize: "13px", margin: 0 }}>Vous pouvez ré-exécuter les règles de routage et retenter l'envoi de ce lead.</p>
+          </div>
+          <form action={retryLeadToGhlAction}>
+            <input type="hidden" name="id" value={lead.id} />
+            <button type="submit" className="admin-btn admin-btn--primary" style={{ background: "#ef4444", borderColor: "#ef4444" }}>
+              ⚡ Retenter l'envoi à GHL
+            </button>
+          </form>
+        </div>
+      )}
+
       <section className="admin-panel lead-detail-panel">
         <div className="lead-detail-grid">
           <DetailItem label="Prénom" value={lead.firstName} />
@@ -184,7 +200,18 @@ export default async function DemandeDetailPage({ params }: Props) {
           {durationMinutes && (
             <DetailItem label="Durée" value={`${durationMinutes} minutes`} />
           )}
-          <DetailItem label="Page d'origine" value={formatSourcePage(lead.pageUrl)} />
+          <DetailItem
+            label="Page d'origine"
+            value={
+              lead.pageUrl ? (
+                <a href={lead.pageUrl} target="_blank" rel="noreferrer" style={{ textDecoration: "underline" }}>
+                  {lead.pageUrl}
+                </a>
+              ) : (
+                "—"
+              )
+            }
+          />
           <DetailItem
             label="Statut GHL"
             value={
@@ -240,10 +267,37 @@ export default async function DemandeDetailPage({ params }: Props) {
         </div>
       </section>
 
+      <section className="admin-section" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginTop: "24px" }}>
+        <div>
+          <h2 className="admin-section__title">Notification Email Resend</h2>
+          <div className="admin-panel lead-detail-grid" style={{ gridTemplateColumns: "1fr" }}>
+            <DetailItem label="ID Email Resend" value={lead.resendEmailId ?? "—"} />
+            <DetailItem label="Envoyée le" value={lead.notificationSentAt ? dateFmt.format(lead.notificationSentAt) : "—"} />
+            <DetailItem label="Erreur Notification" value={lead.notificationError ?? "—"} />
+          </div>
+        </div>
+        <div>
+          <h2 className="admin-section__title">Tags GHL</h2>
+          <div className="admin-panel">
+            {lead.tags.length > 0 ? (
+              <div className="lead-tags" style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                {lead.tags.map((tag) => (
+                  <span className="badge badge--locale" key={tag}>
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="admin-page__meta">—</p>
+            )}
+          </div>
+        </div>
+      </section>
+
       <section className="admin-section">
         <h2 className="admin-section__title">Contexte complet</h2>
         <div className="admin-panel">
-          <p className="lead-detail-text">{lead.context || "—"}</p>
+          <p className="lead-detail-text" style={{ whiteSpace: "pre-line" }}>{lead.context || "—"}</p>
         </div>
       </section>
 
@@ -254,7 +308,7 @@ export default async function DemandeDetailPage({ params }: Props) {
         </div>
       </section>
 
-      <section className="lead-detail-columns">
+      <section className="lead-detail-columns" style={{ marginTop: "24px" }}>
         <div className="admin-panel">
           <h2 className="admin-panel__title">Attribution Growth</h2>
           <div className="lead-detail-grid">
@@ -271,26 +325,14 @@ export default async function DemandeDetailPage({ params }: Props) {
           <h2 className="admin-panel__title">UTM</h2>
           <pre className="lead-detail-code">{stringifyJson(lead.utm)}</pre>
         </div>
-        <div className="admin-panel">
-          <h2 className="admin-panel__title">Tags GHL</h2>
-          {lead.tags.length > 0 ? (
-            <div className="lead-tags">
-              {lead.tags.map((tag) => (
-                <span className="badge badge--locale" key={tag}>
-                  {tag}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="admin-page__meta">—</p>
-          )}
-        </div>
       </section>
 
       {(lead.errorMessage || lead.status === "FAILED") && (
-        <section className="admin-section">
-          <h2 className="admin-section__title">Erreur GHL éventuelle</h2>
-          <div className="admin-alert admin-alert--error">{lead.errorMessage || "Erreur GHL sans détail."}</div>
+        <section className="admin-section" style={{ marginTop: "24px" }}>
+          <h2 className="admin-section__title">Détail Erreur GHL</h2>
+          <div className="admin-alert admin-alert--error" style={{ fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
+            {lead.errorMessage || "Erreur GHL sans détail."}
+          </div>
         </section>
       )}
     </div>
