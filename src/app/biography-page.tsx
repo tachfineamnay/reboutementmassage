@@ -8,25 +8,6 @@ import SharedFooter from "@/components/SharedFooter";
 import SharedContactForm from "@/components/SharedContactForm";
 
 /* ──────────────────────────────────────────────────────────
-   Types
-   ────────────────────────────────────────────────────────── */
-type BioCopy = {
-  lang: Language;
-};
-
-const LANGUAGE_ROUTES: Record<Language, string> = {
-  FR: "/fr",
-  EN: "/en",
-  ES: "/es",
-};
-
-const BIO_ROUTES: Record<Language, string> = {
-  FR: "/fr/biographie",
-  EN: "/en/biography",
-  ES: "/es/biografia",
-};
-
-/* ──────────────────────────────────────────────────────────
    Reveal-on-scroll (same as landing page)
    ────────────────────────────────────────────────────────── */
 function useReveal() {

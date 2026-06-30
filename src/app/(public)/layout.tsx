@@ -1,5 +1,9 @@
+import { Suspense } from "react";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import MetaContactTracker from "@/components/MetaContactTracker";
+import MetaPageViewTracker from "@/components/MetaPageViewTracker";
+import { MetaPixel } from "@/components/MetaPixel";
 import "../globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -24,6 +28,11 @@ export default function PublicLayout({
     <html lang="fr" className={`${cormorant.variable} ${dmSans.variable}`}>
       <body>
         <GoogleAnalytics />
+        <MetaPixel />
+        <Suspense fallback={null}>
+          <MetaPageViewTracker />
+          <MetaContactTracker />
+        </Suspense>
         {children}
       </body>
     </html>

@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import MetaContactTracker from "@/components/MetaContactTracker";
+import MetaPageViewTracker from "@/components/MetaPageViewTracker";
 import { MetaPixel } from "@/components/MetaPixel";
 import { absoluteUrl, isLocale } from "@/lib/seo";
 import "../globals.css";
@@ -47,6 +50,10 @@ export default async function RootLayout({
       <body>
         <GoogleAnalytics />
         <MetaPixel />
+        <Suspense fallback={null}>
+          <MetaPageViewTracker />
+          <MetaContactTracker lang={htmlLang.toUpperCase() as "FR" | "EN" | "ES"} />
+        </Suspense>
         {children}
       </body>
     </html>

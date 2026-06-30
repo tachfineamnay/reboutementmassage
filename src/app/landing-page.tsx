@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { COPY, Language } from "@/data/copy";
 import SharedHeader from "@/components/SharedHeader";
 import SharedContactForm from "@/components/SharedContactForm";
+import MetaViewContent from "@/components/MetaViewContent";
 
 type LandingCopy = (typeof COPY)[Language];
 
@@ -614,6 +615,7 @@ export default function LandingPage({ initialLang }: { initialLang: Language }) 
 
   return (
     <>
+      <MetaViewContent contentName="home" contentCategory="manual_therapy" lang={lang} />
       <SharedHeader lang={lang} activePage="home" heroStyle="dark" />
       <main>
         <Hero t={t} heroTreatment="natural" layout="editorial" />

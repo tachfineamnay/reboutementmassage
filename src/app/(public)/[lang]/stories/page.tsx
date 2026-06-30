@@ -11,6 +11,7 @@ import {
   type JsonLd,
 } from "@/lib/seo";
 import ArticleCard from "@/components/stories/ArticleCard";
+import MetaViewContent from "@/components/MetaViewContent";
 import StoriesPageShell from "@/components/stories/StoriesPageShell";
 import "@/app/globals.css";
 
@@ -136,6 +137,7 @@ export default async function StoriesIndexPage({ params }: PageProps) {
 
   return (
     <>
+      <MetaViewContent contentName="stories" contentCategory="manual_therapy" lang={validLocale} />
       <script
         type="application/ld+json"
         suppressHydrationWarning

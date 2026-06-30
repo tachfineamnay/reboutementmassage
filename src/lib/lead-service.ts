@@ -18,6 +18,7 @@ type LeadPayload = {
   selectedDateTime: string | null;
   timezone: string | null;
   pageUrl: string | null;
+  eventId: string | null;
   utm: Record<string, string>;
   branchData: unknown;
   companyName: string | null;
@@ -116,6 +117,7 @@ const LeadRequestSchema = z
       .nullable(),
     timezone: z.string().trim().max(120).optional().nullable(),
     pageUrl: z.string().trim().max(1000).optional().nullable(),
+    eventId: z.string().trim().max(120).optional().nullable(),
     utm: z.unknown().optional(),
     branchData: z.unknown().optional(),
     companyName: z.string().trim().max(180).optional().nullable(),
@@ -217,6 +219,7 @@ function normalizePayload(raw: unknown): LeadPayload | null {
     selectedDateTime: nullableText(data.selectedDateTime),
     timezone: nullableText(data.timezone),
     pageUrl: nullableText(data.pageUrl),
+    eventId: nullableText(data.eventId),
     utm: parseUtm(data.utm),
     branchData: data.branchData ?? {},
     companyName: nullableText(data.companyName),
@@ -268,6 +271,10 @@ function slugTag(value: string) {
 }
 
 function configuredTags(payload: LeadPayload) {
+  const branchData = getBranchData(payload);
+  const campaignCity = branchText(branchData, "campaignCity");
+  const campaignOffer = branchText(branchData, "offer");
+  const campaignLanding = branchText(branchData, "landing");
   const envTags = process.env.GHL_DEFAULT_TAGS?.split(",") ?? DEFAULT_TAGS;
   const derivedTags = [
     `type ${payload.type}`,
@@ -284,6 +291,9 @@ function configuredTags(payload: LeadPayload) {
     payload.intent === "hospitality_partner" ? "hospitality premium" : "",
     payload.intent === "training" ? "training premium" : "",
     payload.intent === "workshop" ? "workshop premium" : "",
+    campaignCity ? `city ${campaignCity}` : "",
+    campaignOffer ? `offer ${campaignOffer}` : "",
+    campaignLanding ? `landing ${campaignLanding}` : "",
   ];
 
   return Array.from(
@@ -564,7 +574,13 @@ function makeNoteBody(payload: LeadPayload) {
   const targetLang = branchText(branchData, "targetLang");
   const workshopType = branchText(branchData, "workshopType");
   const periodPreference = branchText(branchData, "periodPreference");
+  const campaignCity = branchText(branchData, "campaignCity");
+  const campaignOffer = branchText(branchData, "offer");
+  const campaignLanding = branchText(branchData, "landing");
 
+  if (campaignCity) specificLines.push(`Ville campagne: ${campaignCity}`);
+  if (campaignOffer) specificLines.push(`Offre campagne: ${campaignOffer}`);
+  if (campaignLanding) specificLines.push(`Landing campagne: ${campaignLanding}`);
   if (trainingProfile) specificLines.push(`Profil formation: ${trainingProfile}`);
   if (trainingLevel) specificLines.push(`Niveau formation: ${trainingLevel}`);
   if (trainingGoal) specificLines.push(`Objectif formation: ${trainingGoal}`);

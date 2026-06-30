@@ -21,6 +21,7 @@ import {
 import { getArticleCanonicalUrl, getStoriesIndexPath } from "@/lib/routes";
 import { sanitizeHtml } from "@/lib/utils";
 import ArticleContent from "@/components/stories/ArticleContent";
+import MetaViewContent from "@/components/MetaViewContent";
 import StoriesPageShell from "@/components/stories/StoriesPageShell";
 import "@/app/globals.css";
 
@@ -286,6 +287,7 @@ export default async function ArticlePage({ params }: Props) {
 
   return (
     <>
+      <MetaViewContent contentName="story_article" contentCategory="manual_therapy" lang={localeKey} />
       <script
         type="application/ld+json"
         suppressHydrationWarning

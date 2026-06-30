@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import MetaViewContent from "@/components/MetaViewContent";
 import SharedContactForm from "@/components/SharedContactForm";
 import SharedFooter from "@/components/SharedFooter";
 import SharedHeader from "@/components/SharedHeader";
@@ -236,6 +237,7 @@ export default async function LuxuryHospitalityPage({ params }: PageProps) {
 
   return (
     <>
+      <MetaViewContent contentName="luxury_hospitality" contentCategory="manual_therapy" lang={language} />
       <script
         type="application/ld+json"
         suppressHydrationWarning

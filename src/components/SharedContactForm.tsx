@@ -172,6 +172,31 @@ function isValidContactValue(value: string) {
   return contact.replace(/\D/g, "").length >= 6;
 }
 
+function createMetaEventId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `lead_${Date.now()}_${Math.random().toString(36).slice(2, 12)}`;
+}
+
+function getLeadSegment(intent: ConversionIntent | "") {
+  switch (intent) {
+    case "private_session":
+    case "training":
+      return "b2c_premium";
+    case "hospitality_partner":
+      return "luxury_hospitality";
+    case "workshop":
+    case "partnership":
+      return "b2b";
+    case "other":
+      return null;
+    default:
+      return null;
+  }
+}
+
 /* ─────────────────────────────────────────────────────────────
    Form state
    ──────────────────────────────────────────────────────────── */
@@ -459,6 +484,8 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
   const days = useMemo(() => generateSlots(lang), [lang]);
   const firstNameRef = useRef<HTMLInputElement>(null);
   const isFirstRender = useRef(true);
+  const submissionInFlightRef = useRef(false);
+  const trackedLeadEventIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return; }
@@ -553,84 +580,112 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
     preferredChannel: "ghl" | "callback" | "internal_booking";
     booking?: BookingConfirmationPayload;
   }) {
-    const searchParams = new URLSearchParams(window.location.search);
-    const utm = Object.fromEntries(
-      Array.from(searchParams.entries()).filter(([key]) =>
-        key.toLowerCase().startsWith("utm_")
-      )
-    );
-    const selectedDateTime =
-      booking?.selectedDateTime ?? selectedSlotStart?.toISOString() ?? null;
-    const branchData = booking
-      ? {
-          bookingFormat: booking.bookingFormat,
-          bookingInternalType: booking.bookingInternalType,
-          durationMinutes: booking.durationMinutes,
-          timezone: booking.timezone,
-          selectedDate: booking.selectedDate,
-          selectedTime: booking.selectedTime,
-          selectedDateTime: booking.selectedDateTime,
-          trainingProfile: form.profile || null,
-          trainingLevel: form.level || null,
-          trainingGoal: form.goal || null,
-          targetLang: form.targetLang || null,
-          workshopType: form.needType || null,
-          participantCount: form.participantCount || null,
-          periodPreference: form.urgency || null,
-        }
-      : {};
-
-    const response = await fetch("/api/lead", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        firstName: form.firstName.trim(),
-        contact: form.contact.trim(),
-        type: mappedType,
-        context: compiledContext || null,
-        lang,
-        selectedDayLabel: booking?.selectedDayLabel ?? (selectedDayLabel || null),
-        selectedTime: booking?.selectedTime ?? (form.selectedTime || null),
-        selectedDateTime,
-        timezone:
-          booking?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
-        pageUrl: window.location.href,
-        utm,
-        branchData,
-        intent: form.intent,
-        preferredChannel,
-        routedToUrl: null,
-        urgency: form.urgency || null,
-        needType: form.needType || null,
-        volumePotential: form.volumePotential || null,
-        participantCount: form.participantCount || null,
-        currentLocation: form.currentLocation || form.destination || null,
-        companyName: form.companyName.trim() || null,
-        jobTitle: form.jobTitle.trim() || null,
-        propertyType: form.propertyType || null,
-        destination: form.destination.trim() || null,
-      }),
-    });
-
-    const result = (await response.json().catch(() => null)) as LeadApiResult | null;
-    if (!response.ok || !result?.ok) {
-      if (result?.error === "INVALID_CONTACT") {
-        throw new Error("INVALID_CONTACT");
-      }
-      throw new Error("Lead submission failed");
+    if (submissionInFlightRef.current) {
+      throw new Error("SUBMISSION_IN_PROGRESS");
     }
 
-    trackMetaLead(lang);
+    submissionInFlightRef.current = true;
+    const eventId = createMetaEventId();
 
-    return {
-      ok: true,
-      ghlStatus: result.ghlStatus,
-    };
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const utm = Object.fromEntries(
+        Array.from(searchParams.entries()).filter(([key]) =>
+          key.toLowerCase().startsWith("utm_")
+        )
+      );
+      const selectedDateTime =
+        booking?.selectedDateTime ?? selectedSlotStart?.toISOString() ?? null;
+      const branchData = booking
+        ? {
+            bookingFormat: booking.bookingFormat,
+            bookingInternalType: booking.bookingInternalType,
+            durationMinutes: booking.durationMinutes,
+            timezone: booking.timezone,
+            selectedDate: booking.selectedDate,
+            selectedTime: booking.selectedTime,
+            selectedDateTime: booking.selectedDateTime,
+            trainingProfile: form.profile || null,
+            trainingLevel: form.level || null,
+            trainingGoal: form.goal || null,
+            targetLang: form.targetLang || null,
+            workshopType: form.needType || null,
+            participantCount: form.participantCount || null,
+            periodPreference: form.urgency || null,
+          }
+        : {};
+
+      const response = await fetch("/api/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: form.firstName.trim(),
+          contact: form.contact.trim(),
+          type: mappedType,
+          context: compiledContext || null,
+          lang,
+          selectedDayLabel: booking?.selectedDayLabel ?? (selectedDayLabel || null),
+          selectedTime: booking?.selectedTime ?? (form.selectedTime || null),
+          selectedDateTime,
+          timezone:
+            booking?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
+          pageUrl: window.location.href,
+          eventId,
+          utm,
+          branchData,
+          intent: form.intent,
+          preferredChannel,
+          routedToUrl: null,
+          urgency: form.urgency || null,
+          needType: form.needType || null,
+          volumePotential: form.volumePotential || null,
+          participantCount: form.participantCount || null,
+          currentLocation: form.currentLocation || form.destination || null,
+          companyName: form.companyName.trim() || null,
+          jobTitle: form.jobTitle.trim() || null,
+          propertyType: form.propertyType || null,
+          destination: form.destination.trim() || null,
+        }),
+      });
+
+      const result = (await response.json().catch(() => null)) as LeadApiResult | null;
+      if (!response.ok || !result?.ok) {
+        if (result?.error === "INVALID_CONTACT") {
+          throw new Error("INVALID_CONTACT");
+        }
+        throw new Error("Lead submission failed");
+      }
+
+      if (!trackedLeadEventIdsRef.current.has(eventId)) {
+        trackedLeadEventIdsRef.current.add(eventId);
+        trackMetaLead(
+          {
+            content_name: "lead_form_submission",
+            content_category: "manual_therapy",
+            lang,
+            intent: form.intent || null,
+            preferred_channel: preferredChannel,
+            lead_segment: getLeadSegment(form.intent),
+            page_path: window.location.pathname,
+          },
+          { eventID: eventId }
+        );
+      }
+
+      return {
+        ok: true,
+        ghlStatus: result.ghlStatus,
+      };
+    } finally {
+      submissionInFlightRef.current = false;
+    }
   }
 
   async function handleFinalSubmit(
     overrideChannel?: "ghl" | "callback"
   ) {
+    if (loading || submissionInFlightRef.current) return;
+
     setLoading(true);
     setSubmitError(null);
     const preferredChannel = overrideChannel || form.preferredChannel || "ghl";
@@ -654,6 +709,10 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
   }
 
   async function handleBookingConfirm(booking: BookingConfirmationPayload) {
+    if (submissionInFlightRef.current) {
+      throw new Error("SUBMISSION_IN_PROGRESS");
+    }
+
     return submitLead({
       preferredChannel: "internal_booking",
       booking,
@@ -698,7 +757,13 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
     </svg>
   );
 
-  function resetAll() { setStep(1); setForm(initialForm); setValidated({}); setSubmitError(null); }
+  function resetAll() {
+    trackedLeadEventIdsRef.current.clear();
+    setStep(1);
+    setForm(initialForm);
+    setValidated({});
+    setSubmitError(null);
+  }
 
   // Step Indicators mapping based on step
   const activeIndicatorIndex = useMemo(() => {

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { Language } from "@/data/copy";
+import MetaViewContent from "@/components/MetaViewContent";
 import SharedHeader from "@/components/SharedHeader";
 import SharedFooter from "@/components/SharedFooter";
 import SharedContactForm from "@/components/SharedContactForm";
@@ -957,6 +958,7 @@ export default function SeancesPage({ initialLang }: { initialLang: Language }) 
 
   return (
     <>
+      <MetaViewContent contentName="private_sessions" contentCategory="manual_therapy" lang={lang} />
       <SharedHeader lang={lang} activePage="seances" heroStyle="light" />
       <main>
         <SeancesHero lang={lang} />

@@ -16,6 +16,8 @@ interface SharedHeaderProps {
   /** "dark" = hero sombre (landing, workshops) — header commence transparent/cream
    *  "light" = hero clair (biography, seances) — header commence lisible sur fond cream */
   heroStyle?: "dark" | "light";
+  ctaHrefOverride?: string;
+  ctaLabelOverride?: string;
 }
 
 const LANGUAGE_ROUTES: Record<Language, string> = {
@@ -74,6 +76,8 @@ export default function SharedHeader({
   lang,
   activePage = "home",
   heroStyle = "dark",
+  ctaHrefOverride,
+  ctaLabelOverride,
 }: SharedHeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -124,8 +128,8 @@ export default function SharedHeader({
   }, [closeMenu, menuOpen]);
 
   const navLinks = getNavLinks(lang);
-  const ctaLabel = getCtaLabel(lang);
-  const ctaHref = `${LANGUAGE_ROUTES[lang]}#contact`;
+  const ctaLabel = ctaLabelOverride ?? getCtaLabel(lang);
+  const ctaHref = ctaHrefOverride ?? `${LANGUAGE_ROUTES[lang]}#contact`;
 
   /* Couleur header non scrollé selon le fond du hero */
   const isLightHero = heroStyle === "light";

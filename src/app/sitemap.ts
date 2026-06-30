@@ -6,6 +6,10 @@ import {
   routeAlternates,
   type LocalizedRouteKey,
 } from "@/lib/seo";
+import {
+  CDMX_PRIVATE_SESSION_CAMPAIGNS,
+  getCdmxCampaignAlternates,
+} from "@/data/campaign-landings";
 import { prisma } from "@/lib/prisma";
 import { getArticleCanonicalUrl } from "@/lib/routes";
 
@@ -32,6 +36,25 @@ const STATIC_ROUTE_LASTMOD: Record<LocalizedRouteKey, string> = {
   stagesWorkshops: "2026-06-05",
   luxuryHospitality: "2026-06-05",
 };
+
+const CDMX_CAMPAIGN_ALTERNATES = Object.fromEntries(
+  Object.entries(getCdmxCampaignAlternates()).map(([locale, route]) => [
+    locale,
+    absoluteUrl(route),
+  ])
+);
+
+const CAMPAIGN_ROUTES: MetadataRoute.Sitemap = Object.values(
+  CDMX_PRIVATE_SESSION_CAMPAIGNS
+).map((campaign) => ({
+  url: absoluteUrl(campaign.route),
+  lastModified: new Date("2026-06-30T00:00:00.000Z"),
+  changeFrequency: "weekly",
+  priority: campaign.htmlLang === "es" ? 0.85 : 0.8,
+  alternates: {
+    languages: CDMX_CAMPAIGN_ALTERNATES,
+  },
+}));
 
 function staticLastModified(routeKey: LocalizedRouteKey) {
   return new Date(`${STATIC_ROUTE_LASTMOD[routeKey]}T00:00:00.000Z`);
@@ -100,5 +123,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // DB non disponible au build time → sitemap partiel
   }
 
-  return [...staticPages, ...articlePages];
+  return [...staticPages, ...CAMPAIGN_ROUTES, ...articlePages];
 }
