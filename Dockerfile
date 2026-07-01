@@ -22,7 +22,7 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN pnpm lint
+# Lint is enforced in CI; do not block production image builds on eslint.
 RUN pnpm build
 
 FROM base AS runner
