@@ -15,7 +15,7 @@ import {
   computeLandingReadiness,
   PublishBlockedError,
 } from "@/lib/growth/landing-readiness";
-import { growthLandingInclude } from "@/lib/growth/types";
+import { growthLandingInclude, type ExperimentVariantInput, type MediaAssetType } from "@/lib/growth/types";
 
 async function requireGrowthAdmin() {
   const session = await getSession();
@@ -468,7 +468,7 @@ export async function upsertExperimentAction(formData: FormData) {
   };
 
   const variantsRaw = formData.get("variants");
-  const variantsList = parseJsonField(variantsRaw, []) as any[];
+  const variantsList = parseJsonField(variantsRaw, []) as ExperimentVariantInput[];
 
   let experimentId = id;
   if (id) {
@@ -503,7 +503,10 @@ export async function upsertExperimentAction(formData: FormData) {
       heroSubtitle: v.heroSubtitle || null,
       primaryCta: v.primaryCta || null,
       testimonialId: v.testimonialId || null,
-      contentOverrides: v.contentOverrides && typeof v.contentOverrides === "object" ? v.contentOverrides : {},
+      contentOverrides:
+        v.contentOverrides && typeof v.contentOverrides === "object"
+          ? (v.contentOverrides as Prisma.InputJsonValue)
+          : {},
     };
 
     if (v.id) {
@@ -567,7 +570,10 @@ export async function archiveRedirectRuleAction(formData: FormData) {
 export async function upsertMediaAssetAction(formData: FormData) {
   await requireGrowthAdmin();
   const id = optStr(formData, "id");
-  const assetType = str(formData, "assetType", "IMAGE") as any;
+  const assetTypeRaw = str(formData, "assetType", "IMAGE");
+  const assetType: MediaAssetType = ["IMAGE", "VIDEO", "POSTER", "DOCUMENT"].includes(assetTypeRaw)
+    ? (assetTypeRaw as MediaAssetType)
+    : "IMAGE";
   const destinationId = optStr(formData, "destinationId");
   const altFr = optStr(formData, "altFr");
   const altEn = optStr(formData, "altEn");
@@ -650,11 +656,44 @@ export async function deleteMediaAssetAction(formData: FormData) {
   await requireGrowthAdmin();
   const id = str(formData, "id");
   if (!id) return;
-  const asset = await prisma.mediaAsset.findUnique({ where: { id } });
-  if (asset && asset.localPath) {
+
+  const asset = await prisma.mediaAsset.findUnique({
+    where: { id },
+    include: {
+      landingHeroImages: { select: { id: true, heroTitle: true, slug: true, locale: true } },
+      landingOgImages: { select: { id: true, heroTitle: true, slug: true, locale: true } },
+      testimonialMedia: { select: { id: true, displayName: true } },
+      testimonialPosters: { select: { id: true, displayName: true } },
+    },
+  });
+
+  if (!asset) {
+    redirect("/admin/media?deleteError=notfound");
+    return;
+  }
+
+  const inUse =
+    asset.landingHeroImages.length > 0 ||
+    asset.landingOgImages.length > 0 ||
+    asset.testimonialMedia.length > 0 ||
+    asset.testimonialPosters.length > 0;
+
+  if (inUse) {
+    redirect(`/admin/media?deleteBlocked=1&editId=${id}`);
+    return;
+  }
+
+  try {
+    await prisma.mediaAsset.delete({ where: { id } });
+  } catch {
+    redirect(`/admin/media?deleteError=db&editId=${id}`);
+    return;
+  }
+
+  if (asset.localPath) {
     await unlink(asset.localPath).catch(() => null);
   }
-  await prisma.mediaAsset.delete({ where: { id } });
+
   revalidateGrowth("/admin/media");
-  redirect("/admin/media");
+  redirect("/admin/media?deleted=1");
 }

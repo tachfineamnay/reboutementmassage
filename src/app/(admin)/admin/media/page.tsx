@@ -10,7 +10,15 @@ export const metadata: Metadata = { title: "Médias — Growth CMS", robots: { i
 export const dynamic = "force-dynamic";
 
 type PageProps = {
-  searchParams: Promise<{ type?: string; destinationId?: string; q?: string; editId?: string }>;
+  searchParams: Promise<{
+    type?: string;
+    destinationId?: string;
+    q?: string;
+    editId?: string;
+    deleteBlocked?: string;
+    deleteError?: string;
+    deleted?: string;
+  }>;
 };
 
 function formatBytes(bytes: number) {
@@ -22,7 +30,7 @@ function formatBytes(bytes: number) {
 
 export default async function MediaPage({ searchParams }: PageProps) {
   await ensureAdminSchema();
-  const { type, destinationId, q, editId } = await searchParams;
+  const { type, destinationId, q, editId, deleteBlocked, deleteError, deleted } = await searchParams;
 
   const where = {
     ...(type && ["IMAGE", "VIDEO", "POSTER", "DOCUMENT"].includes(type)
@@ -60,6 +68,27 @@ export default async function MediaPage({ searchParams }: PageProps) {
   return (
     <div className="admin-page">
       <AdminPageHeader title="Médiathèque CMS" meta={`${items.length} asset(s) trouvé(s)`} />
+
+      {deleteBlocked === "1" && (
+        <p role="alert" style={{ color: "var(--admin-amber)", marginBottom: "16px", fontWeight: "bold" }}>
+          Suppression impossible : ce média est encore utilisé par une landing (hero/OG) ou un témoignage. Retirez-le de ces contenus avant de le supprimer.
+        </p>
+      )}
+      {deleteError === "notfound" && (
+        <p role="alert" style={{ color: "red", marginBottom: "16px", fontWeight: "bold" }}>
+          Média introuvable.
+        </p>
+      )}
+      {deleteError === "db" && (
+        <p role="alert" style={{ color: "red", marginBottom: "16px", fontWeight: "bold" }}>
+          La suppression en base a échoué. Le fichier n&apos;a pas été supprimé.
+        </p>
+      )}
+      {deleted === "1" && (
+        <p role="status" style={{ color: "var(--admin-green)", marginBottom: "16px", fontWeight: "bold" }}>
+          Média supprimé avec succès.
+        </p>
+      )}
 
       <div style={{ display: "grid", gridTemplateColumns: "2.5fr 1.5fr", gap: "24px", marginTop: "20px" }}>
         {/* Liste des médias (à gauche) */}

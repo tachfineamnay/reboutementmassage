@@ -1298,6 +1298,7 @@ model PixelEventLog {
   needType        NormalizedNeedType?
   pageUrl         String?
   sessionId       String?
+  variantId       String?
   sentToMeta      Boolean             @default(false)
   sentToTikTok    Boolean             @default(false)
   sentToGA4       Boolean             @default(false)

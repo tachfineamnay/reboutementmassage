@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import DynamicLandingPage from "@/app/dynamic-landing-page";
 import { prisma } from "@/lib/prisma";
-import { growthLandingInclude } from "@/lib/growth/types";
+import { growthLandingInclude, mergeLandingContent } from "@/lib/growth/types";
+import type { ExperimentVariant } from "@prisma/client";
 import { buildLandingMetadata, buildLandingJsonLd, resolveTestimonialForLanding } from "@/lib/growth/landing-seo";
 import { absoluteUrl } from "@/lib/seo";
 import { isLocale } from "@/lib/seo";
@@ -29,9 +30,24 @@ const RESERVED_SLUGS = new Set([
   "llms.txt",
 ]);
 
+function pickWeightedVariant(variants: ExperimentVariant[], seed: string): ExperimentVariant {
+  const totalSplit = variants.reduce((sum, v) => sum + v.trafficSplit, 0) || 100;
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  const bucket = hash % totalSplit;
+  let cumulative = 0;
+  for (const v of variants) {
+    cumulative += v.trafficSplit;
+    if (bucket < cumulative) return v;
+  }
+  return variants[0];
+}
+
 export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { lang, slug } = await params;
-  const { preview, previewVariant } = await searchParams;
+  const { preview } = await searchParams;
   if (!isLocale(lang) || RESERVED_SLUGS.has(slug)) return {};
 
   const landing = await prisma.landingPage.findUnique({
@@ -43,36 +59,10 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const isPreview = preview === landing.previewToken;
   if (landing.status !== "LIVE" && !isPreview) return { robots: { index: false, follow: false } };
 
-  // Détecter l'expérience A/B active pour le titre / description
-  let activeVariant: any = null;
-  const runningExperiment = await prisma.experiment.findFirst({
-    where: { landingPageId: landing.id, status: "RUNNING" },
-    include: { variants: true },
-  });
-
-  if (runningExperiment && runningExperiment.variants.length > 0) {
-    if (previewVariant) {
-      activeVariant = runningExperiment.variants.find((v) => v.id === previewVariant);
-    } else {
-      const cookieStore = await cookies();
-      const cookieVal = cookieStore.get(`exp_${runningExperiment.id}`)?.value;
-      if (cookieVal) {
-        activeVariant = runningExperiment.variants.find((v) => v.id === cookieVal);
-      }
-    }
-  }
-
-  // Appliquer les surcharges du test A/B sur le titre/meta
-  const landingForMetadata = { ...landing };
-  if (activeVariant) {
-    if (activeVariant.heroTitle) landingForMetadata.heroTitle = activeVariant.heroTitle;
-    if (activeVariant.heroSubtitle) landingForMetadata.heroSubtitle = activeVariant.heroSubtitle;
-  }
-
   let alternates: Record<string, string> | undefined;
-  if (landingForMetadata.hreflangGroupId) {
+  if (landing.hreflangGroupId) {
     const group = await prisma.landingPage.findMany({
-      where: { hreflangGroupId: landingForMetadata.hreflangGroupId, status: "LIVE" },
+      where: { hreflangGroupId: landing.hreflangGroupId, status: "LIVE" },
     });
     alternates = Object.fromEntries(
       group.map((item) => [
@@ -86,9 +76,9 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     }
   }
 
-  const forceNoIndex = landingForMetadata.status !== "LIVE" || isPreview || landingForMetadata.noindex;
+  const forceNoIndex = landing.status !== "LIVE" || isPreview || landing.noindex;
   const finalLanding = {
-    ...landingForMetadata,
+    ...landing,
     noindex: forceNoIndex,
   };
 
@@ -111,8 +101,8 @@ export default async function GrowthLandingRoute({ params, searchParams }: PageP
   const isPreview = preview === landing.previewToken;
   if (landing.status !== "LIVE" && !isPreview) notFound();
 
-  // 1. Détecter s'il y a un test A/B en cours
-  let activeVariant: any = null;
+  // 1. Détecter s'il y a un test A/B en cours (rendu visible uniquement — pas dans generateMetadata)
+  let activeVariant: ExperimentVariant | null = null;
   const runningExperiment = await prisma.experiment.findFirst({
     where: { landingPageId: landing.id, status: "RUNNING" },
     include: { variants: true },
@@ -121,26 +111,21 @@ export default async function GrowthLandingRoute({ params, searchParams }: PageP
   let shouldSetCookie = false;
   if (runningExperiment && runningExperiment.variants.length > 0) {
     if (previewVariant) {
-      activeVariant = runningExperiment.variants.find((v) => v.id === previewVariant);
+      activeVariant = runningExperiment.variants.find((v) => v.id === previewVariant) ?? null;
     } else {
       const cookieStore = await cookies();
       const cookieVal = cookieStore.get(`exp_${runningExperiment.id}`)?.value;
       if (cookieVal) {
-        activeVariant = runningExperiment.variants.find((v) => v.id === cookieVal);
+        activeVariant = runningExperiment.variants.find((v) => v.id === cookieVal) ?? null;
       }
 
       if (!activeVariant) {
-        const totalSplit = runningExperiment.variants.reduce((sum, v) => sum + v.trafficSplit, 0);
-        const rand = Math.random() * (totalSplit || 100);
-        let cumulative = 0;
-        for (const v of runningExperiment.variants) {
-          cumulative += v.trafficSplit;
-          if (rand <= cumulative) {
-            activeVariant = v;
-            break;
-          }
-        }
-        if (!activeVariant) activeVariant = runningExperiment.variants[0];
+        const requestHeaders = await headers();
+        const seed =
+          requestHeaders.get("x-forwarded-for") ??
+          requestHeaders.get("user-agent") ??
+          `${landing.id}:${runningExperiment.id}`;
+        activeVariant = pickWeightedVariant(runningExperiment.variants, seed);
         shouldSetCookie = true;
       }
     }
@@ -149,15 +134,14 @@ export default async function GrowthLandingRoute({ params, searchParams }: PageP
   // 2. Résoudre le témoignage avec fallback automatique
   const testimonial = await resolveTestimonialForLanding(landing);
   if (testimonial) {
-    landing.content = {
-      ...(landing.content as any || {}),
+    landing.content = mergeLandingContent(landing.content, {
       testimonial: {
         posterSrc: testimonial.posterImage?.url ?? testimonial.mediaAsset?.url ?? "/practice-01.webp",
         videoSrc: testimonial.mediaAsset?.url ?? testimonial.mediaAsset?.externalUrl ?? "",
         cta: testimonial.quoteShort ?? "Écrire sur WhatsApp",
         testimonialId: testimonial.id,
       },
-    };
+    });
   }
 
   // 3. Appliquer les surcharges de la variante A/B
@@ -172,23 +156,22 @@ export default async function GrowthLandingRoute({ params, searchParams }: PageP
         include: { mediaAsset: true, posterImage: true },
       });
       if (overrideTestimonial) {
-        landing.content = {
-          ...(landing.content as any || {}),
+        landing.content = mergeLandingContent(landing.content, {
           testimonial: {
             posterSrc: overrideTestimonial.posterImage?.url ?? overrideTestimonial.mediaAsset?.url ?? "/practice-01.webp",
             videoSrc: overrideTestimonial.mediaAsset?.url ?? overrideTestimonial.mediaAsset?.externalUrl ?? "",
             cta: overrideTestimonial.quoteShort ?? "Écrire sur WhatsApp",
             testimonialId: overrideTestimonial.id,
           },
-        };
+        });
       }
     }
 
     if (activeVariant.contentOverrides && typeof activeVariant.contentOverrides === "object") {
-      landing.content = {
-        ...(landing.content as any || {}),
-        ...(activeVariant.contentOverrides as Record<string, any>),
-      };
+      landing.content = mergeLandingContent(
+        landing.content,
+        activeVariant.contentOverrides as Record<string, unknown>
+      );
     }
   }
 

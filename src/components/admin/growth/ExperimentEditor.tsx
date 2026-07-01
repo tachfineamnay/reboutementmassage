@@ -3,6 +3,11 @@
 import React, { useState } from "react";
 import { upsertExperimentAction, archiveExperimentAction } from "@/lib/growth/actions";
 import Link from "next/link";
+import type {
+  ExperimentWithVariants,
+  ExperimentVariantFormState,
+} from "@/lib/growth/types";
+import type { ExperimentStatus } from "@prisma/client";
 
 interface TestimonialOption {
   id: string;
@@ -15,7 +20,7 @@ interface LandingOption {
 }
 
 interface ExperimentEditorProps {
-  experiment?: any;
+  experiment?: ExperimentWithVariants;
   landings: LandingOption[];
   testimonials: TestimonialOption[];
 }
@@ -27,24 +32,21 @@ export default function ExperimentEditor({
 }: ExperimentEditorProps) {
   const isEdit = !!experiment?.id;
 
-  const [state, setState] = useState(() => {
-    const e = experiment || {};
-    return {
-      id: e.id || "",
-      landingPageId: e.landingPageId || landings[0]?.id || "",
-      name: e.name || "",
-      hypothesis: e.hypothesis || "",
-      status: e.status || "DRAFT",
-      primaryMetric: e.primaryMetric || "whatsapp_clicks",
-      startAt: e.startAt ? new Date(e.startAt).toISOString().slice(0, 16) : "",
-      endAt: e.endAt ? new Date(e.endAt).toISOString().slice(0, 16) : "",
-      notes: e.notes || "",
-    };
-  });
+  const [state, setState] = useState(() => ({
+    id: experiment?.id ?? "",
+    landingPageId: experiment?.landingPageId ?? landings[0]?.id ?? "",
+    name: experiment?.name ?? "",
+    hypothesis: experiment?.hypothesis ?? "",
+    status: experiment?.status ?? "DRAFT",
+    primaryMetric: experiment?.primaryMetric ?? "whatsapp_clicks",
+    startAt: experiment?.startAt ? new Date(experiment.startAt).toISOString().slice(0, 16) : "",
+    endAt: experiment?.endAt ? new Date(experiment.endAt).toISOString().slice(0, 16) : "",
+    notes: experiment?.notes ?? "",
+  }));
 
-  const [variants, setVariants] = useState<any[]>(() => {
+  const [variants, setVariants] = useState<ExperimentVariantFormState[]>(() => {
     const vars = experiment?.variants || [];
-    return vars.map((v: any) => ({
+    return vars.map((v) => ({
       id: v.id || "",
       name: v.name || "",
       trafficSplit: v.trafficSplit || 50,
@@ -80,7 +82,7 @@ export default function ExperimentEditor({
     setVariants(variants.filter((_, i) => i !== index));
   };
 
-  const updateVariant = (index: number, field: string, val: any) => {
+  const updateVariant = (index: number, field: keyof ExperimentVariantFormState, val: string | number) => {
     const next = [...variants];
     next[index] = { ...next[index], [field]: val };
     setVariants(next);
@@ -173,7 +175,7 @@ export default function ExperimentEditor({
             <select
               name="status"
               value={state.status}
-              onChange={(e) => setState({ ...state, status: e.target.value })}
+              onChange={(e) => setState({ ...state, status: e.target.value as ExperimentStatus })}
               className="admin-input"
             >
               <option value="DRAFT">Brouillon (DRAFT)</option>
@@ -352,8 +354,8 @@ export default function ExperimentEditor({
                       try {
                         JSON.parse(e.target.value);
                         updateVariant(idx, "errors", "");
-                      } catch (err: any) {
-                        updateVariant(idx, "errors", err.message);
+                      } catch (err) {
+                        updateVariant(idx, "errors", err instanceof Error ? err.message : "JSON invalide");
                       }
                     }}
                     className="admin-input"

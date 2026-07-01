@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { incrementLandingMetric } from "@/lib/growth/landing-metrics";
@@ -67,6 +68,7 @@ export async function POST(request: Request) {
         needType: data.needType ?? undefined,
         pageUrl: data.pageUrl ?? undefined,
         sessionId: data.sessionId ?? undefined,
+        variantId: data.variantId ?? undefined,
         sentToMeta,
         sentToTikTok,
         sentToGA4,
@@ -80,7 +82,7 @@ export async function POST(request: Request) {
 
     // Incrémenter les métriques du variant d'expérience A/B
     if (data.variantId) {
-      const updateData: Record<string, any> = {};
+      const updateData: Prisma.ExperimentVariantUpdateInput = {};
       const ev = data.eventName.toLowerCase();
 
       if (ev === "landing_viewed" || ev === "view" || ev === "page_view") {

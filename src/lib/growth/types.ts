@@ -5,8 +5,62 @@ import type {
   TrackingProfile,
   CrmRoutingRule,
   Destination,
+  Experiment,
+  ExperimentVariant,
+  MediaAssetType,
   Prisma,
 } from "@prisma/client";
+
+export type { MediaAssetType };
+
+export type LandingContentTestimonial = {
+  posterSrc?: string;
+  videoSrc?: string;
+  cta?: string;
+  testimonialId?: string;
+};
+
+export type LandingPageContent = Record<string, unknown> & {
+  testimonial?: LandingContentTestimonial;
+};
+
+export type ExperimentWithVariants = Experiment & {
+  variants: ExperimentVariant[];
+};
+
+export type ExperimentVariantInput = {
+  id?: string;
+  name: string;
+  trafficSplit: number;
+  heroTitle?: string | null;
+  heroSubtitle?: string | null;
+  primaryCta?: string | null;
+  testimonialId?: string | null;
+  contentOverrides?: Record<string, unknown>;
+};
+
+export type ExperimentVariantFormState = {
+  id: string;
+  name: string;
+  trafficSplit: number | string;
+  heroTitle: string;
+  heroSubtitle: string;
+  primaryCta: string;
+  testimonialId: string;
+  contentOverrides: string;
+  errors: string;
+};
+
+export function mergeLandingContent(
+  content: Prisma.JsonValue,
+  patch: Record<string, unknown>
+): Prisma.JsonValue {
+  const base =
+    typeof content === "object" && content !== null && !Array.isArray(content)
+      ? (content as Record<string, unknown>)
+      : {};
+  return { ...base, ...patch } as Prisma.JsonValue;
+}
 
 export type LandingPageWithRelations = LandingPage & {
   destination: Destination;
