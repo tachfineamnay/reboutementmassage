@@ -6,7 +6,7 @@ import { ensureAdminSchema } from "@/lib/admin-schema";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import { upsertTrackingProfileAction, archiveTrackingProfileAction } from "@/lib/growth/actions";
 
-export const metadata: Metadata = { title: "Éditer tracking — Growth CMS", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Edit analytics profile — Platform Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }> };
@@ -161,7 +161,7 @@ export default async function EditTrackingPage({ params, searchParams }: PagePro
 
       <div style={{ marginTop: "32px", padding: "20px", border: "1px solid var(--admin-border)", borderRadius: "8px", background: "rgba(255,255,255,0.02)" }}>
         <h3 style={{ fontSize: "14px", fontWeight: 600, marginBottom: "12px", borderBottom: "1px solid var(--admin-border)", paddingBottom: "6px" }}>
-          Landings utilisant ce profil ({profile.landingPages.length})
+          Pages using this profile ({profile.landingPages.length})
         </h3>
         {profile.landingPages.length === 0 ? (
           <p style={{ fontSize: "13px", color: "var(--admin-muted)" }}>Aucune landing n'utilise ce profil actuellement.</p>

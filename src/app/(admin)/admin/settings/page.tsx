@@ -4,7 +4,7 @@ import { getOpenAISettingsStatus } from "@/lib/openai";
 import OpenAISettingsForm from "@/components/admin/OpenAISettingsForm";
 
 export const metadata: Metadata = {
-  title: "Settings — GT Dash",
+  title: "Settings — Platform Admin",
   robots: { index: false, follow: false },
 };
 

@@ -6,7 +6,7 @@ import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import AdminEmptyState from "@/components/admin/growth/AdminEmptyState";
 import AdminStatusBadge from "@/components/admin/growth/AdminStatusBadge";
 
-export const metadata: Metadata = { title: "Offres — Growth CMS", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Offres — Platform Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = { searchParams: Promise<{ status?: string; destinationId?: string; q?: string }> };
@@ -39,7 +39,7 @@ export default async function OffersPage({ searchParams }: PageProps) {
 
   return (
     <div className="admin-page">
-      <AdminPageHeader title="Offres" meta={`${total} offre${total !== 1 ? "s" : ""}`} action={{ href: "/admin/offers/new", label: "+ Nouvelle offre" }} />
+      <AdminPageHeader title="Offers" meta={`${total} offer${total !== 1 ? "s" : ""}`} action={{ href: "/admin/offers/new", label: "+ New offer" }} />
 
       <form className="admin-filters" method="GET">
         <input type="text" name="q" defaultValue={q} placeholder="Rechercher…" className="admin-input admin-filters__search" />

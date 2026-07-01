@@ -16,7 +16,7 @@ import {
 import { archiveLeadAction } from "./actions";
 
 export const metadata: Metadata = {
-  title: "Demandes — GT Dash",
+  title: "Leads — Platform Admin",
   robots: { index: false, follow: false },
 };
 
@@ -192,7 +192,7 @@ export default async function DemandesPage({ searchParams }: PageProps) {
     <div className="admin-page admin-page--wide">
       <div className="admin-page__header">
         <div>
-          <h1 className="admin-page__title">Demandes</h1>
+          <h1 className="admin-page__title">Leads</h1>
           <p className="admin-page__meta">
             {total} demande{total !== 1 ? "s" : ""}
             {hasFilters ? " filtrée(s)" : " reçue(s)"}
@@ -226,7 +226,7 @@ export default async function DemandesPage({ searchParams }: PageProps) {
           ))}
         </select>
         <select name="landingPageId" defaultValue={landingPageId ?? ""} className="admin-input admin-filters__select">
-          <option value="">Landings CMS</option>
+          <option value="">CMS pages</option>
           {landings.map((l) => (
             <option key={l.id} value={l.id}>
               /{l.locale.toLowerCase()}/{l.slug}

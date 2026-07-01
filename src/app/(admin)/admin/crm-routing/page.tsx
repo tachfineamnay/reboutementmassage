@@ -7,7 +7,7 @@ import AdminEmptyState from "@/components/admin/growth/AdminEmptyState";
 import AdminStatusBadge from "@/components/admin/growth/AdminStatusBadge";
 import { matchCrmRoutingRule } from "@/lib/growth/crm-routing";
 
-export const metadata: Metadata = { title: "CRM Routing — Growth CMS", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Lead Routing — Platform Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = {
@@ -75,7 +75,7 @@ export default async function CrmRoutingPage({ searchParams }: PageProps) {
 
   return (
     <div className="admin-page">
-      <AdminPageHeader title="Règles CRM" meta={`${total} règle${total !== 1 ? "s" : ""}`} action={{ href: "/admin/crm-routing/new", label: "+ Nouvelle règle" }} />
+      <AdminPageHeader title="Lead Routing" meta={`${total} rule${total !== 1 ? "s" : ""}`} action={{ href: "/admin/crm-routing/new", label: "+ New rule" }} />
 
       <form className="admin-filters" method="GET">
         <select name="destinationId" defaultValue={destinationId ?? ""} className="admin-input admin-filters__select">

@@ -4,7 +4,7 @@ import { ensureAdminSchema } from "@/lib/admin-schema";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import { upsertOfferAction } from "@/lib/growth/actions";
 
-export const metadata: Metadata = { title: "Nouvelle offre — Growth CMS", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Nouvelle offre — Platform Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 const OFFER_TYPES = [

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ensureAdminSchema } from "@/lib/admin-schema";
 import ExperimentEditor from "@/components/admin/growth/ExperimentEditor";
 
-export const metadata: Metadata = { title: "Nouvelle expérience — Growth CMS", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Nouvelle expérience — Platform Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 export default async function NewExperimentPage() {

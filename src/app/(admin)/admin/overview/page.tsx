@@ -14,7 +14,7 @@ import {
 } from "@/lib/admin-leads";
 
 export const metadata: Metadata = {
-  title: "Vue d'ensemble — GT Dash",
+  title: "Overview — Platform Admin",
   robots: { index: false, follow: false },
 };
 
@@ -424,7 +424,7 @@ export default async function OverviewPage() {
       {/* Header */}
       <div className="admin-page__header">
         <div>
-          <h1 className="admin-page__title">GT Dash</h1>
+          <h1 className="admin-page__title">Platform Admin</h1>
           <p className="admin-page__meta" style={{ marginTop: "4px" }}>
             Santé business, demandes reçues, contenus et SEO
           </p>

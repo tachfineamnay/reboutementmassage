@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import { upsertCrmRoutingRuleAction, archiveCrmRoutingRuleAction } from "@/lib/growth/actions";
 
-export const metadata: Metadata = { title: "Éditer règle CRM — Growth CMS", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Edit lead routing rule — Platform Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }> };
@@ -33,7 +33,7 @@ export default async function EditCrmRoutingPage({ params, searchParams }: PageP
 
   return (
     <div className="admin-page">
-      <AdminPageHeader title={`Règle CRM #${rule.priority}`} meta={rule.destinationId} />
+      <AdminPageHeader title={`Lead routing rule #${rule.priority}`} meta={rule.destinationId} />
       {saved === "1" && <p role="status" style={{ color: "var(--admin-green)", marginBottom: "16px" }}>Enregistré.</p>}
 
       <form action={upsertCrmRoutingRuleAction} className="admin-form">

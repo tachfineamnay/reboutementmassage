@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import NewArticleForm from "@/components/admin/NewArticleForm";
 
 export const metadata: Metadata = {
-  title: "Nouvel Article — GT Dash",
+  title: "Nouvel Article — Platform Admin",
   robots: { index: false, follow: false },
 };
 

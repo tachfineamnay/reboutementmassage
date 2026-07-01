@@ -11,7 +11,7 @@ import AdminStatusBadge from "@/components/admin/growth/AdminStatusBadge";
 import { isValidE164 } from "@/lib/growth/whatsapp";
 import { getUploadsDir } from "@/lib/server-utils";
 
-export const metadata: Metadata = { title: "Health Check — Growth CMS", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Diagnostics — Platform Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type Check = {
@@ -166,27 +166,27 @@ export default async function HealthPage() {
       href: "/admin/destinations",
     },
     {
-      name: "Landings LIVE",
+      name: "Live pages",
       status: (landings.find((l) => l.status === "LIVE")?._count ?? 0) > 0 ? "ok" : "warn",
-      detail: `${landings.find((l) => l.status === "LIVE")?._count ?? 0} landing(s) live`,
+      detail: `${landings.find((l) => l.status === "LIVE")?._count ?? 0} live page(s)`,
       href: "/admin/landings",
     },
     {
-      name: "Landings LIVE sans WhatsApp",
+      name: "Live pages without WhatsApp",
       status: liveLandingsNoWhatsapp > 0 ? "fail" : "ok",
-      detail: `${liveLandingsNoWhatsapp} landing(s)`,
+      detail: `${liveLandingsNoWhatsapp} page(s)`,
       href: "/admin/landings?status=LIVE",
     },
     {
-      name: "Landings LIVE sans tracking",
+      name: "Live pages without analytics",
       status: liveLandingsNoTracking > 0 ? "warn" : "ok",
-      detail: `${liveLandingsNoTracking} landing(s)`,
+      detail: `${liveLandingsNoTracking} page(s)`,
       href: "/admin/tracking",
     },
     {
-      name: "Landings LIVE readiness < 80",
+      name: "Live pages readiness < 80",
       status: lowReadinessLive.length > 0 ? "fail" : "ok",
-      detail: `${lowReadinessLive.length} landing(s)`,
+      detail: `${lowReadinessLive.length} page(s)`,
       href: "/admin/landings?status=LIVE",
     },
     {
@@ -202,25 +202,25 @@ export default async function HealthPage() {
       href: "/admin/whatsapp",
     },
     {
-      name: "Landings LIVE sans WhatsApp actif",
+      name: "Live pages without active WhatsApp",
       status: liveLandingsNoActiveWhatsappCount > 0 ? "fail" : "ok",
-      detail: `${liveLandingsNoActiveWhatsappCount} landing(s)`,
+      detail: `${liveLandingsNoActiveWhatsappCount} page(s)`,
       href: "/admin/landings?status=LIVE",
     },
     {
-      name: "Landings LIVE avec message prérempli manquant",
+      name: "Live pages with missing prefilled message",
       status: liveLandingsMissingMessageCount > 0 ? "warn" : "ok",
-      detail: `${liveLandingsMissingMessageCount} landing(s)`,
+      detail: `${liveLandingsMissingMessageCount} page(s)`,
       href: "/admin/landings?status=LIVE",
     },
     {
-      name: "Landings LIVE sans tracking actif",
+      name: "Live pages without active analytics",
       status: liveLandingsNoActiveTrackingCount > 0 ? "fail" : "ok",
-      detail: `${liveLandingsNoActiveTrackingCount} landing(s)`,
+      detail: `${liveLandingsNoActiveTrackingCount} page(s)`,
       href: "/admin/landings?status=LIVE",
     },
     {
-      name: "Tracking ACTIVE sans pixel",
+      name: "Active analytics without pixel",
       status: activeTrackingNoPixelCount > 0 ? "warn" : "ok",
       detail: `${activeTrackingNoPixelCount} profil(s)`,
       href: "/admin/tracking",
@@ -247,9 +247,9 @@ export default async function HealthPage() {
       detail: `${process.env.GHL_LEAD_MODE?.trim().toLowerCase() === "live" || (process.env.NODE_ENV === "production" && process.env.GHL_LEAD_MODE?.trim().toLowerCase() !== "mock") ? "LIVE" : "MOCK"}`,
     },
     {
-      name: "Landings LIVE sans routing actif",
+      name: "Live pages without active lead routing",
       status: liveLandingsNoActiveRoutingCount > 0 ? "fail" : "ok",
-      detail: `${liveLandingsNoActiveRoutingCount} landing(s)`,
+      detail: `${liveLandingsNoActiveRoutingCount} page(s)`,
       href: "/admin/crm-routing",
     },
     {
@@ -271,7 +271,7 @@ export default async function HealthPage() {
 
   return (
     <div className="admin-page">
-      <AdminPageHeader title="Health Check" meta="État opérationnel du Growth CMS" />
+      <AdminPageHeader title="Diagnostics" meta="Platform Admin operational health" />
 
       <div className="admin-table-wrapper">
         <table className="admin-table">
@@ -352,7 +352,7 @@ export default async function HealthPage() {
 
       {lowReadinessLive.length > 0 && (
         <section className="admin-section" style={{ marginTop: "24px" }}>
-          <h2 className="admin-section__title">Landings LIVE à risque (Readiness &lt; 80)</h2>
+          <h2 className="admin-section__title">At-risk live pages (readiness &lt; 80)</h2>
           <ul style={{ margin: 0, paddingLeft: "20px" }}>
             {lowReadinessLive.map((l) => (
               <li key={l.id} style={{ marginBottom: "6px" }}>

@@ -5,7 +5,7 @@ import { ensureAdminSchema } from "@/lib/admin-schema";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import { upsertTestimonialAction, archiveTestimonialAction } from "@/lib/growth/actions";
 
-export const metadata: Metadata = { title: "Éditer témoignage — Growth CMS", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Éditer témoignage — Platform Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }> };

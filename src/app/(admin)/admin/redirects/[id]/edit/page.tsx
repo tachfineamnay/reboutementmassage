@@ -5,7 +5,7 @@ import { ensureAdminSchema } from "@/lib/admin-schema";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import { upsertRedirectRuleAction, archiveRedirectRuleAction } from "@/lib/growth/actions";
 
-export const metadata: Metadata = { title: "Éditer redirection — Growth CMS", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Éditer redirection — Platform Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }> };

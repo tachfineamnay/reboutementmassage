@@ -4,7 +4,7 @@ import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import { upsertDestinationAction } from "@/lib/growth/actions";
 
 export const metadata: Metadata = {
-  title: "Nouvelle destination — Growth CMS",
+  title: "Nouvelle destination — Platform Admin",
   robots: { index: false, follow: false },
 };
 
@@ -15,7 +15,7 @@ export default async function NewDestinationPage() {
 
   return (
     <div className="admin-page">
-      <AdminPageHeader title="Nouvelle destination" meta="Créer une destination Growth CMS" />
+      <AdminPageHeader title="Nouvelle destination" meta="Create a new sales destination" />
 
       <form action={upsertDestinationAction} className="admin-form">
         <div className="admin-form__grid">

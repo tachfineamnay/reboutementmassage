@@ -4,7 +4,7 @@ import { ensureAdminSchema } from "@/lib/admin-schema";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import { upsertCrmRoutingRuleAction } from "@/lib/growth/actions";
 
-export const metadata: Metadata = { title: "Nouvelle règle CRM — Growth CMS", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "New lead routing rule — Platform Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 export default async function NewCrmRoutingPage() {
@@ -13,7 +13,7 @@ export default async function NewCrmRoutingPage() {
 
   return (
     <div className="admin-page">
-      <AdminPageHeader title="Nouvelle règle CRM" />
+      <AdminPageHeader title="New lead routing rule" />
       <form action={upsertCrmRoutingRuleAction} className="admin-form">
         <div className="admin-form__grid">
           <label className="admin-field">

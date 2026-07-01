@@ -8,7 +8,7 @@ import { upsertWhatsappChannelAction, archiveWhatsappChannelAction } from "@/lib
 import { isValidE164 } from "@/lib/growth/whatsapp";
 import WhatsappTestButtons from "@/components/admin/WhatsappTestButtons";
 
-export const metadata: Metadata = { title: "Éditer WhatsApp — Growth CMS", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Éditer WhatsApp — Platform Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }> };
@@ -173,7 +173,7 @@ export default async function EditWhatsappPage({ params, searchParams }: PagePro
 
       <div style={{ marginTop: "32px", padding: "20px", border: "1px solid var(--admin-border)", borderRadius: "8px", background: "rgba(255,255,255,0.02)" }}>
         <h3 style={{ fontSize: "14px", fontWeight: 600, marginBottom: "12px", borderBottom: "1px solid var(--admin-border)", paddingBottom: "6px" }}>
-          Landings utilisant ce canal ({channel.landingPages.length})
+          Pages using this channel ({channel.landingPages.length})
         </h3>
         {channel.landingPages.length === 0 ? (
           <p style={{ fontSize: "13px", color: "var(--admin-muted)" }}>Aucune landing n'utilise ce canal actuellement.</p>

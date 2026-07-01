@@ -6,7 +6,7 @@ import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import AdminEmptyState from "@/components/admin/growth/AdminEmptyState";
 import { upsertMediaAssetAction, deleteMediaAssetAction } from "@/lib/growth/actions";
 
-export const metadata: Metadata = { title: "Médias — Growth CMS", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Médias — Platform Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = {
@@ -67,7 +67,7 @@ export default async function MediaPage({ searchParams }: PageProps) {
 
   return (
     <div className="admin-page">
-      <AdminPageHeader title="Médiathèque CMS" meta={`${items.length} asset(s) trouvé(s)`} />
+      <AdminPageHeader title="Media Library" meta={`${items.length} asset(s) found`} />
 
       {deleteBlocked === "1" && (
         <p role="alert" style={{ color: "var(--admin-amber)", marginBottom: "16px", fontWeight: "bold" }}>
@@ -156,7 +156,7 @@ export default async function MediaPage({ searchParams }: PageProps) {
                         </td>
                         <td>{formatBytes(a.size)}</td>
                         <td style={{ fontSize: "12px" }}>
-                          📌 Landings: <strong>{landingsCount}</strong><br />
+                          📌 Pages: <strong>{landingsCount}</strong><br />
                           💬 Testimonials: <strong>{testimonialsCount}</strong>
                         </td>
                         <td>

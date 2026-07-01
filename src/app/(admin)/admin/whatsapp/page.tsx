@@ -7,7 +7,7 @@ import AdminEmptyState from "@/components/admin/growth/AdminEmptyState";
 import AdminStatusBadge from "@/components/admin/growth/AdminStatusBadge";
 import { isValidE164 } from "@/lib/growth/whatsapp";
 
-export const metadata: Metadata = { title: "WhatsApp — Growth CMS", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "WhatsApp — Platform Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = { searchParams: Promise<{ status?: string; destinationId?: string }> };

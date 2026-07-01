@@ -4,23 +4,60 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTransition } from "react";
 
-const NAV_ITEMS = [
-  { href: "/admin/overview", label: "Overview", icon: "◈", exact: false, primary: false },
-  { href: "/admin/growth", label: "Growth Dashboard", icon: "◎", exact: false, primary: true },
-  { href: "/admin/destinations", label: "Destinations", icon: "⌖", exact: false, primary: false },
-  { href: "/admin/offers", label: "Offres", icon: "◇", exact: false, primary: false },
-  { href: "/admin/landings", label: "Landings", icon: "◆", exact: false, primary: false },
-  { href: "/admin/whatsapp", label: "WhatsApp", icon: "☏", exact: false, primary: false },
-  { href: "/admin/tracking", label: "Tracking", icon: "◉", exact: false, primary: false },
-  { href: "/admin/crm-routing", label: "CRM Routing", icon: "⇄", exact: false, primary: false },
-  { href: "/admin/testimonials", label: "Témoignages", icon: "❝", exact: false, primary: false },
-  { href: "/admin/media", label: "Médias", icon: "▣", exact: false, primary: false },
-  { href: "/admin/experiments", label: "Expériences", icon: "⚗", exact: false, primary: false },
-  { href: "/admin/redirects", label: "Redirects", icon: "↪", exact: false, primary: false },
-  { href: "/admin/seo-health", label: "SEO Health", icon: "⌕", exact: false, primary: false },
-  { href: "/admin/health", label: "Health Check", icon: "♥", exact: false, primary: false },
-  { href: "/admin/demandes", label: "Demandes", icon: "☎", exact: false, primary: false },
-  { href: "/admin/settings", label: "Settings", icon: "⚙", exact: true, primary: false },
+type NavItem = {
+  href: string;
+  label: string;
+  icon: string;
+  exact?: boolean;
+  primary?: boolean;
+};
+
+type NavGroup = {
+  label?: string;
+  items: NavItem[];
+};
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    items: [{ href: "/admin/growth", label: "Overview", icon: "◎", primary: true }],
+  },
+  {
+    label: "Website",
+    items: [
+      { href: "/admin/landings", label: "Pages", icon: "◆" },
+      { href: "/admin/media", label: "Media Library", icon: "▣" },
+      { href: "/admin/testimonials", label: "Testimonials", icon: "❝" },
+      { href: "/admin/seo-health", label: "SEO", icon: "⌕" },
+      { href: "/admin/redirects", label: "Redirects", icon: "↪" },
+    ],
+  },
+  {
+    label: "Marketing",
+    items: [
+      { href: "/admin/offers", label: "Offers", icon: "◇" },
+      { href: "/admin/experiments", label: "Experiments", icon: "⚗" },
+      { href: "/admin/tracking", label: "Analytics", icon: "◉" },
+    ],
+  },
+  {
+    label: "Sales",
+    items: [
+      { href: "/admin/destinations", label: "Destinations", icon: "⌖" },
+      { href: "/admin/whatsapp", label: "WhatsApp", icon: "☏" },
+      { href: "/admin/crm-routing", label: "Lead Routing", icon: "⇄" },
+    ],
+  },
+  {
+    label: "CRM",
+    items: [{ href: "/admin/demandes", label: "Leads", icon: "☎" }],
+  },
+  {
+    label: "System",
+    items: [
+      { href: "/admin/health", label: "Diagnostics", icon: "♥" },
+      { href: "/admin/settings", label: "Settings", icon: "⚙", exact: true },
+    ],
+  },
 ];
 
 export default function AdminSidebar() {
@@ -28,7 +65,7 @@ export default function AdminSidebar() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  function isActive(item: (typeof NAV_ITEMS)[number]) {
+  function isActive(item: NavItem) {
     if (item.exact) return pathname === item.href;
     return pathname === item.href || pathname.startsWith(`${item.href}/`);
   }
@@ -45,29 +82,36 @@ export default function AdminSidebar() {
     <aside className="admin-sidebar">
       <div className="admin-sidebar__brand">
         <Link href="/admin/growth" className="admin-sidebar__logo">
-          <span className="admin-sidebar__logo-icon">GT</span>
-          <span className="admin-sidebar__logo-text">Growth</span>
+          <span className="admin-sidebar__logo-icon">PA</span>
+          <span className="admin-sidebar__logo-text">Platform Admin</span>
         </Link>
       </div>
 
-      <nav className="admin-sidebar__nav" aria-label="Navigation admin">
-        <ul className="admin-sidebar__list">
-          {NAV_ITEMS.map((item) => (
-            <li key={item.href} className="admin-sidebar__item">
-              <Link
-                href={item.href}
-                className={`admin-sidebar__link ${
-                  isActive(item) ? "admin-sidebar__link--active" : ""
-                } ${item.primary ? "admin-sidebar__link--primary" : "admin-sidebar__link--secondary"}`}
-              >
-                <span className="admin-sidebar__icon" aria-hidden="true">
-                  {item.icon}
-                </span>
-                <span>{item.label}</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+      <nav className="admin-sidebar__nav" aria-label="Platform Admin navigation">
+        {NAV_GROUPS.map((group) => (
+          <div key={group.label ?? "overview"} className="admin-sidebar__group">
+            {group.label && (
+              <p className="admin-sidebar__group-label">{group.label}</p>
+            )}
+            <ul className="admin-sidebar__list">
+              {group.items.map((item) => (
+                <li key={item.href} className="admin-sidebar__item">
+                  <Link
+                    href={item.href}
+                    className={`admin-sidebar__link ${
+                      isActive(item) ? "admin-sidebar__link--active" : ""
+                    } ${item.primary ? "admin-sidebar__link--primary" : "admin-sidebar__link--secondary"}`}
+                  >
+                    <span className="admin-sidebar__icon" aria-hidden="true">
+                      {item.icon}
+                    </span>
+                    <span>{item.label}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </nav>
 
       <div className="admin-sidebar__footer">

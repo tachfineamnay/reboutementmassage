@@ -4,7 +4,7 @@ import { ensureAdminSchema } from "@/lib/admin-schema";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import { upsertTrackingProfileAction } from "@/lib/growth/actions";
 
-export const metadata: Metadata = { title: "Nouveau tracking — Growth CMS", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "New analytics profile — Platform Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 export default async function NewTrackingPage() {
@@ -13,7 +13,7 @@ export default async function NewTrackingPage() {
 
   return (
     <div className="admin-page">
-      <AdminPageHeader title="Nouveau profil tracking" />
+      <AdminPageHeader title="New analytics profile" />
       <form action={upsertTrackingProfileAction} className="admin-form">
         <div className="admin-form__grid">
           <label className="admin-field">

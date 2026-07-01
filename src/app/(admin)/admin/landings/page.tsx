@@ -8,7 +8,7 @@ import AdminEmptyState from "@/components/admin/growth/AdminEmptyState";
 import AdminStatusBadge from "@/components/admin/growth/AdminStatusBadge";
 import ReadinessScoreBadge from "@/components/admin/growth/ReadinessScoreBadge";
 
-export const metadata: Metadata = { title: "Landings — Growth CMS", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Pages — Platform Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = { searchParams: Promise<{ status?: string; destinationId?: string; locale?: string; q?: string }> };
@@ -49,7 +49,7 @@ export default async function LandingsPage({ searchParams }: PageProps) {
 
   return (
     <div className="admin-page">
-      <AdminPageHeader title="Landing pages" meta={`${total} landing${total !== 1 ? "s" : ""}`} action={{ href: "/admin/landings/new", label: "+ Nouvelle landing" }} />
+      <AdminPageHeader title="Pages" meta={`${total} page${total !== 1 ? "s" : ""}`} action={{ href: "/admin/landings/new", label: "+ New page" }} />
 
       <form className="admin-filters" method="GET">
         <input type="text" name="q" defaultValue={q} placeholder="Rechercher…" className="admin-input admin-filters__search" />

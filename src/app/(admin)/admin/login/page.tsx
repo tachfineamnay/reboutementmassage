@@ -11,8 +11,8 @@ export default function AdminLoginPage() {
       <div className="login-card">
         {/* Brand */}
         <div className="login-brand">
-          <span className="login-brand__icon">GT Dash</span>
-          <span className="login-brand__sub">Cockpit business</span>
+          <span className="login-brand__icon">Platform Admin</span>
+          <span className="login-brand__sub">Business cockpit</span>
         </div>
 
         <h1 className="login-title">Connexion</h1>

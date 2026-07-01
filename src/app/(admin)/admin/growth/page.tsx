@@ -5,7 +5,7 @@ import { ensureAdminSchema } from "@/lib/admin-schema";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 
 export const metadata: Metadata = {
-  title: "Growth Dashboard — GT Dash",
+  title: "Overview — Platform Admin",
   robots: { index: false, follow: false },
 };
 
@@ -157,20 +157,20 @@ export default async function GrowthDashboardPage() {
     alerts.push("⚠️ Token GHL_PRIVATE_INTEGRATION_TOKEN manquant dans les variables d'environnement.");
   }
   if (readinessAvg < 85) {
-    alerts.push(`⚠️ Score moyen de préparation faible (${readinessAvg}/100). Certaines landings manquent de blocs indispensables.`);
+    alerts.push(`⚠️ Average readiness score is low (${readinessAvg}/100). Some pages are missing required blocks.`);
   }
 
   return (
     <div className="admin-page">
       <AdminPageHeader
-        title="Growth CMS"
-        meta="Destinations, landings, tracking et conversion"
-        action={{ href: "/admin/landings/new", label: "+ Nouvelle landing" }}
+        title="Overview"
+        meta="Pages, analytics, lead routing and conversion at a glance"
+        action={{ href: "/admin/landings/new", label: "+ New page" }}
       />
 
       {alerts.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "24px", padding: "16px", borderRadius: "8px", border: "1px solid #ef4444", background: "rgba(239, 68, 68, 0.05)" }}>
-          <h3 style={{ fontSize: "14px", color: "#ef4444", margin: 0, fontWeight: "bold" }}>Alertes CMS requérant votre attention</h3>
+          <h3 style={{ fontSize: "14px", color: "#ef4444", margin: 0, fontWeight: "bold" }}>Platform alerts requiring attention</h3>
           <ul style={{ margin: 0, paddingLeft: "18px", color: "var(--admin-text)", fontSize: "13px" }}>
             {alerts.map((alert, idx) => <li key={idx} style={{ marginBottom: "4px" }}>{alert}</li>)}
           </ul>
@@ -185,7 +185,7 @@ export default async function GrowthDashboardPage() {
         </Link>
         <Link href="/admin/landings" className="kpi-card kpi-card--link">
           <span className="kpi-card__value">{landingsLive}</span>
-          <span className="kpi-card__label">Landings live</span>
+          <span className="kpi-card__label">Live pages</span>
         </Link>
         <div className="kpi-card">
           <span className="kpi-card__value">{readinessAvg}/100</span>
@@ -231,7 +231,7 @@ export default async function GrowthDashboardPage() {
       {/* Grid: Top Landings / Destinations */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "24px" }}>
         <section className="admin-section">
-          <h2 className="admin-section__title">Top Landings par Vues (7j)</h2>
+          <h2 className="admin-section__title">Top pages by views (7d)</h2>
           {topLandings.length === 0 ? (
             <p style={{ color: "var(--admin-text-muted)", fontSize: "13px" }}>Aucune donnée sur les 7 derniers jours.</p>
           ) : (
@@ -239,7 +239,7 @@ export default async function GrowthDashboardPage() {
               <table className="admin-table" style={{ fontSize: "13px" }}>
                 <thead>
                   <tr>
-                    <th>Landing</th>
+                    <th>Page</th>
                     <th>Vues</th>
                     <th>Convs (Form)</th>
                   </tr>
@@ -308,17 +308,17 @@ export default async function GrowthDashboardPage() {
             </li>
             <li>
               <Link href="/admin/tracking" className="admin-link">
-                Tracking actifs : {trackingActive}
+                Active analytics profiles: {trackingActive}
               </Link>
             </li>
             <li>
               <Link href="/admin/testimonials" className="admin-link">
-                Témoignages live : {testimonialsLive}
+                Live testimonials: {testimonialsLive}
               </Link>
             </li>
             <li>
               <Link href="/admin/experiments" className="admin-link">
-                Expériences en cours : {experimentsRunning}
+                Running experiments: {experimentsRunning}
               </Link>
             </li>
             <li>
@@ -331,11 +331,11 @@ export default async function GrowthDashboardPage() {
 
         <section className="admin-section">
           <div className="admin-section__header">
-            <h2 className="admin-section__title">Landings récentes</h2>
-            <Link href="/admin/landings" className="admin-link">Voir tout</Link>
+            <h2 className="admin-section__title">Recent pages</h2>
+            <Link href="/admin/landings" className="admin-link">View all</Link>
           </div>
           {recentLandings.length === 0 ? (
-            <p className="admin-page__meta">Aucune landing.</p>
+            <p className="admin-page__meta">No pages yet.</p>
           ) : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
               {recentLandings.map((l) => (
@@ -354,9 +354,9 @@ export default async function GrowthDashboardPage() {
       </div>
 
       <div style={{ marginTop: "24px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
-        <Link href="/admin/seo-health" className="admin-btn admin-btn--ghost">SEO Health</Link>
-        <Link href="/admin/health" className="admin-btn admin-btn--ghost">Health Check</Link>
-        <Link href="/admin/media" className="admin-btn admin-btn--ghost">Médias</Link>
+        <Link href="/admin/seo-health" className="admin-btn admin-btn--ghost">SEO</Link>
+        <Link href="/admin/health" className="admin-btn admin-btn--ghost">Diagnostics</Link>
+        <Link href="/admin/media" className="admin-btn admin-btn--ghost">Media Library</Link>
       </div>
     </div>
   );

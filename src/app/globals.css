@@ -2637,6 +2637,25 @@ textarea.sf-field__input::placeholder { font-style: normal; }
   overflow-y: auto;
 }
 
+.admin-sidebar__group {
+  margin-bottom: 12px;
+}
+
+.admin-sidebar__group:last-child {
+  margin-bottom: 0;
+}
+
+.admin-sidebar__group-label {
+  margin: 0;
+  padding: 4px 12px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--admin-muted);
+  opacity: 0.75;
+}
+
 .admin-sidebar__list {
   list-style: none;
   display: flex;

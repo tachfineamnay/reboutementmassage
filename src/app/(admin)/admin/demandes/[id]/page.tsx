@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 
   return {
-    title: lead ? `${lead.firstName} — Demande — GT Dash` : "Demande — GT Dash",
+    title: lead ? `${lead.firstName} — Lead — Platform Admin` : "Lead — Platform Admin",
     robots: { index: false, follow: false },
   };
 }
@@ -135,7 +135,7 @@ export default async function DemandeDetailPage({ params }: Props) {
     <div className="admin-page">
       <nav className="admin-breadcrumb-nav" aria-label="Fil d'Ariane">
         <Link href="/admin/demandes" className="admin-breadcrumb">
-          Demandes
+          Leads
         </Link>
         <span className="admin-breadcrumb-sep">/</span>
         <span className="admin-breadcrumb-current">{lead.firstName}</span>
@@ -143,7 +143,7 @@ export default async function DemandeDetailPage({ params }: Props) {
 
       <div className="admin-page__header">
         <div>
-          <h1 className="admin-page__title">Demande de {lead.firstName}</h1>
+          <h1 className="admin-page__title">Lead: {lead.firstName}</h1>
           <p className="admin-page__meta">
             Reçue le <time dateTime={lead.createdAt.toISOString()}>{dateFmt.format(lead.createdAt)}</time>
           </p>
@@ -310,7 +310,7 @@ export default async function DemandeDetailPage({ params }: Props) {
 
       <section className="lead-detail-columns" style={{ marginTop: "24px" }}>
         <div className="admin-panel">
-          <h2 className="admin-panel__title">Attribution Growth</h2>
+          <h2 className="admin-panel__title">Marketing attribution</h2>
           <div className="lead-detail-grid">
             <DetailItem label="Event ID" value={lead.eventId ?? "—"} />
             <DetailItem label="Source" value={lead.source ?? "—"} />

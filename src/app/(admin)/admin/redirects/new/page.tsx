@@ -3,7 +3,7 @@ import { ensureAdminSchema } from "@/lib/admin-schema";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import { upsertRedirectRuleAction } from "@/lib/growth/actions";
 
-export const metadata: Metadata = { title: "Nouvelle redirection — Growth CMS", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Nouvelle redirection — Platform Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 export default async function NewRedirectPage() {

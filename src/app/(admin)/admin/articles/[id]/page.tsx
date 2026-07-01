@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     select: { title: true },
   });
   return {
-    title: article ? `${article.title} — GT Dash` : "Article — GT Dash",
+    title: article ? `${article.title} — Platform Admin` : "Article — Platform Admin",
     robots: { index: false, follow: false },
   };
 }

@@ -7,7 +7,7 @@ import { computeLandingReadiness } from "@/lib/growth/landing-readiness";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import ReadinessScoreBadge from "@/components/admin/growth/ReadinessScoreBadge";
 
-export const metadata: Metadata = { title: "SEO Health — Growth CMS", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "SEO — Platform Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type SeoIssue = {
@@ -231,12 +231,12 @@ export default async function SeoHealthPage() {
 
   return (
     <div className="admin-page">
-      <AdminPageHeader title="SEO Health" meta="Audit SEO et redirections des landing pages Growth" />
+      <AdminPageHeader title="SEO" meta="SEO audit and redirects for live pages" />
 
       <div className="kpi-grid" style={{ marginBottom: "24px" }}>
         <div className="kpi-card kpi-card--green">
           <span className="kpi-card__value">{liveCount}</span>
-          <span className="kpi-card__label">Landings LIVE</span>
+          <span className="kpi-card__label">Live pages</span>
         </div>
         <div className="kpi-card">
           <span className="kpi-card__value">{indexedLive}</span>

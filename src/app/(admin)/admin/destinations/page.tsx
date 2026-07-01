@@ -7,7 +7,7 @@ import AdminEmptyState from "@/components/admin/growth/AdminEmptyState";
 import AdminStatusBadge from "@/components/admin/growth/AdminStatusBadge";
 
 export const metadata: Metadata = {
-  title: "Destinations — Growth CMS",
+  title: "Destinations — Platform Admin",
   robots: { index: false, follow: false },
 };
 
@@ -93,7 +93,7 @@ export default async function DestinationsPage({ searchParams }: PageProps) {
                 <th>Maturité</th>
                 <th>Statut</th>
                 <th>Offres</th>
-                <th>Landings</th>
+                <th>Pages</th>
                 <th>Modifié</th>
                 <th>Actions</th>
               </tr>

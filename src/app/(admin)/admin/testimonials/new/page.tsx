@@ -4,7 +4,7 @@ import { ensureAdminSchema } from "@/lib/admin-schema";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import { upsertTestimonialAction } from "@/lib/growth/actions";
 
-export const metadata: Metadata = { title: "Nouveau témoignage — Growth CMS", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Nouveau témoignage — Platform Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 export default async function NewTestimonialPage() {

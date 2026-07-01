@@ -2,7 +2,7 @@ import "@/app/globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Connexion — GT Dash",
+  title: "Sign in — Platform Admin",
   robots: { index: false, follow: false },
 };
 

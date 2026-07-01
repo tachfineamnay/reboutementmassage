@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ensureAdminSchema } from "@/lib/admin-schema";
 import LandingEditor from "@/components/admin/growth/LandingEditor";
 
-export const metadata: Metadata = { title: "Nouvelle landing — Growth CMS", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "New page — Platform Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 export default async function NewLandingPage() {

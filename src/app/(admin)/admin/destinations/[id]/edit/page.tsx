@@ -6,7 +6,7 @@ import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import { upsertDestinationAction, archiveDestinationAction } from "@/lib/growth/actions";
 
 export const metadata: Metadata = {
-  title: "Éditer destination — Growth CMS",
+  title: "Éditer destination — Platform Admin",
   robots: { index: false, follow: false },
 };
 
