@@ -22,6 +22,7 @@ const eventSchema = z.object({
     .nullable(),
   pageUrl: z.string().url().optional().nullable(),
   sessionId: z.string().max(128).optional().nullable(),
+  variantId: z.string().optional().nullable(),
 });
 
 export async function POST(request: Request) {
@@ -75,6 +76,32 @@ export async function POST(request: Request) {
 
     if (data.landingPageId) {
       await incrementLandingMetric(data.landingPageId, data.eventName);
+    }
+
+    // Incrémenter les métriques du variant d'expérience A/B
+    if (data.variantId) {
+      const updateData: Record<string, any> = {};
+      const ev = data.eventName.toLowerCase();
+
+      if (ev === "landing_viewed" || ev === "view" || ev === "page_view") {
+        updateData.impressions = { increment: 1 };
+      } else if (ev === "hero_whatsapp_clicked" || ev === "sticky_whatsapp_clicked" || ev === "whatsapp_clicked" || ev === "testimonial_whatsapp_clicked") {
+        updateData.whatsappClicks = { increment: 1 };
+      } else if (ev === "lead_submitted" || ev === "form_submitted") {
+        updateData.formSubmits = { increment: 1 };
+        updateData.leads = { increment: 1 };
+      } else if (ev === "hero_booking_clicked" || ev === "booking_clicked") {
+        updateData.bookingClicks = { increment: 1 };
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        await prisma.experimentVariant.update({
+          where: { id: data.variantId },
+          data: updateData,
+        }).catch((err) => {
+          console.error("Failed to increment experiment variant metric:", err);
+        });
+      }
     }
 
     return NextResponse.json({ ok: true });

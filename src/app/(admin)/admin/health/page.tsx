@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import path from "path";
+import fs from "fs/promises";
 import { prisma } from "@/lib/prisma";
 import { ensureAdminSchema } from "@/lib/admin-schema";
 import { growthLandingInclude } from "@/lib/growth/types";
@@ -7,6 +9,7 @@ import { computeLandingReadiness } from "@/lib/growth/landing-readiness";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import AdminStatusBadge from "@/components/admin/growth/AdminStatusBadge";
 import { isValidE164 } from "@/lib/growth/whatsapp";
+import { getUploadsDir } from "@/lib/server-utils";
 
 export const metadata: Metadata = { title: "Health Check — Growth CMS", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -21,6 +24,29 @@ type Check = {
 export default async function HealthPage() {
   await ensureAdminSchema();
 
+  // 1. Diagnostics d'infrastructure (pings)
+  let dbStatus: "ok" | "fail" = "ok";
+  let dbDetail = "Connexion réussie";
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+  } catch (err: any) {
+    dbStatus = "fail";
+    dbDetail = `Erreur de connexion: ${err.message}`;
+  }
+
+  let uploadStatus: "ok" | "fail" = "ok";
+  let uploadDetail = "Dossier accessible et inscriptible";
+  try {
+    const dir = getUploadsDir();
+    await fs.mkdir(dir, { recursive: true });
+    const testFile = path.join(dir, ".write-test");
+    await fs.writeFile(testFile, "test");
+    await fs.unlink(testFile);
+  } catch (err: any) {
+    uploadStatus = "fail";
+    uploadDetail = `Erreur d'écriture: ${err.message}`;
+  }
+
   const [
     allDestinations,
     landings,
@@ -31,16 +57,41 @@ export default async function HealthPage() {
     liveLandingsNoTracking,
     failedLeads,
     redirectCount,
+    latestGhlFailures,
+    latestEventLogs,
   ] = await Promise.all([
     prisma.destination.findMany({ include: { trackingProfiles: { select: { id: true } } } }),
     prisma.landingPage.groupBy({ by: ["status"], _count: true }),
-    prisma.whatsappChannel.findMany({ select: { id: true, label: true, status: true, destinationId: true, phoneE164: true } }),
-    prisma.trackingProfile.findMany({ select: { id: true, label: true, status: true, metaPixelId: true, tiktokPixelId: true, ga4MeasurementId: true, googleAdsId: true, gtmContainerId: true } }),
+    prisma.whatsappChannel.findMany({
+      select: { id: true, label: true, status: true, destinationId: true, phoneE164: true, destination: { select: { cityName: true } } },
+    }),
+    prisma.trackingProfile.findMany({
+      select: {
+        id: true,
+        label: true,
+        status: true,
+        metaPixelId: true,
+        tiktokPixelId: true,
+        ga4MeasurementId: true,
+        googleAdsId: true,
+        gtmContainerId: true,
+      },
+    }),
     prisma.crmRoutingRule.findMany({ select: { id: true, destinationId: true, status: true } }),
     prisma.landingPage.count({ where: { status: "LIVE", whatsappChannelId: null } }),
     prisma.landingPage.count({ where: { status: "LIVE", trackingProfileId: null } }),
     prisma.leadSubmission.count({ where: { status: "FAILED" } }),
     prisma.redirectRule.count({ where: { active: true } }),
+    prisma.leadSubmission.findMany({
+      where: { status: "FAILED" },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
+    prisma.pixelEventLog.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      include: { landingPage: { select: { slug: true } } },
+    }),
   ]);
 
   const landingsWithRelations = await prisma.landingPage.findMany({
@@ -62,6 +113,7 @@ export default async function HealthPage() {
   const liveLandingsNoActiveWhatsappCount = landingsWithRelations.filter(
     (l) => !l.whatsappChannelId || l.whatsappChannel?.status !== "ACTIVE"
   ).length;
+
   const liveLandingsMissingMessageCount = landingsWithRelations.filter((l) => {
     if (!l.whatsappChannel) return false;
     const lang = l.locale;
@@ -78,6 +130,7 @@ export default async function HealthPage() {
   const liveLandingsNoActiveTrackingCount = landingsWithRelations.filter(
     (l) => !l.trackingProfileId || l.trackingProfile?.status !== "ACTIVE"
   ).length;
+
   const activeTrackingNoPixelCount = trackingProfiles.filter(
     (t) => t.status === "ACTIVE" && !t.metaPixelId && !t.tiktokPixelId && !t.ga4MeasurementId && !t.googleAdsId && !t.gtmContainerId
   ).length;
@@ -91,6 +144,21 @@ export default async function HealthPage() {
   const destinationsWithActiveRulesCount = allDestinations.filter((d) => activeRulesDestinationIds.has(d.id)).length;
 
   const checks: Check[] = [
+    {
+      name: "Ping Base de Données",
+      status: dbStatus,
+      detail: dbDetail,
+    },
+    {
+      name: "Dossier Uploads",
+      status: uploadStatus,
+      detail: `${uploadDetail} (${getUploadsDir()})`,
+    },
+    {
+      name: "NEXT_PUBLIC_SITE_URL",
+      status: process.env.NEXT_PUBLIC_SITE_URL ? "ok" : "warn",
+      detail: process.env.NEXT_PUBLIC_SITE_URL || "Non configuré (fallback localhost)",
+    },
     {
       name: "Destinations LIVE",
       status: liveDestinationsCount > 0 ? "ok" : "warn",
@@ -164,15 +232,9 @@ export default async function HealthPage() {
       href: "/admin/destinations",
     },
     {
-      name: "Canaux WhatsApp inactifs",
-      status: inactiveWhatsapp.length > 0 ? "warn" : "ok",
-      detail: `${inactiveWhatsapp.length} canal(aux)`,
-      href: "/admin/whatsapp",
-    },
-    {
       name: "Token d'intégration GHL",
       status: process.env.GHL_PRIVATE_INTEGRATION_TOKEN ? "ok" : "fail",
-      detail: process.env.GHL_PRIVATE_INTEGRATION_TOKEN ? "Présent" : "Absent",
+      detail: process.env.GHL_PRIVATE_INTEGRATION_TOKEN ? "Présent" : "Absent (Envois vers CRM inactifs)",
     },
     {
       name: "ID de Localisation GHL",
@@ -191,33 +253,15 @@ export default async function HealthPage() {
       href: "/admin/crm-routing",
     },
     {
-      name: "Règles actives par destination",
-      status: activeRules.length > 0 ? "ok" : "warn",
-      detail: `${activeRules.length} règle(s) active(s) sur ${destinationsWithActiveRulesCount} destination(s)`,
-      href: "/admin/crm-routing",
-    },
-    {
-      name: "Profils tracking inactifs",
-      status: inactiveTracking.length > 0 ? "warn" : "ok",
-      detail: `${inactiveTracking.length} profil(s)`,
-      href: "/admin/tracking",
-    },
-    {
-      name: "Règles CRM actives",
-      status: crmRules.filter((r) => r.status === "ACTIVE").length > 0 ? "ok" : "warn",
-      detail: `${crmRules.filter((r) => r.status === "ACTIVE").length} règle(s)`,
-      href: "/admin/crm-routing",
-    },
-    {
       name: "Leads en échec GHL",
       status: failedLeads > 0 ? "fail" : "ok",
-      detail: `${failedLeads} lead(s)`,
+      detail: `${failedLeads} lead(s) en erreur`,
       href: "/admin/demandes?status=FAILED",
     },
     {
       name: "Redirections actives",
       status: "ok",
-      detail: `${redirectCount} règle(s)`,
+      detail: `${redirectCount} redirection(s) active(s)`,
       href: "/admin/redirects",
     },
   ];
@@ -260,9 +304,55 @@ export default async function HealthPage() {
         </table>
       </div>
 
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginTop: "24px" }}>
+        {/* Latest GHL Failures */}
+        <section className="admin-section">
+          <h2 className="admin-section__title">Derniers échecs d'envois CRM (GHL)</h2>
+          {latestGhlFailures.length === 0 ? (
+            <p style={{ color: "var(--admin-text-muted)", fontSize: "13px" }}>Aucun échec récent ✓</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {latestGhlFailures.map((l) => (
+                <div key={l.id} style={{ border: "1px solid #ef4444", borderRadius: "6px", padding: "10px", background: "rgba(239, 68, 68, 0.02)", fontSize: "12px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                    <strong>{l.firstName} ({l.contact})</strong>
+                    <span style={{ color: "var(--admin-text-muted)" }}>{new Date(l.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <div style={{ color: "#ef4444", fontWeight: "600", fontFamily: "monospace" }}>
+                    Erreur: {l.errorMessage ?? "Inconnue"}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Latest Event Logs */}
+        <section className="admin-section">
+          <h2 className="admin-section__title">Derniers événements de Pixel enregistrés</h2>
+          {latestEventLogs.length === 0 ? (
+            <p style={{ color: "var(--admin-text-muted)", fontSize: "13px" }}>Aucun événement enregistré.</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {latestEventLogs.map((e) => (
+                <div key={e.id} style={{ border: "1px solid var(--admin-border)", borderRadius: "6px", padding: "8px", fontSize: "12px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <strong style={{ color: "var(--admin-green)" }}>{e.eventName}</strong>
+                    <span style={{ color: "var(--admin-text-muted)" }}>{new Date(e.createdAt).toLocaleTimeString()}</span>
+                  </div>
+                  <div style={{ color: "var(--admin-text-muted)", fontSize: "11px", marginTop: "2px" }}>
+                    Landing: {e.landingPage?.slug ?? "—"} · Source: {e.source ?? "direct"} · Meta/TikTok/GA4/GTM: {e.sentToMeta ? "✓" : "✕"}/{e.sentToTikTok ? "✓" : "✕"}/{e.sentToGA4 ? "✓" : "✕"}/{e.sentToGTM ? "✓" : "✕"}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+
       {lowReadinessLive.length > 0 && (
         <section className="admin-section" style={{ marginTop: "24px" }}>
-          <h2 className="admin-section__title">Landings LIVE à risque</h2>
+          <h2 className="admin-section__title">Landings LIVE à risque (Readiness &lt; 80)</h2>
           <ul style={{ margin: 0, paddingLeft: "20px" }}>
             {lowReadinessLive.map((l) => (
               <li key={l.id} style={{ marginBottom: "6px" }}>

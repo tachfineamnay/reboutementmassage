@@ -13,9 +13,11 @@ import { trackGrowthEvent } from "@/lib/growth/tracking";
 export default function DynamicLandingPage({
   landing,
   isPreview,
+  variantId,
 }: {
   landing: LandingPageWithRelations;
   isPreview?: boolean;
+  variantId?: string;
 }) {
   const config = landingPageToDynamicConfig(landing);
   const lang = landing.locale === "EN" ? "en" : landing.locale === "ES" ? "es" : "fr";
@@ -32,9 +34,10 @@ export default function DynamicLandingPage({
         offer: config.offerType,
         session_duration: config.durationMinutes ? `${config.durationMinutes}_min` : undefined,
         content_name: config.tracking.viewContentName,
+        variantId,
       });
     }
-  }, [isPreview, lang, config]);
+  }, [isPreview, lang, config, variantId]);
 
   return (
     <TrackingProvider
@@ -43,6 +46,7 @@ export default function DynamicLandingPage({
       destinationId={landing.destinationId}
       offerId={landing.offerId ?? undefined}
       language={lang}
+      variantId={variantId}
       city={config.destinationSlug}
       country={config.country}
       locale={config.htmlLang}

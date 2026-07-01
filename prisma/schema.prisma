@@ -1430,6 +1430,8 @@ model RedirectRule {
   statusCode  Int      @default(301)
   active      Boolean  @default(true)
   reason      String?
+  hits        Int      @default(0)
+  lastHitAt   DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

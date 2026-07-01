@@ -55,12 +55,38 @@ function detectPreferredLocale(request: NextRequest): Locale {
 }
 
 export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
 
   // ── 0. Domaine canonique SEO ───────────────────────────────────────────────
   const canonicalHostRedirectUrl = getCanonicalHostRedirectUrl(request);
   if (canonicalHostRedirectUrl) {
     return NextResponse.redirect(canonicalHostRedirectUrl, 308);
+  }
+
+  // ── 0.1. Redirections dynamiques (RedirectRule) ───────────────────────────
+  if (
+    !pathname.startsWith("/admin") &&
+    !pathname.startsWith("/api") &&
+    !pathname.includes(".")
+  ) {
+    try {
+      const lookupUrl = new URL(`/api/redirects?path=${encodeURIComponent(pathname)}`, request.url);
+      const res = await fetch(lookupUrl, {
+        method: "GET",
+        headers: { "x-redirect-lookup": "1" },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.targetPath) {
+          const targetUrl = new URL(data.targetPath, request.url);
+          targetUrl.search = search;
+          return NextResponse.redirect(targetUrl, data.statusCode || 301);
+        }
+      }
+    } catch (error) {
+      console.error("Proxy dynamic redirection lookup error:", error);
+    }
   }
 
   // ── 1. Routes admin UI ────────────────────────────────────────────────────

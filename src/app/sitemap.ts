@@ -73,8 +73,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   );
 
-  // Articles publiés
   let articlePages: MetadataRoute.Sitemap = [];
+  let growthPages: MetadataRoute.Sitemap = [];
+  let dbAvailable = false;
+
   try {
     const articles = await prisma.article.findMany({
       where: { status: "PUBLISHED" },
@@ -119,11 +121,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         })(),
       },
     }));
-  } catch {
-    // DB non disponible au build time → sitemap partiel
+
+    growthPages = await getGrowthLandingPages();
+    dbAvailable = true;
+  } catch (error) {
+    console.error("Sitemap database fetch failed, using fallback static campaigns:", error);
   }
 
-  return [...staticPages, ...CAMPAIGN_ROUTES, ...articlePages, ...(await getGrowthLandingPages())];
+  const campaignPages = dbAvailable ? [] : CAMPAIGN_ROUTES;
+
+  return [...staticPages, ...campaignPages, ...articlePages, ...growthPages];
 }
 
 async function getGrowthLandingPages(): Promise<MetadataRoute.Sitemap> {

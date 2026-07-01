@@ -1,13 +1,13 @@
 # Growth CMS — Méthode TMS®
 
-Production-ready CMS for international campaign landings, destinations, offers, WhatsApp, CRM routing, tracking, and SEO.
+Moteur CMS complet de production pour la gestion multilingue des campagnes, destinations, offres, canaux WhatsApp, routages CRM (GHL), tracking de pixels, redirections dynamiques, expériences A/B, et médiathèque.
 
 ## Quick start
 
 ```bash
 pnpm install
 cp .env.example .env
-# Set DATABASE_URL, ADMIN_EMAIL, ADMIN_PASSWORD, SESSION_SECRET
+# Configurer DATABASE_URL, ADMIN_EMAIL, ADMIN_PASSWORD, SESSION_SECRET
 
 pnpm exec prisma generate
 pnpm exec prisma migrate deploy
@@ -15,73 +15,64 @@ pnpm exec tsx prisma/seed.ts
 pnpm dev
 ```
 
-Admin: `/admin/login` → Growth Dashboard at `/admin/growth`.
+Console d'administration : `/admin/login` → Dashboard de Growth sur `/admin/growth`.
 
-## Database migrations
+## Architecture des modules avancés
 
-| Migration | Purpose |
-|-----------|---------|
-| `20260617180000_add_admin_settings` | Admin settings table |
-| `20260617230000_add_article_studio_seo_intelligence` | Article Studio + SEO intelligence |
-| `20260630000000_baseline` | Idempotent core schema (articles, leads, media, landing sections) |
-| `20260630100000_growth_cms_complete` | 13 Growth models + LeadSubmission/MediaAsset extensions |
+### 1. Médiathèque & Gestion des Assets (`/admin/media`)
+- **Types supportés** : `IMAGE`, `VIDEO`, `POSTER`, `DOCUMENT`.
+- **Upload local** : Enregistre les fichiers dans le stockage persistant (configuré via `UPLOAD_DIR`, avec fallback local dans `./uploads/`).
+- **Liens externes** : Permet de référencer des URLs de vidéos (YouTube, Vimeo, CDN externe) sans consommer d'espace disque.
+- **Diagnostics de poids** : Alerte si la taille du fichier dépasse 2 Mo pour éviter de ralentir les mobiles en 3G/4G.
+- **Suivi d'usages** : Indique précisément sur combien de pages landings et de témoignages chaque média est utilisé avant de permettre sa suppression sécurisée.
+- **Balises Alt** : Exige et valide des descriptions Alt multilingues (`altFr`, `altEn`, `altEs`) pour garantir un SEO et une accessibilité irréprochables.
 
-**Production:** always use `prisma migrate deploy` (not `db push` alone).
+### 2. Témoignages & Système de Fallback (`/admin/testimonials`)
+- **Sélection explicite** : Une page de destination peut lier un ou plusieurs témoignages spécifiques via `testimonialIds`.
+- **Moteur de Fallback intelligent** : Si aucun témoignage n'est sélectionné, le système interroge la base de données de manière asynchrone pour trouver le témoignage `LIVE` le plus pertinent en fonction de :
+  - La même **destination**
+  - La même **langue (locale)**
+  - Le consentement de publication sur site web (`consentWebsite = true`)
+  - Le tri par **priorité décroissante** combiné aux scores émotionnels et de crédibilité.
+- **Lecteur vidéo premium** : Intègre les sous-titres (`subtitlesUrl`) et l'image d'illustration (poster) configurée dans la médiathèque.
 
-Regenerate baseline after schema changes (pre-Growth only):
+### 3. Expériences A/B Testing (`/admin/experiments`)
+- **Attribution stable par cookie** : L'attribution d'un visiteur à une variante A/B est persistée via le cookie de session `exp_[id_experience]` pour éviter tout clignotement ou changement de variante lors de la navigation.
+- **Surcharges supportées (Overrides)** :
+  - `heroTitle`, `heroSubtitle`, `primaryCta`
+  - Témoignage alternatif (`testimonialId`)
+  - Blocs de contenus complexes via fusion JSON (`contentOverrides`)
+- **Intégrité SEO** : Les balises canoniques (`<link rel="canonical">`) pointent systématiquement vers la version d'origine sans paramètre A/B, protégeant l'indexation contre le duplicate content.
+- **Bannière de débogage** : Une bannière explicative s'affiche en mode `preview` pour permettre aux administrateurs de valider l'affichage de chaque variante.
+- **Attribution des conversions** : L'ID de la variante active est injecté dans le tunnel de tracking `/api/events` pour incrémenter les compteurs d'impressions, de clics WhatsApp, de clics booking, et de leads soumis par variante.
 
-```bash
-npx prisma migrate diff --from-empty --to-schema prisma/schema.prisma --script -o prisma/migrations/_full_diff.sql
-node prisma/scripts/build-baseline-migration.mjs
-```
+### 4. Indicateurs & Santé Opérationnelle (`/admin/health`)
+- **Health Checks d'infrastructure** :
+  - Test de connexion PostgreSQL (ping DB).
+  - Test de permissions d'écriture sur le dossier d'uploads local.
+  - Audit de présence des clés secrètes GHL (Go High Level).
+  - Diagnostic des profils de tracking actifs et de l'intégrité des numéros WhatsApp (format E.164).
+- **Audit SEO international (`/admin/seo-health`)** :
+  - Détection des `hreflang` manquants ou incohérents.
+  - Détection des conflits de slugs et des balises `x-default` manquantes.
+- **Rapports d'erreurs en temps réel** :
+  - Journalisation des 5 derniers logs d'événements de tracking de pixels.
+  - Journalisation des 5 derniers échecs de routage de leads vers le CRM Go High Level, avec affichage des messages d'erreur retournés par l'API.
 
-## Workflow: new destination → live landing
+## Workflow : ajouter une nouvelle destination (ex: Saint-Barth)
 
-1. **Destination** — `/admin/destinations/new` — city, locales, currency, status `LIVE`
-2. **Offer** — `/admin/offers/new` — type, duration, CTAs, `showPrice`
-3. **WhatsApp** — `/admin/whatsapp/new` — phone, locale messages, test wa.me link
-4. **Tracking** — `/admin/tracking/new` — Meta/TikTok/GA4/GTM toggles
-5. **CRM Routing** — `/admin/crm-routing/new` — tags, pipeline, workflow, priority
-6. **Landing** — `/admin/landings/new` — template `MOBILE_WHATSAPP_FIRST`, copy blocks JSON, readiness ≥ 80 to publish
-7. **Publish** — set status `LIVE`, `noindex: false` for sitemap inclusion
-8. **Redirects** (optional) — `/admin/redirects` — 301 from legacy URLs
+Pour ouvrir une nouvelle destination sur le site de manière autonome :
+1. **Destination** — `/admin/destinations/new` — Définir `Saint-Barth`, les langues (`FR`, `EN`), la devise (`EUR`), et le statut `LIVE`.
+2. **Canal WhatsApp** — `/admin/whatsapp/new` — Associer un numéro de téléphone avec les messages d'accueil préremplis en français et en anglais.
+3. **Profil de Tracking** — `/admin/tracking/new` — Configurer les IDs de pixel Meta, TikTok ou Google Analytics spécifiques à cette région.
+4. **Routage CRM** — `/admin/crm-routing/new` — Définir les tags GHL spécifiques (ex: `lead-saint-barth`) et le pipeline de conversion associé.
+5. **Médias** — `/admin/media` — Uploader les visuels locaux de la villa ou de la plage avec leurs textes Alt.
+6. **Témoignage** — `/admin/testimonials/new` — Créer ou lier un témoignage d'un client local en statut `LIVE` et `consentWebsite: true`.
+7. **Landing Page** — `/admin/landings/new` — Remplir les textes via l'éditeur visuel complet, associer la destination, l'offre, le profil de tracking et WhatsApp, et publier. Le sitemap et les métadonnées SEO internationales s'actualiseront instantanément.
 
-Public URL: `/{locale}/{slug}` (e.g. `/en/mexico-city-french-body-reset`).
+## APIs & Tracking
 
-## CDMX seed
-
-When `SEED_GROWTH_CDMX !== "0"` (default), seed creates:
-
-- Destination `cdmx`, Founder Session offer, WhatsApp, tracking, CRM rule
-- 3 landings (EN/ES/FR) with new slugs
-- `RedirectRule` 301 from legacy CDMX URLs
-
-Legacy static routes redirect via `next.config.ts` to CMS slugs.
-
-## APIs
-
-| Endpoint | Role |
-|----------|------|
-| `POST /api/lead` | Lead capture → Prisma → GHL (with CRM routing) |
-| `POST /api/events` | Pixel events → `PixelEventLog` + daily metrics |
-
-## Readiness gate
-
-Landings require readiness score ≥ 80 before `LIVE` unless admin sets `publishOverride`. See `/admin/landings/[id]/edit`.
-
-## Health & SEO
-
-- **Growth Dashboard** — `/admin/growth` — KPIs per destination
-- **SEO Health** — `/admin/seo-health` — readiness + SEO issues
-- **Health Checks** — `/admin/health` — DB, GHL, pixels, migrations
-
-## Environment variables
-
-See `.env.example` for GHL, Resend, pixels, WhatsApp, and Growth flags.
-
-Key Growth vars:
-
-- `NEXT_PUBLIC_CDMX_WHATSAPP_NUMBER` — CDMX WhatsApp digits
-- `NEXT_PUBLIC_META_PIXEL_ID`, `NEXT_PUBLIC_TIKTOK_PIXEL_ID`
-- `NEXT_PUBLIC_GA4_MEASUREMENT_ID`, `NEXT_PUBLIC_GTM_ID`
-- `SEED_GROWTH_CDMX=0` — skip CDMX seed
+| Point d'accès | Rôle |
+|---|---|
+| `POST /api/lead` | Ingestions de leads, qualification, attribution d'UTMs, et routage CRM |
+| `POST /api/events` | Réception des événements de clics / vues, journalisation de pixel, et incrémentation des variantes A/B |

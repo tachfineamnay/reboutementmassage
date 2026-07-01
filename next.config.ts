@@ -24,21 +24,6 @@ const nextConfig: NextConfig = {
         destination: "/es/stories/:slug",
         permanent: true,
       },
-      {
-        source: "/en/mexico-city-private-session",
-        destination: "/en/mexico-city-french-body-reset",
-        permanent: true,
-      },
-      {
-        source: "/es/sesion-privada-cdmx",
-        destination: "/es/reset-corporal-frances-cdmx",
-        permanent: true,
-      },
-      {
-        source: "/fr/seance-privee-mexico-city",
-        destination: "/fr/french-body-reset-mexico-city",
-        permanent: true,
-      },
     ];
   },
 };

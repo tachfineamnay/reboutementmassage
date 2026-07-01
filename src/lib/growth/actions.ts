@@ -7,6 +7,9 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { ensureAdminSchema } from "@/lib/admin-schema";
 import { parseJsonField } from "@/lib/growth/admin-api";
+import { v4 as uuidv4 } from "uuid";
+import { writeFile, unlink } from "fs/promises";
+import { getLocalPath, getUploadUrl, ensureUploadsDir } from "@/lib/server-utils";
 import {
   assertCanPublish,
   computeLandingReadiness,
@@ -309,6 +312,8 @@ export async function upsertLandingAction(formData: FormData) {
     microNote: optStr(formData, "microNote"),
     primaryCta: optStr(formData, "primaryCta"),
     secondaryCta: optStr(formData, "secondaryCta"),
+    heroImageId: optStr(formData, "heroImageId"),
+    ogImageId: optStr(formData, "ogImageId"),
     whatsappChannelId: optStr(formData, "whatsappChannelId"),
     trackingProfileId: optStr(formData, "trackingProfileId"),
     crmRoutingRuleId: optStr(formData, "crmRoutingRuleId"),
@@ -319,6 +324,8 @@ export async function upsertLandingAction(formData: FormData) {
     areaServed: optStr(formData, "areaServed"),
     complianceText: optStr(formData, "complianceText"),
     publishOverride: bool(formData, "publishOverride"),
+    hreflangGroupId: optStr(formData, "hreflangGroupId"),
+    xDefault: bool(formData, "xDefault"),
     painChips: parseJsonField(formData.get("painChips"), []),
     proofBadges: parseJsonField(formData.get("proofBadges"), []),
     processSteps: parseJsonField(formData.get("processSteps"), []),
@@ -403,11 +410,15 @@ export async function upsertTestimonialAction(formData: FormData) {
     country: optStr(formData, "country"),
     city: optStr(formData, "city"),
     profile: optStr(formData, "profile"),
+    occupation: optStr(formData, "occupation"),
     destinationId: optStr(formData, "destinationId"),
     offerId: optStr(formData, "offerId"),
+    mediaAssetId: optStr(formData, "mediaAssetId"),
+    posterImageId: optStr(formData, "posterImageId"),
     quoteShort: optStr(formData, "quoteShort"),
     quoteLong: optStr(formData, "quoteLong"),
     transcript: optStr(formData, "transcript"),
+    subtitlesUrl: optStr(formData, "subtitlesUrl"),
     consentWebsite: bool(formData, "consentWebsite"),
     consentAds: bool(formData, "consentAds"),
     consentOrganic: bool(formData, "consentOrganic"),
@@ -456,15 +467,59 @@ export async function upsertExperimentAction(formData: FormData) {
     notes: optStr(formData, "notes"),
   };
 
+  const variantsRaw = formData.get("variants");
+  const variantsList = parseJsonField(variantsRaw, []) as any[];
+
+  let experimentId = id;
   if (id) {
     await prisma.experiment.update({ where: { id }, data });
-    revalidateGrowth("/admin/experiments", `/admin/experiments/${id}/edit`);
-    redirect(`/admin/experiments/${id}/edit?saved=1`);
+  } else {
+    const created = await prisma.experiment.create({ data });
+    experimentId = created.id;
   }
 
-  const created = await prisma.experiment.create({ data });
-  revalidateGrowth("/admin/experiments");
-  redirect(`/admin/experiments/${created.id}/edit?saved=1`);
+  // Gérer la synchronisation des variantes
+  const existingVariants = await prisma.experimentVariant.findMany({
+    where: { experimentId },
+    select: { id: true },
+  });
+  const existingIds = existingVariants.map((v) => v.id);
+
+  const keptIds = variantsList.map((v) => v.id).filter(Boolean);
+  const deleteIds = existingIds.filter((x) => !keptIds.includes(x));
+
+  if (deleteIds.length > 0) {
+    await prisma.experimentVariant.deleteMany({
+      where: { id: { in: deleteIds } },
+    });
+  }
+
+  for (const v of variantsList) {
+    const vData = {
+      experimentId,
+      name: v.name,
+      trafficSplit: Number(v.trafficSplit || 50),
+      heroTitle: v.heroTitle || null,
+      heroSubtitle: v.heroSubtitle || null,
+      primaryCta: v.primaryCta || null,
+      testimonialId: v.testimonialId || null,
+      contentOverrides: v.contentOverrides && typeof v.contentOverrides === "object" ? v.contentOverrides : {},
+    };
+
+    if (v.id) {
+      await prisma.experimentVariant.update({
+        where: { id: v.id },
+        data: vData,
+      });
+    } else {
+      await prisma.experimentVariant.create({
+        data: vData,
+      });
+    }
+  }
+
+  revalidateGrowth("/admin/experiments", `/admin/experiments/${experimentId}/edit`);
+  redirect(`/admin/experiments/${experimentId}/edit?saved=1`);
 }
 
 export async function archiveExperimentAction(formData: FormData) {
@@ -507,4 +562,99 @@ export async function archiveRedirectRuleAction(formData: FormData) {
   await prisma.redirectRule.update({ where: { id }, data: { active: false } });
   revalidateGrowth("/admin/redirects");
   redirect("/admin/redirects");
+}
+
+export async function upsertMediaAssetAction(formData: FormData) {
+  await requireGrowthAdmin();
+  const id = optStr(formData, "id");
+  const assetType = str(formData, "assetType", "IMAGE") as any;
+  const destinationId = optStr(formData, "destinationId");
+  const altFr = optStr(formData, "altFr");
+  const altEn = optStr(formData, "altEn");
+  const altEs = optStr(formData, "altEs");
+  const consentNotes = optStr(formData, "consentNotes");
+  const usageNotes = optStr(formData, "usageNotes");
+  const externalUrl = optStr(formData, "externalUrl");
+
+  const baseData = {
+    assetType,
+    destinationId,
+    altFr,
+    altEn,
+    altEs,
+    consentNotes,
+    usageNotes,
+    externalUrl,
+  };
+
+  if (id) {
+    await prisma.mediaAsset.update({
+      where: { id },
+      data: baseData,
+    });
+  } else {
+    const file = formData.get("file");
+    if (file instanceof File && file.size > 0) {
+      const mimeTypes: Record<string, string> = {
+        "image/jpeg": "jpg",
+        "image/png": "png",
+        "image/webp": "webp",
+        "image/gif": "gif",
+        "video/mp4": "mp4",
+        "video/webm": "webm",
+        "application/pdf": "pdf",
+      };
+      const ext = mimeTypes[file.type] || "bin";
+      const filename = `${uuidv4()}.${ext}`;
+
+      await ensureUploadsDir();
+      const localPath = getLocalPath(filename);
+      const buffer = Buffer.from(await file.arrayBuffer());
+      await writeFile(localPath, buffer);
+      const url = getUploadUrl(filename);
+
+      await prisma.mediaAsset.create({
+        data: {
+          ...baseData,
+          filename,
+          originalName: file.name,
+          mimeType: file.type,
+          url,
+          localPath,
+          size: file.size,
+        },
+      });
+    } else if (externalUrl) {
+      const filename = `ext-${uuidv4()}`;
+      await prisma.mediaAsset.create({
+        data: {
+          ...baseData,
+          filename,
+          originalName: "Lien externe",
+          mimeType: "text/html",
+          url: externalUrl,
+          localPath: "",
+          size: 0,
+        },
+      });
+    } else {
+      throw new Error("Veuillez fournir un fichier ou une URL externe.");
+    }
+  }
+
+  revalidateGrowth("/admin/media");
+  redirect("/admin/media");
+}
+
+export async function deleteMediaAssetAction(formData: FormData) {
+  await requireGrowthAdmin();
+  const id = str(formData, "id");
+  if (!id) return;
+  const asset = await prisma.mediaAsset.findUnique({ where: { id } });
+  if (asset && asset.localPath) {
+    await unlink(asset.localPath).catch(() => null);
+  }
+  await prisma.mediaAsset.delete({ where: { id } });
+  revalidateGrowth("/admin/media");
+  redirect("/admin/media");
 }

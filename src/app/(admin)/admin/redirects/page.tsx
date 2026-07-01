@@ -56,6 +56,8 @@ export default async function RedirectsPage({ searchParams }: PageProps) {
                 <th>Cible</th>
                 <th>Code</th>
                 <th>Active</th>
+                <th>Clics</th>
+                <th>Dernier clic</th>
                 <th>Raison</th>
                 <th>Actions</th>
               </tr>
@@ -67,6 +69,15 @@ export default async function RedirectsPage({ searchParams }: PageProps) {
                   <td><code className="admin-table__slug-code">{r.targetPath}</code></td>
                   <td>{r.statusCode}</td>
                   <td>{r.active ? "✓" : "—"}</td>
+                  <td><strong>{r.hits}</strong></td>
+                  <td style={{ fontSize: "12px" }}>
+                    {r.lastHitAt
+                      ? new Intl.DateTimeFormat("fr-FR", {
+                          dateStyle: "short",
+                          timeStyle: "short",
+                        }).format(new Date(r.lastHitAt))
+                      : "—"}
+                  </td>
                   <td>{r.reason ?? "—"}</td>
                   <td><Link href={`/admin/redirects/${r.id}/edit`} className="admin-action">Éditer</Link></td>
                 </tr>

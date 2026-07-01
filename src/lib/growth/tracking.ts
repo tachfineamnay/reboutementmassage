@@ -6,6 +6,7 @@ export type GrowthTrackPayload = CampaignTrackingParams & {
   offerId?: string | null;
   eventId?: string;
   sessionId?: string;
+  variantId?: string;
 };
 
 export function trackGrowthEvent(event: CampaignEventName, payload: GrowthTrackPayload = {}) {
@@ -37,6 +38,7 @@ export function trackGrowthEvent(event: CampaignEventName, payload: GrowthTrackP
         needType: payload.need_type ? normalizeNeedType(payload.need_type) : undefined,
         pageUrl: window.location.href,
         sessionId: payload.sessionId,
+        variantId: payload.variantId,
       }),
       keepalive: true,
     });
