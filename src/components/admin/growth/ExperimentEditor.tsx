@@ -144,7 +144,7 @@ export default function ExperimentEditor({
           </label>
 
           <label className="admin-field">
-            <span className="admin-field__label">Nom de l'expérience *</span>
+            <span className="admin-field__label">Nom de l&apos;expérience *</span>
             <input
               name="name"
               required
@@ -386,7 +386,7 @@ export default function ExperimentEditor({
         <form action={archiveExperimentAction} style={{ marginTop: "12px" }}>
           <input type="hidden" name="id" value={state.id} />
           <button type="submit" className="admin-btn admin-btn--danger" style={{ width: "100%" }}>
-            Archiver l'expérience A/B 🗑️
+            Archiver l&apos;expérience A/B 🗑️
           </button>
         </form>
       )}

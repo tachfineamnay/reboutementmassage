@@ -11,16 +11,115 @@ interface MediaAsset {
   url: string;
 }
 
-interface LandingEditorProps {
-  landing?: any;
-  destinations: any[];
-  offers: any[];
-  channels: any[];
-  tracking: any[];
-  crmRules: any[];
-  mediaAssets: MediaAsset[];
-  readiness?: { score: number; issues: any[] };
+interface DestinationOption {
+  id: string;
+  cityName: string;
+  displayNameFr: string;
+  country?: string;
+  [key: string]: unknown;
 }
+
+interface OfferOption {
+  id: string;
+  destinationId: string;
+  internalName: string;
+  type: string;
+  durationMinutes?: number | null;
+  priceAmount?: unknown;
+  currency?: string | null;
+  [key: string]: unknown;
+}
+
+interface ChannelOption {
+  id: string;
+  destinationId: string;
+  label: string;
+  phoneE164: string;
+  [key: string]: unknown;
+}
+
+interface TrackingOption {
+  id: string;
+  destinationId: string;
+  label: string;
+  metaPixelId?: string | null;
+  [key: string]: unknown;
+}
+
+interface CrmRuleOption {
+  id: string;
+  destinationId: string;
+  priority?: number;
+  leadSegment?: string | null;
+  [key: string]: unknown;
+}
+
+interface ReadinessIssue {
+  severity: string;
+  message: string;
+  actionUrl?: string;
+}
+
+interface LandingContent {
+  hero?: { eyebrow?: string; proofLine?: string; imageAlt?: string; [key: string]: unknown };
+  difference?: { title?: string; body?: string; points?: string[]; imageAlt?: string; [key: string]: unknown };
+  offerBlock?: { title?: string; bullets?: string[]; launchRateLine?: string; [key: string]: unknown };
+  testimonial?: { posterSrc?: string; videoSrc?: string; cta?: string; testimonialId?: string; [key: string]: unknown };
+  stickyCta?: { whatsapp?: string; booking?: string; [key: string]: unknown };
+  sections?: { processEyebrow?: string; faqEyebrow?: string; faqTitle?: string; [key: string]: unknown };
+  whatsappMessages?: { default?: string; book_intent?: string; more_info_intent?: string; testimonial_cta?: string; sticky_cta?: string; [key: string]: unknown };
+  processTitle?: string;
+  forYouIfTitle?: string;
+  [key: string]: unknown;
+}
+
+interface LandingInput {
+  id?: string;
+  destinationId?: string;
+  offerId?: string | null;
+  locale?: string;
+  template?: string;
+  slug?: string;
+  status?: string;
+  areaServed?: string | null;
+  heroTitle?: string | null;
+  heroSubtitle?: string | null;
+  microNote?: string | null;
+  primaryCta?: string | null;
+  secondaryCta?: string | null;
+  heroImageId?: string | null;
+  ogImageId?: string | null;
+  whatsappChannelId?: string | null;
+  trackingProfileId?: string | null;
+  crmRoutingRuleId?: string | null;
+  seoTitle?: string | null;
+  metaDescription?: string | null;
+  canonical?: string | null;
+  noindex?: boolean;
+  publishOverride?: boolean;
+  hreflangGroupId?: string | null;
+  xDefault?: boolean;
+  complianceText?: string | null;
+  painChips?: unknown;
+  proofBadges?: unknown;
+  processSteps?: unknown;
+  faq?: unknown;
+  content?: LandingContent | Record<string, unknown> | null;
+  testimonialIds?: unknown;
+  [key: string]: unknown;
+}
+
+interface LandingEditorProps {
+  landing?: LandingInput;
+  destinations: DestinationOption[];
+  offers: OfferOption[];
+  channels: ChannelOption[];
+  tracking: TrackingOption[];
+  crmRules: CrmRuleOption[];
+  mediaAssets: MediaAsset[];
+  readiness?: { score: number; issues: ReadinessIssue[] };
+}
+
 
 const TABS = [
   { id: "identity", label: "Identité & Modèle" },
@@ -133,8 +232,8 @@ export default function LandingEditor({
           sticky_cta: "",
           ...(content.whatsappMessages || {}),
         },
-        processTitle: content.processTitle || "",
-        forYouIfTitle: content.forYouIfTitle || "",
+        processTitle: typeof content.processTitle === "string" ? content.processTitle : "",
+        forYouIfTitle: typeof content.forYouIfTitle === "string" ? content.forYouIfTitle : "",
       },
     };
   });
@@ -170,8 +269,8 @@ export default function LandingEditor({
         }));
         setJsonError("");
       }
-    } catch (err: any) {
-      setJsonError(err.message);
+    } catch (err: unknown) {
+      setJsonError(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -182,20 +281,27 @@ export default function LandingEditor({
   const filteredCrmRules = crmRules.filter((r) => r.destinationId === state.destinationId);
 
   // Helper pour mettre à jour l'objet content
-  const updateContentSubfield = (section: string, field: string, value: any) => {
-    setState((prev) => ({
-      ...prev,
-      content: {
-        ...prev.content,
-        [section]: {
-          ...(prev.content[section as keyof typeof prev.content] || {}),
-          [field]: value,
+  const updateContentSubfield = (section: string, field: string, value: unknown) => {
+    setState((prev) => {
+      const existing = (prev.content as LandingContent)[section as keyof LandingContent];
+      const sectionObj =
+        typeof existing === "object" && existing !== null && !Array.isArray(existing)
+          ? (existing as Record<string, unknown>)
+          : {};
+      return {
+        ...prev,
+        content: {
+          ...prev.content,
+          [section]: {
+            ...sectionObj,
+            [field]: value,
+          },
         },
-      },
-    }));
+      };
+    });
   };
 
-  const updateContentDirect = (field: string, value: any) => {
+  const updateContentDirect = (field: string, value: unknown) => {
     setState((prev) => ({
       ...prev,
       content: {
@@ -303,7 +409,7 @@ export default function LandingEditor({
                 Ajustements requis :
               </span>
               <ul style={{ margin: 0, paddingLeft: "20px", fontSize: "13px", display: "flex", flexDirection: "column", gap: "4px" }}>
-                {initialReadiness.issues.map((iss: any, idx: number) => (
+                {initialReadiness.issues.map((iss: ReadinessIssue, idx: number) => (
                   <li key={idx} style={{ color: iss.severity === "critical" ? "red" : "orange" }}>
                     <strong>[{iss.severity.toUpperCase()}]</strong> {iss.message}
                     {iss.actionUrl && (
@@ -385,7 +491,7 @@ export default function LandingEditor({
                 <option value="">— Aucune offre —</option>
                 {filteredOffers.map((o) => (
                   <option key={o.id} value={o.id}>
-                    {o.internalName} ({o.durationMinutes} min - {o.priceAmount} {o.currency})
+                    {o.internalName} ({o.durationMinutes ?? "—"} min - {String(o.priceAmount ?? "—")} {o.currency ?? ""})
                   </option>
                 ))}
               </select>
@@ -501,7 +607,7 @@ export default function LandingEditor({
             </label>
 
             <label className="admin-field">
-              <span className="admin-field__label">Ligne d'accroche preuve (proofLine)</span>
+              <span className="admin-field__label">Ligne d&apos;accroche preuve (proofLine)</span>
               <input
                 type="text"
                 value={state.content.hero.proofLine}
@@ -601,7 +707,7 @@ export default function LandingEditor({
             </div>
 
             <label className="admin-field">
-              <span className="admin-field__label">Description textuelle alternative de l'image (imageAlt)</span>
+              <span className="admin-field__label">Description textuelle alternative de l&apos;image (imageAlt)</span>
               <input
                 type="text"
                 value={state.content.hero.imageAlt}
@@ -663,7 +769,7 @@ export default function LandingEditor({
                   <option value="">— Pas de routage custom —</option>
                   {filteredCrmRules.map((r) => (
                     <option key={r.id} value={r.id}>
-                      Priority #{r.priority} ({r.leadSegment || "tous"})
+                      Priority #{r.priority ?? "—"} ({r.leadSegment || "tous"})
                     </option>
                   ))}
                 </select>
@@ -755,7 +861,7 @@ export default function LandingEditor({
                 />
               </label>
               <label className="admin-field">
-                <span className="admin-field__label">Intention Plus d'infos (more_info_intent)</span>
+                <span className="admin-field__label">Intention Plus d&apos;infos (more_info_intent)</span>
                 <input
                   type="text"
                   value={state.content.whatsappMessages.more_info_intent}
@@ -847,7 +953,7 @@ export default function LandingEditor({
             {/* Offer Block */}
             <div>
               <h3 style={{ margin: "0 0 12px 0", borderBottom: "1px solid var(--admin-border)", paddingBottom: "6px" }}>
-                Bloc d'offre de session
+                Bloc d&apos;offre de session
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 <label className="admin-field">
@@ -875,7 +981,7 @@ export default function LandingEditor({
                 {/* Bullets de l'offre */}
                 <div>
                   <span className="admin-field__label" style={{ marginBottom: "6px", display: "block" }}>
-                    Points forts de l'offre (bullets)
+                    Points forts de l&apos;offre (bullets)
                   </span>
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
                     {(state.content.offerBlock.bullets || []).map((bullet: string, idx: number) => (
@@ -927,7 +1033,7 @@ export default function LandingEditor({
                         <button
                           type="button"
                           onClick={() => {
-                            const next = (state.content.offerBlock.bullets || []).filter((_: any, i: any) => i !== idx);
+                            const next = (state.content.offerBlock.bullets || []).filter((_: unknown, i: number) => i !== idx);
                             updateContentSubfield("offerBlock", "bullets", next);
                           }}
                           className="admin-btn admin-btn--danger"
@@ -1038,7 +1144,7 @@ export default function LandingEditor({
                         <button
                           type="button"
                           onClick={() => {
-                            const next = (state.content.difference.points || []).filter((_: any, i: any) => i !== idx);
+                            const next = (state.content.difference.points || []).filter((_: unknown, i: number) => i !== idx);
                             updateContentSubfield("difference", "points", next);
                           }}
                           className="admin-btn admin-btn--danger"
@@ -1062,7 +1168,7 @@ export default function LandingEditor({
                 </div>
 
                 <label className="admin-field">
-                  <span className="admin-field__label">Alt de l'image de différence</span>
+                  <span className="admin-field__label">Alt de l&apos;image de différence</span>
                   <input
                     type="text"
                     value={state.content.difference.imageAlt}
@@ -1273,7 +1379,7 @@ export default function LandingEditor({
                   background: "rgba(245,158,11,0.05)",
                 }}
               >
-                ⚠️ <strong>Note de conformité :</strong> Pour être conforme, il est fortement recommandé d'inclure une
+                ⚠️ <strong>Note de conformité :</strong> Pour être conforme, il est fortement recommandé d&apos;inclure une
                 première question mentionnant explicitement que cette méthode ne remplace pas une consultation ou un avis médical.
               </p>
 
@@ -1381,7 +1487,7 @@ export default function LandingEditor({
         {activeTab === "testimonial" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <label className="admin-field">
-              <span className="admin-field__label">URL de l'affiche vidéo (posterSrc)</span>
+              <span className="admin-field__label">URL de l&apos;affiche vidéo (posterSrc)</span>
               <input
                 type="text"
                 value={state.content.testimonial.posterSrc}
@@ -1504,7 +1610,7 @@ export default function LandingEditor({
                   checked={state.noindex}
                   onChange={(e) => setState({ ...state, noindex: e.target.checked })}
                 />
-                <span style={{ marginLeft: "8px" }}>noindex (Bloque l'indexation de cette page par les moteurs)</span>
+                <span style={{ marginLeft: "8px" }}>noindex (Bloque l&apos;indexation de cette page par les moteurs)</span>
               </label>
 
               <label className="admin-field admin-field--checkbox">
@@ -1524,7 +1630,7 @@ export default function LandingEditor({
         {activeTab === "json" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             <p style={{ fontSize: "12px", color: "var(--admin-text-muted)", margin: 0 }}>
-              Editez le JSON brut pour le débogage. Toute modification syntaxiquement valide sera immédiatement reportée dans l'éditeur.
+              Editez le JSON brut pour le débogage. Toute modification syntaxiquement valide sera immédiatement reportée dans l&apos;éditeur.
             </p>
             <textarea
               rows={20}

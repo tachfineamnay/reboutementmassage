@@ -78,7 +78,7 @@ const ALLOWED_NEED_TYPES = new Set([
   "other",
 ]);
 
-export function normalizeNeedType(value: any): string | undefined {
+export function normalizeNeedType(value: unknown): string | undefined {
   if (typeof value !== "string") return undefined;
   const val = value.toLowerCase();
   return ALLOWED_NEED_TYPES.has(val) ? val : undefined;

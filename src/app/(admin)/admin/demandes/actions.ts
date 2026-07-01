@@ -38,7 +38,7 @@ export async function retryLeadToGhlAction(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
 
-  const res = await retryLeadSubmissionGhl(id);
+  await retryLeadSubmissionGhl(id);
 
   revalidatePath("/admin/overview");
   revalidatePath("/admin/demandes");

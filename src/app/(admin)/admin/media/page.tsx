@@ -120,7 +120,7 @@ export default async function MediaPage({ searchParams }: PageProps) {
                     <th>Fichier</th>
                     <th>Type</th>
                     <th>Taille</th>
-                    <th>Stats d'usage</th>
+                    <th>Stats d&apos;usage</th>
                     <th>Alertes</th>
                     <th>Actions</th>
                   </tr>
@@ -161,7 +161,7 @@ export default async function MediaPage({ searchParams }: PageProps) {
                         </td>
                         <td>
                           {isHeavy && <span style={{ color: "var(--admin-amber)", fontSize: "11px", fontWeight: "600", display: "block" }}>⚠️ Fichier lourd</span>}
-                          {isMissingAlt && <span style={{ color: "red", fontSize: "11px", fontWeight: "600", display: "block" }}>⚠️ Pas d'Alt</span>}
+                          {isMissingAlt && <span style={{ color: "red", fontSize: "11px", fontWeight: "600", display: "block" }}>⚠️ Pas d&apos;Alt</span>}
                           {!isHeavy && !isMissingAlt && <span style={{ color: "var(--admin-green)", fontSize: "11px" }}>Prêt ✓</span>}
                         </td>
                         <td>
@@ -256,7 +256,7 @@ export default async function MediaPage({ searchParams }: PageProps) {
             </label>
 
             <label className="admin-field">
-              <span className="admin-field__label">Notes d'utilisation / Droits d'auteur</span>
+              <span className="admin-field__label">Notes d&apos;utilisation / Droits d&apos;auteur</span>
               <textarea name="usageNotes" defaultValue={editAsset?.usageNotes ?? ""} rows={2} className="admin-input" placeholder="ex: Autorisé uniquement sur landing Saint-Barth" />
             </label>
 

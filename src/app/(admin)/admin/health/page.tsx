@@ -29,9 +29,9 @@ export default async function HealthPage() {
   let dbDetail = "Connexion réussie";
   try {
     await prisma.$queryRaw`SELECT 1`;
-  } catch (err: any) {
+  } catch (err: unknown) {
     dbStatus = "fail";
-    dbDetail = `Erreur de connexion: ${err.message}`;
+    dbDetail = `Erreur de connexion: ${err instanceof Error ? err.message : String(err)}`;
   }
 
   let uploadStatus: "ok" | "fail" = "ok";
@@ -42,9 +42,9 @@ export default async function HealthPage() {
     const testFile = path.join(dir, ".write-test");
     await fs.writeFile(testFile, "test");
     await fs.unlink(testFile);
-  } catch (err: any) {
+  } catch (err: unknown) {
     uploadStatus = "fail";
-    uploadDetail = `Erreur d'écriture: ${err.message}`;
+    uploadDetail = `Erreur d'écriture: ${err instanceof Error ? err.message : String(err)}`;
   }
 
   const [
@@ -307,7 +307,7 @@ export default async function HealthPage() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginTop: "24px" }}>
         {/* Latest GHL Failures */}
         <section className="admin-section">
-          <h2 className="admin-section__title">Derniers échecs d'envois CRM (GHL)</h2>
+          <h2 className="admin-section__title">Derniers échecs d&apos;envois CRM (GHL)</h2>
           {latestGhlFailures.length === 0 ? (
             <p style={{ color: "var(--admin-text-muted)", fontSize: "13px" }}>Aucun échec récent ✓</p>
           ) : (

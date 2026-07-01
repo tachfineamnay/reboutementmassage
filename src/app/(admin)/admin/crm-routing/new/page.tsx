@@ -37,7 +37,7 @@ export default async function NewCrmRoutingPage() {
             </select>
           </label>
           <label className="admin-field">
-            <span className="admin-field__label">Type d'offre</span>
+            <span className="admin-field__label">Type d&apos;offre</span>
             <select name="offerType" className="admin-input">
               <option value="">Tous</option>
               <option value="private_session">Séance privée</option>

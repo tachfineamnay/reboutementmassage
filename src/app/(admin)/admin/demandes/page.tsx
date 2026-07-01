@@ -289,7 +289,7 @@ export default async function DemandesPage({ searchParams }: PageProps) {
         </select>
         <select name="period" defaultValue={period ?? ""} className="admin-input admin-filters__select">
           <option value="">Toutes périodes</option>
-          <option value="today">Aujourd'hui</option>
+          <option value="today">Aujourd&apos;hui</option>
           <option value="week">7 derniers jours</option>
           <option value="month">30 derniers jours</option>
         </select>

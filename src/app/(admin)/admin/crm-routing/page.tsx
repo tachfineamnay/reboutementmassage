@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { Locale, OfferType, CrmRoutingRule } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { ensureAdminSchema } from "@/lib/admin-schema";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
@@ -57,16 +58,20 @@ export default async function CrmRoutingPage({ searchParams }: PageProps) {
     prisma.destination.findMany({ select: { id: true, cityName: true }, orderBy: { cityName: "asc" } }),
   ]);
 
-  let matchedRule: any = null;
+  let matchedRule: CrmRoutingRule | null = null;
   if (testDestinationId) {
     const allActiveRulesForMatching = await prisma.crmRoutingRule.findMany({
       where: { destinationId: testDestinationId, status: "ACTIVE" },
       orderBy: [{ priority: "asc" }],
     });
+    const VALID_LOCALES: Locale[] = ["FR", "EN", "ES"];
+    const VALID_OFFER_TYPES: OfferType[] = ["PRIVATE_SESSION", "FOUNDER_SESSION", "HOTEL_EXPERIENCE", "HOSPITALITY_PARTNER", "WORKSHOP", "TRAINING", "RETREAT", "CORPORATE", "VIP_SIGNATURE"];
+    const parsedLocale = testLocale && VALID_LOCALES.includes(testLocale as Locale) ? (testLocale as Locale) : null;
+    const parsedOfferType = testOfferType && VALID_OFFER_TYPES.includes(testOfferType as OfferType) ? (testOfferType as OfferType) : null;
     matchedRule = matchCrmRoutingRule(allActiveRulesForMatching, {
       destinationId: testDestinationId,
-      locale: testLocale as any || null,
-      offerType: testOfferType as any || null,
+      locale: parsedLocale,
+      offerType: parsedOfferType,
       source: testSource || null,
       intent: testIntent || null,
       leadSegment: testSegment || null,

@@ -1,16 +1,41 @@
 import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
 import { absoluteUrl, renderJsonLd } from "@/lib/seo";
-import { localeToLang } from "@/lib/growth/types";
+import { localeToLang, type LandingPageWithRelations } from "@/lib/growth/types";
+import type { Testimonial, MediaAsset } from "@prisma/client";
 
-export function landingCanonical(landing: any): string {
+type LandingArg = Pick<
+  LandingPageWithRelations,
+  | "canonical"
+  | "locale"
+  | "slug"
+  | "noindex"
+  | "seoTitle"
+  | "heroTitle"
+  | "metaDescription"
+  | "heroSubtitle"
+  | "areaServed"
+  | "faq"
+  | "testimonialIds"
+> & {
+  offer?: LandingPageWithRelations["offer"] | null;
+  destinationId?: string;
+  ogImage?: { url: string } | null;
+};
+
+type TestimonialWithMedia = Testimonial & {
+  mediaAsset: MediaAsset | null;
+  posterImage: MediaAsset | null;
+};
+
+export function landingCanonical(landing: LandingArg): string {
   if (landing.canonical) return landing.canonical;
   const lang = localeToLang(landing.locale);
   return absoluteUrl(`/${lang}/${landing.slug}`);
 }
 
 export function buildLandingMetadata(
-  landing: any,
+  landing: LandingArg,
   alternates?: Record<string, string>
 ): Metadata {
   const canonical = landingCanonical(landing);
@@ -42,7 +67,13 @@ export function buildLandingMetadata(
   };
 }
 
-export function buildLandingJsonLd(landing: any) {
+type FaqItem = { question: string; answer: string };
+
+function isFaqItem(item: unknown): item is FaqItem {
+  return typeof item === "object" && item !== null && "question" in item;
+}
+
+export function buildLandingJsonLd(landing: LandingArg) {
   const canonical = landingCanonical(landing);
   const faq = Array.isArray(landing.faq) ? landing.faq : [];
 
@@ -95,11 +126,9 @@ export function buildLandingJsonLd(landing: any) {
   if (faq.length > 0) {
     graph.push({
       "@type": "FAQPage",
-      mainEntity: faq
-        .filter((item: any): item is { question: string; answer: string } =>
-          typeof item === "object" && item !== null && "question" in item
-        )
-        .map((item: any) => ({
+      mainEntity: (faq as unknown[])
+        .filter(isFaqItem)
+        .map((item) => ({
           "@type": "Question",
           name: String(item.question),
           acceptedAnswer: {
@@ -113,15 +142,17 @@ export function buildLandingJsonLd(landing: any) {
   return renderJsonLd({ "@context": "https://schema.org", "@graph": graph });
 }
 
-export async function resolveTestimonialForLanding(landing: any): Promise<any> {
-  let testimonial: any = null;
+export async function resolveTestimonialForLanding(
+  landing: LandingArg
+): Promise<TestimonialWithMedia | null> {
+  let testimonial: TestimonialWithMedia | null = null;
 
   let selectedIds: string[] = [];
   try {
     if (Array.isArray(landing.testimonialIds)) {
-      selectedIds = landing.testimonialIds;
+      selectedIds = landing.testimonialIds as string[];
     } else if (typeof landing.testimonialIds === "string") {
-      selectedIds = JSON.parse(landing.testimonialIds);
+      selectedIds = JSON.parse(landing.testimonialIds) as string[];
     }
   } catch {}
 

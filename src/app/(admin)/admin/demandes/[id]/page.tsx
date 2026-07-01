@@ -173,13 +173,13 @@ export default async function DemandeDetailPage({ params }: Props) {
       {lead.status === "FAILED" && (
         <div style={{ padding: "16px", borderRadius: "8px", background: "rgba(239, 68, 68, 0.08)", border: "1px solid #ef4444", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <h4 style={{ fontWeight: 600, fontSize: "14px", margin: "0 0 4px 0", color: "#ef4444" }}>⚠️ L'envoi GHL a échoué</h4>
-            <p style={{ fontSize: "13px", margin: 0 }}>Vous pouvez ré-exécuter les règles de routage et retenter l'envoi de ce lead.</p>
+            <h4 style={{ fontWeight: 600, fontSize: "14px", margin: "0 0 4px 0", color: "#ef4444" }}>⚠️ L&apos;envoi GHL a échoué</h4>
+            <p style={{ fontSize: "13px", margin: 0 }}>Vous pouvez ré-exécuter les règles de routage et retenter l&apos;envoi de ce lead.</p>
           </div>
           <form action={retryLeadToGhlAction}>
             <input type="hidden" name="id" value={lead.id} />
             <button type="submit" className="admin-btn admin-btn--primary" style={{ background: "#ef4444", borderColor: "#ef4444" }}>
-              ⚡ Retenter l'envoi à GHL
+              ⚡ Retenter l&apos;envoi à GHL
             </button>
           </form>
         </div>

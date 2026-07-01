@@ -59,7 +59,7 @@ export default async function EditCrmRoutingPage({ params, searchParams }: PageP
             </select>
           </label>
           <label className="admin-field">
-            <span className="admin-field__label">Type d'offre</span>
+            <span className="admin-field__label">Type d&apos;offre</span>
             <select name="offerType" defaultValue={rule.offerType ?? ""} className="admin-input">
               <option value="">Tous</option>
               <option value="private_session">Séance privée</option>

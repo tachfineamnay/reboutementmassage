@@ -1,6 +1,6 @@
 import type { LandingPageWithRelations, ReadinessIssue, ReadinessResult } from "@/lib/growth/types";
 import { COMPLIANCE_DEFAULT_FR, FORBIDDEN_MEDICAL_TERMS } from "@/lib/growth/types";
-import { isWhatsappChannelActive, isValidE164 } from "@/lib/growth/whatsapp";
+import { isValidE164 } from "@/lib/growth/whatsapp";
 import { hasComplianceIssues } from "@/lib/growth/compliance";
 
 function issue(

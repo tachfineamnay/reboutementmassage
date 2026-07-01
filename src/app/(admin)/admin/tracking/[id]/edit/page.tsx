@@ -164,7 +164,7 @@ export default async function EditTrackingPage({ params, searchParams }: PagePro
           Pages using this profile ({profile.landingPages.length})
         </h3>
         {profile.landingPages.length === 0 ? (
-          <p style={{ fontSize: "13px", color: "var(--admin-muted)" }}>Aucune landing n'utilise ce profil actuellement.</p>
+          <p style={{ fontSize: "13px", color: "var(--admin-muted)" }}>Aucune landing n&apos;utilise ce profil actuellement.</p>
         ) : (
           <ul style={{ fontSize: "13px", listStyle: "none", padding: 0 }}>
             {profile.landingPages.map((l) => (

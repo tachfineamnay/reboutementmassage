@@ -147,7 +147,7 @@ export default async function EditWhatsappPage({ params, searchParams }: PagePro
           </label>
         </div>
         <label className="admin-field">
-          <span className="admin-field__label">Heures d'ouverture (businessHours JSON)</span>
+          <span className="admin-field__label">Heures d&apos;ouverture (businessHours JSON)</span>
           <textarea name="businessHours" rows={3} defaultValue={businessHoursStr} className="admin-input" placeholder="{}" style={{ fontFamily: "monospace" }} />
         </label>
         <label className="admin-field">
@@ -176,7 +176,7 @@ export default async function EditWhatsappPage({ params, searchParams }: PagePro
           Pages using this channel ({channel.landingPages.length})
         </h3>
         {channel.landingPages.length === 0 ? (
-          <p style={{ fontSize: "13px", color: "var(--admin-muted)" }}>Aucune landing n'utilise ce canal actuellement.</p>
+          <p style={{ fontSize: "13px", color: "var(--admin-muted)" }}>Aucune landing n&apos;utilise ce canal actuellement.</p>
         ) : (
           <ul style={{ fontSize: "13px", listStyle: "none", padding: 0 }}>
             {channel.landingPages.map((l) => (
