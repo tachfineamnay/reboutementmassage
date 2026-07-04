@@ -4,10 +4,32 @@ import { useState } from "react";
 import type { CampaignLandingConfig, CampaignNeedCategory } from "@/data/campaign-landings";
 import { trackCampaignEvent } from "@/lib/campaign-tracking";
 
+type ShortFormOption = {
+  value: string;
+  label: string;
+};
+
+type ExtendedShortFormCopy = CampaignLandingConfig["shortForm"] & {
+  nameLabel?: string;
+  namePlaceholder?: string;
+  offerLabel?: string;
+  offerPlaceholder?: string;
+  offerOptions?: ShortFormOption[];
+  urgencyLabel?: string;
+  urgencyPlaceholder?: string;
+  urgencyOptions?: ShortFormOption[];
+  contextLabel?: string;
+  contextPlaceholder?: string;
+};
+
 type ShortFormState = {
+  firstName: string;
   needType: CampaignNeedCategory | "";
   contact: string;
   preferredLanguage: "FR" | "EN" | "ES" | "";
+  offerIntent: string;
+  urgency: string;
+  context: string;
 };
 
 type LeadApiResult = {
@@ -34,6 +56,10 @@ function getUrlUtm() {
   );
 }
 
+function getOptionLabel(options: ShortFormOption[] | undefined, value: string) {
+  return options?.find((option) => option.value === value)?.label ?? value;
+}
+
 export default function ShortLeadForm({
   config,
   id = "solicitud",
@@ -41,11 +67,19 @@ export default function ShortLeadForm({
   config: CampaignLandingConfig;
   id?: string;
 }) {
-  const copy = config.shortForm;
+  const copy = config.shortForm as ExtendedShortFormCopy;
+  const showName = Boolean(copy.nameLabel);
+  const showOfferIntent = Boolean(copy.offerLabel && copy.offerOptions?.length);
+  const showUrgency = Boolean(copy.urgencyLabel && copy.urgencyOptions?.length);
+  const showContext = Boolean(copy.contextLabel);
   const [form, setForm] = useState<ShortFormState>({
+    firstName: "",
     needType: "",
     contact: "",
     preferredLanguage: config.language,
+    offerIntent: "",
+    urgency: "",
+    context: "",
   });
   const [started, setStarted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -69,7 +103,18 @@ export default function ShortLeadForm({
     event.preventDefault();
     if (loading) return;
 
-    if (!form.needType || !isValidContact(form.contact) || !form.preferredLanguage) {
+    const missingName = showName && form.firstName.trim().length < 2;
+    const missingOffer = showOfferIntent && !form.offerIntent;
+    const missingUrgency = showUrgency && !form.urgency;
+
+    if (
+      missingName ||
+      !form.needType ||
+      !isValidContact(form.contact) ||
+      !form.preferredLanguage ||
+      missingOffer ||
+      missingUrgency
+    ) {
       setSubmitError(copy.requiredError);
       return;
     }
@@ -77,16 +122,24 @@ export default function ShortLeadForm({
     setLoading(true);
     setSubmitError(null);
     const eventId = createMetaEventId();
+    const offerLabel = getOptionLabel(copy.offerOptions, form.offerIntent);
+    const urgencyLabel = getOptionLabel(copy.urgencyOptions, form.urgency);
+    const contextParts = [
+      `Langue préférée: ${form.preferredLanguage}`,
+      form.offerIntent ? `Offre souhaitée: ${offerLabel}` : null,
+      form.urgency ? `Urgence: ${urgencyLabel}` : null,
+      form.context.trim() ? `Message: ${form.context.trim()}` : null,
+    ].filter(Boolean);
 
     try {
       const response = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          firstName: "Landing lead",
+          firstName: showName ? form.firstName.trim() : "Landing lead",
           contact: form.contact.trim(),
           type: config.leadType,
-          context: `Langue préférée: ${form.preferredLanguage}`,
+          context: contextParts.join("\n"),
           lang: form.preferredLanguage,
           selectedDayLabel: null,
           selectedTime: null,
@@ -100,16 +153,18 @@ export default function ShortLeadForm({
             durationMinutes: String(config.durationMinutes),
             destinationSlug: config.destinationSlug,
             offerType: config.offerType,
+            offerIntent: form.offerIntent || config.offerType,
+            urgency: form.urgency,
           },
           companyName: null,
           jobTitle: null,
           propertyType: null,
           destination: config.cityName,
           leadSegment: config.leadSegment,
-          intent: config.offerType || "private_session",
+          intent: form.offerIntent || config.offerType || "private_session",
           preferredChannel: "ghl",
           routedToUrl: null,
-          urgency: "Cette semaine",
+          urgency: urgencyLabel || "Cette semaine",
           needType: form.needType,
           volumePotential: null,
           participantCount: null,
@@ -130,6 +185,8 @@ export default function ShortLeadForm({
         language: config.htmlLang,
         cta_location: "form",
         need_type: form.needType,
+        offer_intent: form.offerIntent || config.offerType,
+        urgency: form.urgency,
         meta_event_id: eventId,
         city: config.destinationSlug,
         offer: config.offerType,
@@ -174,7 +231,15 @@ export default function ShortLeadForm({
                 type="button"
                 onClick={() => {
                   setSubmitted(false);
-                  setForm({ needType: "", contact: "", preferredLanguage: config.language });
+                  setForm({
+                    firstName: "",
+                    needType: "",
+                    contact: "",
+                    preferredLanguage: config.language,
+                    offerIntent: "",
+                    urgency: "",
+                    context: "",
+                  });
                 }}
               >
                 {copy.newRequest}
@@ -196,6 +261,22 @@ export default function ShortLeadForm({
         </div>
 
         <form className="campaign-short-form__form" onSubmit={submitLead} noValidate>
+          {showName && (
+            <label className="campaign-short-form__field">
+              <span className="campaign-short-form__label">{copy.nameLabel}</span>
+              <input
+                className="campaign-short-form__input"
+                type="text"
+                autoComplete="given-name"
+                placeholder={copy.namePlaceholder}
+                value={form.firstName}
+                onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))}
+                onFocus={handleFocus}
+                required
+              />
+            </label>
+          )}
+
           <label className="campaign-short-form__field">
             <span className="campaign-short-form__label">{copy.tensionLabel}</span>
             <select
@@ -213,6 +294,46 @@ export default function ShortLeadForm({
               ))}
             </select>
           </label>
+
+          {showOfferIntent && (
+            <label className="campaign-short-form__field">
+              <span className="campaign-short-form__label">{copy.offerLabel}</span>
+              <select
+                className="campaign-short-form__input"
+                value={form.offerIntent}
+                onChange={(e) => setForm((f) => ({ ...f, offerIntent: e.target.value }))}
+                onFocus={handleFocus}
+                required
+              >
+                <option value="">{copy.offerPlaceholder ?? copy.tensionPlaceholder}</option>
+                {copy.offerOptions?.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+
+          {showUrgency && (
+            <label className="campaign-short-form__field">
+              <span className="campaign-short-form__label">{copy.urgencyLabel}</span>
+              <select
+                className="campaign-short-form__input"
+                value={form.urgency}
+                onChange={(e) => setForm((f) => ({ ...f, urgency: e.target.value }))}
+                onFocus={handleFocus}
+                required
+              >
+                <option value="">{copy.urgencyPlaceholder ?? copy.tensionPlaceholder}</option>
+                {copy.urgencyOptions?.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
 
           <label className="campaign-short-form__field">
             <span className="campaign-short-form__label">{copy.whatsappLabel}</span>
@@ -248,6 +369,20 @@ export default function ShortLeadForm({
               ))}
             </select>
           </label>
+
+          {showContext && (
+            <label className="campaign-short-form__field">
+              <span className="campaign-short-form__label">{copy.contextLabel}</span>
+              <textarea
+                className="campaign-short-form__input"
+                placeholder={copy.contextPlaceholder}
+                value={form.context}
+                onChange={(e) => setForm((f) => ({ ...f, context: e.target.value }))}
+                onFocus={handleFocus}
+                rows={4}
+              />
+            </label>
+          )}
 
           {submitError && (
             <p className="sf-error" role="alert">
