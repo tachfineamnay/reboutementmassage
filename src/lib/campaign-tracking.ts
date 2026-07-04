@@ -24,6 +24,8 @@ export type CampaignTrackingParams = {
   locale?: string;
   offer?: string;
   offerType?: string;
+  offer_intent?: string;
+  urgency?: string;
   session_duration?: string;
   language?: string;
   content_name?: string;
@@ -34,7 +36,7 @@ export type CampaignTrackingParams = {
   utm_campaign?: string;
   utm_content?: string;
   creative_angle?: string;
-  cta_location?: CtaLocation;
+  cta_location?: CtaLocation | string;
   need_type?: CampaignNeedCategory;
   faq_question?: string;
   meta_event_id?: string;
@@ -99,6 +101,8 @@ function pushDataLayer(event: CampaignEventName, params: CampaignTrackingParams)
     country: params.country,
     locale: params.locale || params.language,
     offerType: params.offerType,
+    offer_intent: params.offer_intent,
+    urgency: params.urgency,
     session_duration: params.session_duration,
     cta_location: params.cta_location,
     utm_source: params.utm_source,
@@ -171,7 +175,7 @@ function bridgeMetaEvent(event: CampaignEventName, params: CampaignTrackingParam
         content_name: "lead_form_submission",
         content_category: "manual_therapy",
         lang,
-        intent: params.offer || "private_session",
+        intent: params.offer_intent || params.offer || "private_session",
         preferred_channel: "ghl",
         lead_segment: params.lead_segment || "b2c_premium",
         page_path: pagePath,
@@ -182,6 +186,7 @@ function bridgeMetaEvent(event: CampaignEventName, params: CampaignTrackingParam
     trackTikTok("SubmitForm", {
       content_name: params.content_name ? `${params.content_name}_short_form` : "cdmx_short_form",
       need_type: normalizedNeed,
+      offer_intent: params.offer_intent,
     });
   }
 }
