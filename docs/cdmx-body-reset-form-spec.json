@@ -1,0 +1,98 @@
+{
+  "landing": "Body Reset — CDMX",
+  "locale": "es-MX",
+  "target": "WhatsApp/Facebook Ads prospects in Mexico City",
+  "primaryCta": "Reservar una sesión",
+  "secondaryCta": "Escribir por WhatsApp",
+  "whatsapp": {
+    "envVariable": "NEXT_PUBLIC_CDMX_WHATSAPP_NUMBER",
+    "defaultMessage": "Hola Grégory, estoy en CDMX y quiero reservar una sesión de Body Reset. Me interesa saber si me conviene Body Reset Fix o French Body Reset Full.",
+    "fixMessage": "Hola Grégory, estoy en CDMX y quiero reservar Body Reset Fix para una zona prioritaria.",
+    "fullMessage": "Hola Grégory, estoy en CDMX y quiero información sobre French Body Reset Full, el protocolo de 3 sesiones."
+  },
+  "offers": [
+    {
+      "id": "body_reset_fix",
+      "name": "Body Reset Fix",
+      "subtitle": "Una sesión privada puntual para trabajar una prioridad clara.",
+      "cta": "Reservar Body Reset Fix",
+      "intent": "body_reset_fix"
+    },
+    {
+      "id": "french_body_reset_full",
+      "name": "French Body Reset Full",
+      "subtitle": "Un protocolo completo en 3 sesiones para un trabajo más profundo y progresivo.",
+      "cta": "Consultar el protocolo Full",
+      "intent": "french_body_reset_full"
+    }
+  ],
+  "form": {
+    "headline": "Cuéntame qué necesita tu cuerpo.",
+    "sub": "Completa este formulario corto y te orientamos hacia Body Reset Fix o French Body Reset Full.",
+    "fields": [
+      {
+        "name": "firstName",
+        "label": "Nombre",
+        "placeholder": "Tu nombre",
+        "type": "text",
+        "required": true
+      },
+      {
+        "name": "contact",
+        "label": "WhatsApp",
+        "placeholder": "+52...",
+        "type": "tel",
+        "required": true
+      },
+      {
+        "name": "needType",
+        "label": "¿Qué quieres trabajar primero?",
+        "type": "select",
+        "required": true,
+        "options": [
+          { "value": "back", "label": "Espalda" },
+          { "value": "neck", "label": "Cuello / nuca" },
+          { "value": "shoulders", "label": "Hombros" },
+          { "value": "hips", "label": "Caderas" },
+          { "value": "legs", "label": "Piernas" },
+          { "value": "stress", "label": "Estrés / cuerpo cargado" },
+          { "value": "fatigue", "label": "Fatiga" },
+          { "value": "unsure", "label": "No estoy seguro/a" }
+        ]
+      },
+      {
+        "name": "offerIntent",
+        "label": "¿Qué formato te interesa más?",
+        "type": "select",
+        "required": true,
+        "options": [
+          { "value": "body_reset_fix", "label": "Body Reset Fix — 1 sesión puntual" },
+          { "value": "french_body_reset_full", "label": "French Body Reset Full — protocolo de 3 sesiones" },
+          { "value": "orientation", "label": "No sé todavía, quiero orientación" }
+        ]
+      },
+      {
+        "name": "urgency",
+        "label": "¿Qué tan pronto quieres venir?",
+        "type": "select",
+        "required": true,
+        "options": [
+          { "value": "this_week", "label": "Esta semana" },
+          { "value": "next_week", "label": "La próxima semana" },
+          { "value": "comparing", "label": "Estoy comparando opciones" },
+          { "value": "question_first", "label": "Quiero hacer una pregunta primero" }
+        ]
+      },
+      {
+        "name": "context",
+        "label": "Mensaje opcional",
+        "placeholder": "Cuéntame en pocas palabras qué sientes o qué estás buscando.",
+        "type": "textarea",
+        "required": false
+      }
+    ],
+    "submit": "Enviar solicitud",
+    "successTitle": "Gracias. Recibimos tu solicitud.",
+    "successBody": "Te responderemos por WhatsApp para orientarte hacia el formato más adecuado."
+  }
+}
