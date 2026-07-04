@@ -71,6 +71,7 @@ COPY --from=deps --chown=nextjs:nodejs /app/node_modules/.pnpm ./node_modules/.p
 COPY --from=deps --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
 COPY --from=deps --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=deps --chown=nextjs:nodejs /app/node_modules/.bin ./node_modules/.bin
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules/bcryptjs ./node_modules/bcryptjs
 
 RUN mkdir -p /app/uploads /app/storage/uploads /app/.cache/node/corepack /app/.local/share/pnpm /app/.pnpm-store \
   && sed -i 's/\r$//' ./docker-entrypoint.sh ./scripts/run-migrate-deploy.sh ./scripts/run-seed.sh \
