@@ -48,4 +48,9 @@ Or run the bundled script (after redeploy):
 ```sh
 cd /app
 sh ./scripts/run-migrate-deploy.sh
+sh ./scripts/run-seed.sh
 ```
+
+The production container does not include `tsx`. Seed is bundled at image build time as `scripts/seed.bundle.cjs`. Do not use `pnpm exec tsx prisma/seed.ts` in Coolify.
+
+Required env for seed: `DATABASE_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`. Optional: `SEED_GROWTH_CDMX=1` (default).

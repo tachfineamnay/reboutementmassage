@@ -79,7 +79,7 @@ pnpm build                  # OK
 
 ## Risques restants
 
-- **Seed non exécuté en prod** : les landings dynamiques 404 tant que `pnpm exec tsx prisma/seed.ts` n'a pas tourné
+- **Seed non exécuté en prod** : les landings dynamiques 404 tant que `sh ./scripts/run-seed.sh` n'a pas tourné (après redeploy avec seed bundle)
 - **RedirectRule DB** : complète les redirects `next.config` ; nécessite DB + seed
 - **Contenu EN/FR** : routes migrées ; copy encore orientée « 75 min private session » (hors scope ES)
 - **Fallback WhatsApp** : `33665517735` si `NEXT_PUBLIC_CDMX_WHATSAPP_NUMBER` absent — configurer en prod
@@ -100,9 +100,9 @@ SITE_URL=https://<domaine>
 
 ```sh
 cd /app
-pnpm exec prisma validate
+./node_modules/.bin/prisma validate
 sh ./scripts/run-migrate-deploy.sh
-pnpm exec tsx prisma/seed.ts
+sh ./scripts/run-seed.sh
 ```
 
 ### Vérifications curl
