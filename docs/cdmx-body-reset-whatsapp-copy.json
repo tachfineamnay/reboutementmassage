@@ -1,0 +1,20 @@
+{
+  "locale": "es-MX",
+  "numberEnv": "NEXT_PUBLIC_CDMX_WHATSAPP_NUMBER",
+  "labels": {
+    "default": "Escribir por WhatsApp",
+    "booking": "Reservar una sesión",
+    "fix": "Reservar Body Reset Fix",
+    "full": "Consultar el protocolo Full",
+    "sticky": "WhatsApp Grégory"
+  },
+  "messages": {
+    "default": "Hola Grégory, estoy en CDMX y quiero reservar una sesión de Body Reset. Me interesa saber si me conviene Body Reset Fix o French Body Reset Full.",
+    "book_intent": "Hola Grégory, estoy en CDMX y quiero reservar una sesión de Body Reset.",
+    "more_info_intent": "Hola Grégory, estoy en CDMX y quiero saber si me conviene Body Reset Fix o French Body Reset Full.",
+    "testimonial_cta": "Hola Grégory, vi la información de Body Reset en CDMX y quiero saber qué formato me conviene.",
+    "sticky_cta": "Hola Grégory, estoy en CDMX y quiero reservar una sesión de Body Reset.",
+    "fix_intent": "Hola Grégory, estoy en CDMX y quiero reservar Body Reset Fix para una zona prioritaria.",
+    "full_intent": "Hola Grégory, estoy en CDMX y quiero información sobre French Body Reset Full, el protocolo de 3 sesiones."
+  }
+}
