@@ -4,29 +4,12 @@ import { useState } from "react";
 import type { CampaignLandingConfig, CampaignNeedCategory } from "@/data/campaign-landings";
 import { trackCampaignEvent } from "@/lib/campaign-tracking";
 
-type ShortFormOption = {
-  value: string;
-  label: string;
-};
-
-type ExtendedShortFormCopy = CampaignLandingConfig["shortForm"] & {
-  nameLabel?: string;
-  namePlaceholder?: string;
-  offerLabel?: string;
-  offerPlaceholder?: string;
-  offerOptions?: ShortFormOption[];
-  urgencyLabel?: string;
-  urgencyPlaceholder?: string;
-  urgencyOptions?: ShortFormOption[];
-  contextLabel?: string;
-  contextPlaceholder?: string;
-};
-
 type ShortFormState = {
-  firstName: string;
   needType: CampaignNeedCategory | "";
   contact: string;
   preferredLanguage: "FR" | "EN" | "ES" | "";
+  firstName: string;
+  zone: string;
   offerIntent: string;
   urgency: string;
   context: string;
@@ -39,6 +22,10 @@ type LeadApiResult = {
 
 function isValidContact(value: string) {
   return value.replace(/\D/g, "").length >= 6;
+}
+
+function isValidFirstName(value: string) {
+  return value.trim().length >= 2;
 }
 
 function createMetaEventId() {
@@ -56,8 +43,11 @@ function getUrlUtm() {
   );
 }
 
-function getOptionLabel(options: ShortFormOption[] | undefined, value: string) {
-  return options?.find((option) => option.value === value)?.label ?? value;
+function getOfferLabel(
+  copy: CampaignLandingConfig["shortForm"],
+  offerIntent: string
+) {
+  return copy.offerOptions?.find((option) => option.value === offerIntent)?.label ?? offerIntent;
 }
 
 export default function ShortLeadForm({
@@ -67,16 +57,15 @@ export default function ShortLeadForm({
   config: CampaignLandingConfig;
   id?: string;
 }) {
-  const copy = config.shortForm as ExtendedShortFormCopy;
-  const showName = Boolean(copy.nameLabel);
-  const showOfferIntent = Boolean(copy.offerLabel && copy.offerOptions?.length);
-  const showUrgency = Boolean(copy.urgencyLabel && copy.urgencyOptions?.length);
-  const showContext = Boolean(copy.contextLabel);
+  const copy = config.shortForm;
+  const isExtendedForm = Boolean(copy.offerOptions?.length);
+
   const [form, setForm] = useState<ShortFormState>({
-    firstName: "",
     needType: "",
     contact: "",
     preferredLanguage: config.language,
+    firstName: "",
+    zone: "",
     offerIntent: "",
     urgency: "",
     context: "",
@@ -99,22 +88,35 @@ export default function ShortLeadForm({
     }
   }
 
+  function resetForm() {
+    setForm({
+      needType: "",
+      contact: "",
+      preferredLanguage: config.language,
+      firstName: "",
+      zone: "",
+      offerIntent: "",
+      urgency: "",
+      context: "",
+    });
+  }
+
   async function submitLead(event: React.FormEvent) {
     event.preventDefault();
     if (loading) return;
 
-    const missingName = showName && form.firstName.trim().length < 2;
-    const missingOffer = showOfferIntent && !form.offerIntent;
-    const missingUrgency = showUrgency && !form.urgency;
-
-    if (
-      missingName ||
-      !form.needType ||
-      !isValidContact(form.contact) ||
-      !form.preferredLanguage ||
-      missingOffer ||
-      missingUrgency
-    ) {
+    if (isExtendedForm) {
+      if (
+        !isValidFirstName(form.firstName) ||
+        !isValidContact(form.contact) ||
+        !form.zone.trim() ||
+        !form.offerIntent ||
+        !form.urgency
+      ) {
+        setSubmitError(copy.requiredError);
+        return;
+      }
+    } else if (!form.needType || !isValidContact(form.contact) || !form.preferredLanguage) {
       setSubmitError(copy.requiredError);
       return;
     }
@@ -122,25 +124,22 @@ export default function ShortLeadForm({
     setLoading(true);
     setSubmitError(null);
     const eventId = createMetaEventId();
-    const offerLabel = getOptionLabel(copy.offerOptions, form.offerIntent);
-    const urgencyLabel = getOptionLabel(copy.urgencyOptions, form.urgency);
-    const contextParts = [
-      `Langue préférée: ${form.preferredLanguage}`,
-      form.offerIntent ? `Offre souhaitée: ${offerLabel}` : null,
-      form.urgency ? `Urgence: ${urgencyLabel}` : null,
-      form.context.trim() ? `Message: ${form.context.trim()}` : null,
-    ].filter(Boolean);
+
+    const offerLabel = form.offerIntent ? getOfferLabel(copy, form.offerIntent) : "";
+    const contextParts = isExtendedForm
+      ? [`Oferta deseada: ${offerLabel}`, form.context.trim()].filter(Boolean)
+      : [`Langue préférée: ${form.preferredLanguage}`];
 
     try {
       const response = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          firstName: showName ? form.firstName.trim() : "Landing lead",
+          firstName: isExtendedForm ? form.firstName.trim() : "Landing lead",
           contact: form.contact.trim(),
           type: config.leadType,
           context: contextParts.join("\n"),
-          lang: form.preferredLanguage,
+          lang: isExtendedForm ? config.language : form.preferredLanguage,
           selectedDayLabel: null,
           selectedTime: null,
           selectedDateTime: null,
@@ -153,22 +152,26 @@ export default function ShortLeadForm({
             durationMinutes: String(config.durationMinutes),
             destinationSlug: config.destinationSlug,
             offerType: config.offerType,
-            offerIntent: form.offerIntent || config.offerType,
-            urgency: form.urgency,
+            ...(isExtendedForm
+              ? {
+                  offerIntent: form.offerIntent,
+                  urgency: form.urgency,
+                }
+              : {}),
           },
           companyName: null,
           jobTitle: null,
           propertyType: null,
           destination: config.cityName,
           leadSegment: config.leadSegment,
-          intent: form.offerIntent || config.offerType || "private_session",
+          intent: isExtendedForm ? form.offerIntent : config.offerType || "private_session",
           preferredChannel: "ghl",
           routedToUrl: null,
-          urgency: urgencyLabel || "Cette semaine",
-          needType: form.needType,
+          urgency: isExtendedForm ? form.urgency : "Cette semaine",
+          needType: isExtendedForm ? form.zone.trim() : form.needType,
           volumePotential: null,
           participantCount: null,
-          currentLocation: config.cityName,
+          currentLocation: isExtendedForm ? form.zone.trim() : config.cityName,
           landingPageId: config.landingPageId,
           destinationId: config.destinationId,
           offerId: config.offerId,
@@ -184,12 +187,10 @@ export default function ShortLeadForm({
       trackCampaignEvent("form_submitted", {
         language: config.htmlLang,
         cta_location: "form",
-        need_type: form.needType,
-        offer_intent: form.offerIntent || config.offerType,
-        urgency: form.urgency,
+        need_type: isExtendedForm ? undefined : (form.needType || undefined),
         meta_event_id: eventId,
         city: config.destinationSlug,
-        offer: config.offerType,
+        offer: isExtendedForm ? form.offerIntent : config.offerType,
         session_duration: config.durationMinutes ? `${config.durationMinutes}_min` : undefined,
         content_name: config.tracking.viewContentName,
         lead_segment: config.leadSegment,
@@ -231,15 +232,7 @@ export default function ShortLeadForm({
                 type="button"
                 onClick={() => {
                   setSubmitted(false);
-                  setForm({
-                    firstName: "",
-                    needType: "",
-                    contact: "",
-                    preferredLanguage: config.language,
-                    offerIntent: "",
-                    urgency: "",
-                    context: "",
-                  });
+                  resetForm();
                 }}
               >
                 {copy.newRequest}
@@ -261,127 +254,163 @@ export default function ShortLeadForm({
         </div>
 
         <form className="campaign-short-form__form" onSubmit={submitLead} noValidate>
-          {showName && (
-            <label className="campaign-short-form__field">
-              <span className="campaign-short-form__label">{copy.nameLabel}</span>
-              <input
-                className="campaign-short-form__input"
-                type="text"
-                autoComplete="given-name"
-                placeholder={copy.namePlaceholder}
-                value={form.firstName}
-                onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))}
-                onFocus={handleFocus}
-                required
-              />
-            </label>
-          )}
+          {isExtendedForm ? (
+            <>
+              {copy.nameLabel && (
+                <label className="campaign-short-form__field">
+                  <span className="campaign-short-form__label">{copy.nameLabel}</span>
+                  <input
+                    className="campaign-short-form__input"
+                    type="text"
+                    autoComplete="name"
+                    placeholder={copy.namePlaceholder}
+                    value={form.firstName}
+                    onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))}
+                    onFocus={handleFocus}
+                    required
+                  />
+                </label>
+              )}
 
-          <label className="campaign-short-form__field">
-            <span className="campaign-short-form__label">{copy.tensionLabel}</span>
-            <select
-              className="campaign-short-form__input"
-              value={form.needType}
-              onChange={(e) => setForm((f) => ({ ...f, needType: e.target.value as CampaignNeedCategory }))}
-              onFocus={handleFocus}
-              required
-            >
-              <option value="">{copy.tensionPlaceholder}</option>
-              {copy.needOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
+              <label className="campaign-short-form__field">
+                <span className="campaign-short-form__label">{copy.whatsappLabel}</span>
+                <input
+                  className="campaign-short-form__input"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  placeholder={copy.whatsappPlaceholder}
+                  value={form.contact}
+                  onChange={(e) => setForm((f) => ({ ...f, contact: e.target.value }))}
+                  onFocus={handleFocus}
+                  required
+                />
+              </label>
 
-          {showOfferIntent && (
-            <label className="campaign-short-form__field">
-              <span className="campaign-short-form__label">{copy.offerLabel}</span>
-              <select
-                className="campaign-short-form__input"
-                value={form.offerIntent}
-                onChange={(e) => setForm((f) => ({ ...f, offerIntent: e.target.value }))}
-                onFocus={handleFocus}
-                required
-              >
-                <option value="">{copy.offerPlaceholder ?? copy.tensionPlaceholder}</option>
-                {copy.offerOptions?.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
+              {copy.zoneLabel && (
+                <label className="campaign-short-form__field">
+                  <span className="campaign-short-form__label">{copy.zoneLabel}</span>
+                  <input
+                    className="campaign-short-form__input"
+                    type="text"
+                    placeholder={copy.zonePlaceholder}
+                    value={form.zone}
+                    onChange={(e) => setForm((f) => ({ ...f, zone: e.target.value }))}
+                    onFocus={handleFocus}
+                    required
+                  />
+                </label>
+              )}
 
-          {showUrgency && (
-            <label className="campaign-short-form__field">
-              <span className="campaign-short-form__label">{copy.urgencyLabel}</span>
-              <select
-                className="campaign-short-form__input"
-                value={form.urgency}
-                onChange={(e) => setForm((f) => ({ ...f, urgency: e.target.value }))}
-                onFocus={handleFocus}
-                required
-              >
-                <option value="">{copy.urgencyPlaceholder ?? copy.tensionPlaceholder}</option>
-                {copy.urgencyOptions?.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
+              {copy.offerLabel && copy.offerOptions?.length ? (
+                <label className="campaign-short-form__field">
+                  <span className="campaign-short-form__label">{copy.offerLabel}</span>
+                  <select
+                    className="campaign-short-form__input"
+                    value={form.offerIntent}
+                    onChange={(e) => setForm((f) => ({ ...f, offerIntent: e.target.value }))}
+                    onFocus={handleFocus}
+                    required
+                  >
+                    <option value="">{copy.offerPlaceholder}</option>
+                    {copy.offerOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
 
-          <label className="campaign-short-form__field">
-            <span className="campaign-short-form__label">{copy.whatsappLabel}</span>
-            <input
-              className="campaign-short-form__input"
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              placeholder={copy.whatsappPlaceholder}
-              value={form.contact}
-              onChange={(e) => setForm((f) => ({ ...f, contact: e.target.value }))}
-              onFocus={handleFocus}
-              required
-            />
-          </label>
+              {copy.urgencyLabel && copy.urgencyOptions?.length ? (
+                <label className="campaign-short-form__field">
+                  <span className="campaign-short-form__label">{copy.urgencyLabel}</span>
+                  <select
+                    className="campaign-short-form__input"
+                    value={form.urgency}
+                    onChange={(e) => setForm((f) => ({ ...f, urgency: e.target.value }))}
+                    onFocus={handleFocus}
+                    required
+                  >
+                    <option value="">{copy.urgencyPlaceholder}</option>
+                    {copy.urgencyOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
 
-          <label className="campaign-short-form__field">
-            <span className="campaign-short-form__label">{copy.languageLabel}</span>
-            <select
-              className="campaign-short-form__input"
-              value={form.preferredLanguage}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, preferredLanguage: e.target.value as "FR" | "EN" | "ES" }))
-              }
-              onFocus={handleFocus}
-              required
-            >
-              <option value="">{copy.tensionPlaceholder}</option>
-              {copy.languageOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </label>
+              {copy.contextLabel && (
+                <label className="campaign-short-form__field">
+                  <span className="campaign-short-form__label">{copy.contextLabel}</span>
+                  <textarea
+                    className="campaign-short-form__input"
+                    rows={3}
+                    placeholder={copy.contextPlaceholder}
+                    value={form.context}
+                    onChange={(e) => setForm((f) => ({ ...f, context: e.target.value }))}
+                    onFocus={handleFocus}
+                  />
+                </label>
+              )}
+            </>
+          ) : (
+            <>
+              <label className="campaign-short-form__field">
+                <span className="campaign-short-form__label">{copy.tensionLabel}</span>
+                <select
+                  className="campaign-short-form__input"
+                  value={form.needType}
+                  onChange={(e) => setForm((f) => ({ ...f, needType: e.target.value as CampaignNeedCategory }))}
+                  onFocus={handleFocus}
+                  required
+                >
+                  <option value="">{copy.tensionPlaceholder}</option>
+                  {copy.needOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-          {showContext && (
-            <label className="campaign-short-form__field">
-              <span className="campaign-short-form__label">{copy.contextLabel}</span>
-              <textarea
-                className="campaign-short-form__input"
-                placeholder={copy.contextPlaceholder}
-                value={form.context}
-                onChange={(e) => setForm((f) => ({ ...f, context: e.target.value }))}
-                onFocus={handleFocus}
-                rows={4}
-              />
-            </label>
+              <label className="campaign-short-form__field">
+                <span className="campaign-short-form__label">{copy.whatsappLabel}</span>
+                <input
+                  className="campaign-short-form__input"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  placeholder={copy.whatsappPlaceholder}
+                  value={form.contact}
+                  onChange={(e) => setForm((f) => ({ ...f, contact: e.target.value }))}
+                  onFocus={handleFocus}
+                  required
+                />
+              </label>
+
+              <label className="campaign-short-form__field">
+                <span className="campaign-short-form__label">{copy.languageLabel}</span>
+                <select
+                  className="campaign-short-form__input"
+                  value={form.preferredLanguage}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, preferredLanguage: e.target.value as "FR" | "EN" | "ES" }))
+                  }
+                  onFocus={handleFocus}
+                  required
+                >
+                  <option value="">{copy.tensionPlaceholder}</option>
+                  {copy.languageOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
           )}
 
           {submitError && (

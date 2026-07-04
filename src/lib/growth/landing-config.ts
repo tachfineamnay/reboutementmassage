@@ -21,6 +21,33 @@ function asBadgeArray(value: unknown): Array<{ value: string; label: string }> {
     .map((v) => ({ value: String(v.value), label: String(v.label) }));
 }
 
+function asLeadOptions(value: unknown): Array<{ value: string; label: string }> {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter(
+      (v): v is { value: string; label: string } =>
+        typeof v === "object" && v !== null && "value" in v && "label" in v
+    )
+    .map((v) => ({ value: String(v.value), label: String(v.label) }));
+}
+
+function asOfferBlocks(value: unknown): CampaignLandingConfig["offerBlocks"] {
+  if (!Array.isArray(value)) return undefined;
+  return value
+    .filter((v): v is Record<string, unknown> => typeof v === "object" && v !== null)
+    .map((block) => ({
+      title: String(block.title ?? ""),
+      bullets: asStringArray(block.bullets),
+      launchRateLine: typeof block.launchRateLine === "string" ? block.launchRateLine : undefined,
+      showPrice: Boolean(block.showPrice),
+      priceLabel: typeof block.priceLabel === "string" ? block.priceLabel : undefined,
+      priceValue: typeof block.priceValue === "string" ? block.priceValue : undefined,
+      whatsappIntent:
+        typeof block.whatsappIntent === "string" ? (block.whatsappIntent as WhatsappIntent) : undefined,
+      ctaLabel: typeof block.ctaLabel === "string" ? block.ctaLabel : undefined,
+    }));
+}
+
 function asFaq(value: unknown): Array<{ question: string; answer: string }> {
   if (!Array.isArray(value)) return [];
   return value
@@ -256,6 +283,7 @@ export function landingPageToCampaignConfig(landing: LandingPageWithRelations): 
       priceLabel: offer?.priceNoteEn ?? undefined,
       priceValue: offer?.priceAmount ? String(offer.priceAmount) : undefined,
     },
+    offerBlocks: asOfferBlocks(content.offerBlocks),
     proof: { badges: asBadgeArray(landing.proofBadges) },
     testimonial: {
       posterSrc: landing.heroImage?.url ?? String(testimonial.posterSrc ?? "/practice-01.webp"),
@@ -266,15 +294,53 @@ export function landingPageToCampaignConfig(landing: LandingPageWithRelations): 
       title: String(content.processTitle ?? "How it works"),
       steps: asStringArray(landing.processSteps),
     },
-    shortForm: {
-      ...SHORT_FORM_COPY[lang],
-      languageOptions: [
-        { value: "EN", label: "English" },
-        { value: "ES", label: "Español" },
-        { value: "FR", label: "Français" },
-      ],
-      needOptions: NEED_OPTIONS[lang],
-    },
+    shortForm: (() => {
+      const shortFormFromContent = (content.shortForm ?? {}) as JsonRecord;
+      const pickString = (key: string) =>
+        typeof shortFormFromContent[key] === "string" ? String(shortFormFromContent[key]) : undefined;
+
+      return {
+        ...SHORT_FORM_COPY[lang],
+        label: pickString("label") ?? SHORT_FORM_COPY[lang].label,
+        headline: pickString("headline") ?? SHORT_FORM_COPY[lang].headline,
+        sub: pickString("sub") ?? SHORT_FORM_COPY[lang].sub,
+        tensionLabel: pickString("tensionLabel") ?? SHORT_FORM_COPY[lang].tensionLabel,
+        tensionPlaceholder: pickString("tensionPlaceholder") ?? SHORT_FORM_COPY[lang].tensionPlaceholder,
+        whatsappLabel: pickString("whatsappLabel") ?? SHORT_FORM_COPY[lang].whatsappLabel,
+        whatsappPlaceholder: pickString("whatsappPlaceholder") ?? SHORT_FORM_COPY[lang].whatsappPlaceholder,
+        languageLabel: pickString("languageLabel") ?? SHORT_FORM_COPY[lang].languageLabel,
+        submit: pickString("submit") ?? SHORT_FORM_COPY[lang].submit,
+        submitting: pickString("submitting") ?? SHORT_FORM_COPY[lang].submitting,
+        contactError: pickString("contactError") ?? SHORT_FORM_COPY[lang].contactError,
+        requiredError: pickString("requiredError") ?? SHORT_FORM_COPY[lang].requiredError,
+        submitError: pickString("submitError") ?? SHORT_FORM_COPY[lang].submitError,
+        successTitle: pickString("successTitle") ?? SHORT_FORM_COPY[lang].successTitle,
+        successBody: pickString("successBody") ?? SHORT_FORM_COPY[lang].successBody,
+        successNote: pickString("successNote") ?? SHORT_FORM_COPY[lang].successNote,
+        newRequest: pickString("newRequest") ?? SHORT_FORM_COPY[lang].newRequest,
+        whatsappAfterLabel: pickString("whatsappAfterLabel") ?? SHORT_FORM_COPY[lang].whatsappAfterLabel,
+        nameLabel: pickString("nameLabel"),
+        namePlaceholder: pickString("namePlaceholder"),
+        zoneLabel: pickString("zoneLabel"),
+        zonePlaceholder: pickString("zonePlaceholder"),
+        offerLabel: pickString("offerLabel"),
+        offerPlaceholder: pickString("offerPlaceholder"),
+        offerOptions: asLeadOptions(shortFormFromContent.offerOptions),
+        urgencyLabel: pickString("urgencyLabel"),
+        urgencyPlaceholder: pickString("urgencyPlaceholder"),
+        urgencyOptions: asLeadOptions(shortFormFromContent.urgencyOptions),
+        contextLabel: pickString("contextLabel"),
+        contextPlaceholder: pickString("contextPlaceholder"),
+        languageOptions: [
+          { value: "EN", label: "English" },
+          { value: "ES", label: "Español" },
+          { value: "FR", label: "Français" },
+        ],
+        needOptions: asLeadOptions(shortFormFromContent.needOptions).length
+          ? (asLeadOptions(shortFormFromContent.needOptions) as CampaignLeadOption[])
+          : NEED_OPTIONS[lang],
+      };
+    })(),
     stickyCta: {
       whatsapp: String(stickyCta.whatsapp ?? "WhatsApp"),
       booking: String(stickyCta.booking ?? "Book"),

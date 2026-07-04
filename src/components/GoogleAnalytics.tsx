@@ -4,7 +4,8 @@ import { usePathname } from "next/navigation";
 import Script from "next/script";
 import { isGrowthLandingPath } from "@/lib/seo";
 
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+const GA_MEASUREMENT_ID =
+  process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID ?? process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 export function GoogleAnalytics({
   measurementId,

@@ -1,7 +1,7 @@
 /**
  * Seed Growth CMS — CDMX destination, offer, channels, landings, redirects.
  */
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient, Locale } from "@prisma/client";
 import { CDMX_PRIVATE_SESSION_CAMPAIGNS } from "@/data/campaign-landings";
 import { COMPLIANCE_DEFAULT_FR } from "@/lib/growth/types";
 import { computeLandingReadiness } from "@/lib/growth/landing-readiness";
@@ -20,6 +20,8 @@ const LEGACY_PATHS = {
   es: "/es/sesion-privada-cdmx",
   fr: "/fr/seance-privee-mexico-city",
 } as const;
+
+const esCfg = CDMX_PRIVATE_SESSION_CAMPAIGNS.es;
 
 const esBodyResetCopy = {
   heroTitle: "Body Reset — CDMX",
@@ -83,17 +85,9 @@ const esBodyResetCopy = {
       ],
       imageAlt: "Body Reset manual en CDMX",
     },
-    offerBlock: {
-      title: "Elige el formato que mejor corresponde a tu cuerpo.",
-      bullets: [
-        "Body Reset Fix — 1 sesión privada puntual para una zona prioritaria, una tensión clara o una sensación de cuerpo cargado.",
-        "Ideal si quieres una primera experiencia simple, recuperar movilidad y sentir más ligereza.",
-        "French Body Reset Full — protocolo completo en 3 sesiones para un trabajo más profundo y progresivo.",
-        "Ideal si quieres lectura corporal, trabajo manual preciso, integración, seguimiento post-reset y orientación personalizada.",
-      ],
-      launchRateLine: "Escribe por WhatsApp para saber qué formato corresponde mejor a tu cuerpo.",
-      showPrice: false,
-    },
+    offerBlock: esCfg.offerBlock,
+    offerBlocks: esCfg.offerBlocks,
+    shortForm: esCfg.shortForm,
     testimonial: {
       posterSrc: "/practice-01.webp",
       cta: "Preguntar a Grégory qué formato elegir",
@@ -114,20 +108,36 @@ const esBodyResetCopy = {
       proofLine: "Experiencia francesa · Atención privada · Orientación personalizada",
       imageAlt: "Body Reset — CDMX",
     },
-    whatsappMessages: {
-      default:
-        "Hola Grégory, estoy en CDMX y quiero reservar una sesión de Body Reset. Me interesa saber si me conviene Body Reset Fix o French Body Reset Full.",
-      book_intent:
-        "Hola Grégory, estoy en CDMX y quiero reservar Body Reset Fix para una zona prioritaria.",
-      more_info_intent:
-        "Hola Grégory, estoy en CDMX y quiero información sobre French Body Reset Full, el protocolo de 3 sesiones.",
-      testimonial_cta:
-        "Hola Grégory, vi la información de Body Reset en CDMX y quiero saber qué formato me conviene.",
-      sticky_cta:
-        "Hola Grégory, estoy en CDMX y quiero reservar una sesión de Body Reset.",
-    },
+    whatsappMessages: esCfg.whatsapp.messages,
   },
 };
+
+function ga4MeasurementId() {
+  return process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID ?? null;
+}
+
+function buildLandingContent(loc: "en" | "es" | "fr") {
+  const cfg = CDMX_PRIVATE_SESSION_CAMPAIGNS[loc];
+  if (loc === "es") return esBodyResetCopy.content;
+
+  return {
+    difference: cfg.difference,
+    offerBlock: cfg.offerBlock,
+    offerBlocks: cfg.offerBlocks,
+    shortForm: cfg.shortForm,
+    testimonial: cfg.testimonial,
+    stickyCta: cfg.stickyCta,
+    sections: cfg.sections,
+    forYouIfTitle: cfg.forYouIf.title,
+    processTitle: cfg.process.title,
+    hero: {
+      eyebrow: cfg.hero.eyebrow,
+      proofLine: cfg.hero.proofLine,
+      imageAlt: cfg.hero.imageAlt,
+    },
+    whatsappMessages: cfg.whatsapp.messages,
+  };
+}
 
 export async function seedGrowthCdmx(prisma: PrismaClient) {
   const phone =
@@ -197,7 +207,7 @@ export async function seedGrowthCdmx(prisma: PrismaClient) {
     update: {
       metaPixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID ?? null,
       tiktokPixelId: process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID ?? null,
-      ga4MeasurementId: process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID ?? null,
+      ga4MeasurementId: ga4MeasurementId(),
       status: "ACTIVE",
     },
     create: {
@@ -206,9 +216,9 @@ export async function seedGrowthCdmx(prisma: PrismaClient) {
       label: "CDMX Default Tracking",
       metaPixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID ?? null,
       tiktokPixelId: process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID ?? null,
-      ga4MeasurementId: process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID ?? null,
+      ga4MeasurementId: ga4MeasurementId(),
       enableMeta: true,
-      enableGA4: Boolean(process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID),
+      enableGA4: Boolean(ga4MeasurementId()),
       enableTikTok: Boolean(process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID),
       status: "ACTIVE",
     },
@@ -286,7 +296,7 @@ export async function seedGrowthCdmx(prisma: PrismaClient) {
 
   for (const loc of locales) {
     const cfg = CDMX_PRIVATE_SESSION_CAMPAIGNS[loc];
-    const locale = loc === "en" ? "EN" : loc === "es" ? "ES" : "FR";
+    const locale: Locale = loc === "en" ? "EN" : loc === "es" ? "ES" : "FR";
     const isSpanish = loc === "es";
     const landingData = {
       destinationId: destination.id,
@@ -320,23 +330,7 @@ export async function seedGrowthCdmx(prisma: PrismaClient) {
       xDefault: loc === "es",
       areaServed: "Ciudad de México",
       publishedAt: new Date(),
-      content: isSpanish
-        ? esBodyResetCopy.content
-        : {
-            difference: cfg.difference,
-            offerBlock: cfg.offerBlock,
-            testimonial: cfg.testimonial,
-            stickyCta: cfg.stickyCta,
-            sections: cfg.sections,
-            forYouIfTitle: cfg.forYouIf.title,
-            processTitle: cfg.process.title,
-            hero: {
-              eyebrow: cfg.hero.eyebrow,
-              proofLine: cfg.hero.proofLine,
-              imageAlt: cfg.hero.imageAlt,
-            },
-            whatsappMessages: cfg.whatsapp.messages,
-          },
+      content: buildLandingContent(loc),
     };
 
     const landing = await prisma.landingPage.upsert({
@@ -362,7 +356,10 @@ export async function seedGrowthCdmx(prisma: PrismaClient) {
 
     await prisma.testimonial.upsert({
       where: { id: `cdmx-testimonial-${loc}` },
-      update: {},
+      update: {
+        quoteShort: isSpanish ? esBodyResetCopy.content.testimonial.cta : cfg.testimonial.cta,
+        status: "LIVE",
+      },
       create: {
         id: `cdmx-testimonial-${loc}`,
         displayName: loc === "es" ? "Cliente CDMX" : loc === "en" ? "US Client" : "Cliente FR",
@@ -381,7 +378,7 @@ export async function seedGrowthCdmx(prisma: PrismaClient) {
 
     await prisma.redirectRule.upsert({
       where: { sourcePath: LEGACY_PATHS[loc] },
-      update: { targetPath: `/${loc}/${SLUGS[loc]}`, active: true },
+      update: { targetPath: `/${loc}/${SLUGS[loc]}`, active: true, statusCode: 301 },
       create: {
         sourcePath: LEGACY_PATHS[loc],
         targetPath: `/${loc}/${SLUGS[loc]}`,

@@ -17,8 +17,19 @@ export type WhatsappIntent =
   | "sticky_cta";
 
 export type CampaignLeadOption = {
-  value: CampaignNeedCategory;
+  value: string;
   label: string;
+};
+
+export type CampaignOfferBlock = {
+  title: string;
+  bullets: string[];
+  launchRateLine?: string;
+  showPrice: boolean;
+  priceLabel?: string;
+  priceValue?: string;
+  whatsappIntent?: WhatsappIntent;
+  ctaLabel?: string;
 };
 
 export type CampaignLandingConfig = {
@@ -68,6 +79,7 @@ export type CampaignLandingConfig = {
     priceLabel?: string;
     priceValue?: string;
   };
+  offerBlocks?: CampaignOfferBlock[];
   proof: {
     badges: Array<{ value: string; label: string }>;
   };
@@ -101,6 +113,18 @@ export type CampaignLandingConfig = {
     successNote: string;
     newRequest: string;
     whatsappAfterLabel: string;
+    nameLabel?: string;
+    namePlaceholder?: string;
+    zoneLabel?: string;
+    zonePlaceholder?: string;
+    offerLabel?: string;
+    offerPlaceholder?: string;
+    offerOptions?: Array<{ value: string; label: string }>;
+    urgencyLabel?: string;
+    urgencyPlaceholder?: string;
+    urgencyOptions?: Array<{ value: string; label: string }>;
+    contextLabel?: string;
+    contextPlaceholder?: string;
   };
   stickyCta: {
     whatsapp: string;
@@ -143,15 +167,15 @@ export function getCdmxWhatsappNumber() {
 const CDMX_WHATSAPP_MESSAGES: Record<"fr" | "en" | "es", Record<WhatsappIntent, string>> = {
   es: {
     default:
-      "Hola Grégory, estoy en CDMX y quiero consultar disponibilidad para una sesión de 75 min de Reset Corporal Francés.",
+      "Hola Grégory, estoy en CDMX y me gustaría orientación sobre Body Reset Fix o French Body Reset Full.",
     book_intent:
-      "Hola Grégory, estoy en CDMX y quiero reservar una sesión de 75 min de Reset Corporal Francés.",
+      "Hola Grégory, estoy en CDMX y quiero reservar una sesión Body Reset Fix.",
     more_info_intent:
-      "Hola Grégory, estoy en CDMX y me gustaría más información sobre el Reset Corporal Francés.",
+      "Hola Grégory, estoy en CDMX y me gustaría información sobre French Body Reset Full.",
     testimonial_cta:
-      "Hola Grégory, vi el testimonio y me gustaría saber si una sesión de Reset Corporal Francés es adecuada para mí en CDMX.",
+      "Hola Grégory, vi el testimonio y me gustaría saber si Body Reset es adecuado para mí en CDMX.",
     sticky_cta:
-      "Hola Grégory, estoy en CDMX y quiero consultar disponibilidad para una sesión de 75 min.",
+      "Hola Grégory, estoy en CDMX y quiero reservar una sesión Body Reset.",
   },
   en: {
     default:
@@ -249,7 +273,7 @@ const sharedNeedOptions: Record<"fr" | "en" | "es", CampaignLeadOption[]> = {
 export const CDMX_PRIVATE_SESSION_CAMPAIGNS: Record<"fr" | "en" | "es", CampaignLandingConfig> = {
   es: {
     ...campaignCore,
-    route: "/es/sesion-privada-cdmx",
+    route: "/es/reset-corporal-frances-cdmx",
     language: "ES",
     htmlLang: "es",
     whatsappUrls: {
@@ -260,48 +284,71 @@ export const CDMX_PRIVATE_SESSION_CAMPAIGNS: Record<"fr" | "en" | "es", Campaign
       sticky_cta: getCdmxWhatsappUrl("es", "sticky_cta"),
     },
     meta: {
-      title: "Reset Corporal Francés en CDMX | No es un masaje clásico | Grégory Tordjman",
+      title: "Body Reset CDMX | No es un masaje clásico | Grégory Tordjman",
       description:
-        "No es un masaje clásico. Sesión privada de 75 minutos de Reset Corporal Francés en Ciudad de México con Grégory Tordjman. Disponibilidad limitada esta semana.",
+        "No es un masaje clásico. Sesión privada Body Reset en Ciudad de México con Grégory Tordjman — Body Reset Fix o French Body Reset Full. Disponibilidad limitada.",
     },
     hero: {
       eyebrow: "Sesión privada · CDMX",
-      title: "¿Cuello rígido, espalda cargada o cuerpo pesado en CDMX?",
+      title: "Body Reset — CDMX",
       subtitle:
-        "No es un masaje clásico. Es una sesión de 75 minutos de Reset Corporal Francés con Grégory Tordjman para ayudar al cuerpo a soltar tensión profunda, recuperar movilidad y bajar el estrés acumulado.",
+        "Una sesión privada para soltar tensiones y recuperar un cuerpo más libre.",
       microNote: "Sesiones privadas en CDMX con cita previa. Disponibilidad limitada esta semana.",
       ctaPrimary: "Consultar disponibilidad por WhatsApp",
-      ctaSecondary: "Reservar una sesión de 75 min",
+      ctaSecondary: "Reservar Body Reset",
       proofLine: "Desde 2014 · 9,000+ cuerpos acompañados · 230+ terapeutas formados",
-      imageAlt: "Grégory Tordjman — Reset Corporal Francés en CDMX",
+      imageAlt: "Grégory Tordjman — Body Reset en CDMX",
     },
     forYouIf: {
       title: "Para ti si tu cuerpo se siente cargado.",
-      items: sharedNeedOptions.es.map((o) => o.label),
+      items: [
+        "Cuello rígido o espalda cargada",
+        "Cuerpo pesado después de semanas intensas",
+        "Estrés acumulado y poca movilidad",
+        "Buscas un enfoque profundo, no un masaje de spa",
+      ],
     },
     difference: {
-      title: "Esto no es un masaje de spa.",
-      body: "Un masaje de spa suele buscar relajación general. El Reset Corporal Francés empieza con una lectura del cuerpo: postura, respiración, zonas de tensión y movilidad. Después, el trabajo manual se adapta a lo que tu cuerpo presenta ese día.",
+      title: "No es un masaje clásico.",
+      body: "Body Reset es un acompañamiento manual premium: lectura del cuerpo, trabajo profundo calibrado y enfoque en tensión y movilidad. No promete curación ni sustituye una consulta médica.",
       points: [
-        "Lectura del cuerpo primero",
-        "Trabajo manual profundo pero calibrado",
-        "Enfoque en tensión, movilidad y relajación del sistema nervioso",
-        "Respuesta personal de Grégory",
+        "Lectura del cuerpo antes de intervenir",
+        "Trabajo manual profundo pero respetuoso",
+        "Enfoque en tensión, movilidad y bienestar corporal",
+        "Respuesta personal de Grégory por WhatsApp",
         "La orientación médica sigue siendo prioritaria cuando hace falta",
       ],
       imageAlt: "Gesto manual de la Método TMS®",
     },
     offerBlock: {
-      title: "Sesión de lanzamiento CDMX",
-      bullets: [
-        "Sesión privada de 75 minutos",
-        "Solo con cita previa",
-        "Respuesta personal por WhatsApp",
-        "Disponibilidad limitada esta semana",
-      ],
-      launchRateLine: "Tarifa de lanzamiento disponible esta semana por WhatsApp.",
+      title: "Elige tu camino Body Reset",
+      bullets: [],
       showPrice: false,
     },
+    offerBlocks: [
+      {
+        title: "Body Reset Fix",
+        bullets: [
+          "1 sesión puntual",
+          "Ideal para una tensión concreta",
+          "Respuesta personal por WhatsApp",
+        ],
+        showPrice: false,
+        whatsappIntent: "book_intent",
+        ctaLabel: "Reservar Body Reset Fix",
+      },
+      {
+        title: "French Body Reset Full",
+        bullets: [
+          "Protocolo de 3 sesiones",
+          "Para un reset corporal más completo",
+          "Acompañamiento personalizado",
+        ],
+        showPrice: false,
+        whatsappIntent: "more_info_intent",
+        ctaLabel: "Información French Body Reset Full",
+      },
+    ],
     proof: {
       badges: [
         { value: "Desde 2014", label: "Método TMS®" },
@@ -313,16 +360,16 @@ export const CDMX_PRIVATE_SESSION_CAMPAIGNS: Record<"fr" | "en" | "es", Campaign
     },
     testimonial: {
       posterSrc: "/practice-01.webp",
-      cta: "Preguntar a Grégory si una sesión es adecuada para ti",
+      cta: "Preguntar a Grégory si Body Reset es adecuado para ti",
     },
     process: {
       title: "Cómo funciona",
       steps: [
         "Envía un WhatsApp",
-        "Dime dónde sientes tensión",
+        "Indica tu zona y lo que sientes",
         "Grégory revisa la disponibilidad",
-        "Reserva tu sesión de 75 min",
-        "Recibe tu Reset Corporal Francés",
+        "Reserva tu sesión Body Reset",
+        "Recibe tu acompañamiento personalizado",
       ],
     },
     shortForm: {
@@ -350,24 +397,34 @@ export const CDMX_PRIVATE_SESSION_CAMPAIGNS: Record<"fr" | "en" | "es", Campaign
       successNote: "Tu solicitud queda registrada de forma confidencial.",
       newRequest: "Enviar otra solicitud",
       whatsappAfterLabel: "Añadir contexto por WhatsApp",
+      nameLabel: "Nombre",
+      namePlaceholder: "Tu nombre",
+      zoneLabel: "Zona prioritaria",
+      zonePlaceholder: "Polanco, Roma, Condesa, Reforma…",
+      offerLabel: "Oferta deseada",
+      offerPlaceholder: "Selecciona una opción",
+      offerOptions: [
+        { value: "body_reset_fix", label: "Body Reset Fix — 1 sesión puntual" },
+        { value: "french_body_reset_full", label: "French Body Reset Full — protocolo de 3 sesiones" },
+        { value: "unsure", label: "No sé todavía, quiero orientación" },
+      ],
+      urgencyLabel: "Urgencia",
+      urgencyPlaceholder: "Selecciona una opción",
+      urgencyOptions: [
+        { value: "this_week", label: "Esta semana" },
+        { value: "next_week", label: "Próxima semana" },
+        { value: "this_month", label: "Este mes" },
+        { value: "flexible", label: "Flexible" },
+      ],
+      contextLabel: "Mensaje opcional",
+      contextPlaceholder: "Cuéntanos brevemente lo que sientes o lo que buscas",
     },
     stickyCta: {
       whatsapp: "WhatsApp Grégory",
-      booking: "Reservar 75 min",
+      booking: "Reservar Body Reset",
     },
     whatsapp: {
-      messages: {
-        default:
-          "Hola Grégory, estoy en CDMX y quiero consultar disponibilidad para una sesión de 75 min de Reset Corporal Francés.",
-        book_intent:
-          "Hola Grégory, estoy en CDMX y quiero reservar una sesión de 75 min de Reset Corporal Francés.",
-        more_info_intent:
-          "Hola Grégory, estoy en CDMX y me gustaría más información sobre el Reset Corporal Francés.",
-        testimonial_cta:
-          "Hola Grégory, vi el testimonio y me gustaría saber si una sesión de Reset Corporal Francés es adecuada para mí en CDMX.",
-        sticky_cta:
-          "Hola Grégory, estoy en CDMX y quiero consultar disponibilidad para una sesión de 75 min.",
-      },
+      messages: CDMX_WHATSAPP_MESSAGES.es,
     },
     sections: {
       processEyebrow: "Proceso",
@@ -378,7 +435,7 @@ export const CDMX_PRIVATE_SESSION_CAMPAIGNS: Record<"fr" | "en" | "es", Campaign
       {
         question: "¿Reemplaza una consulta médica?",
         answer:
-          "No. La Método TMS® es un acompañamiento manual de bienestar y confort corporal. No reemplaza un diagnóstico ni un tratamiento médico.",
+          "No. Body Reset es un acompañamiento manual de bienestar corporal. No reemplaza un diagnóstico ni un tratamiento médico.",
       },
       {
         question: "¿Duele?",
@@ -386,25 +443,21 @@ export const CDMX_PRIVATE_SESSION_CAMPAIGNS: Record<"fr" | "en" | "es", Campaign
           "El trabajo puede ser profundo, pero está calibrado. Grégory trabaja con el cuerpo, nunca contra él.",
       },
       {
-        question: "¿Dónde se realiza la sesión?",
+        question: "¿Cuál es la diferencia entre Fix y Full?",
         answer:
-          "Según disponibilidad y condiciones del lugar, en un espacio privado adaptado en Ciudad de México.",
-      },
-      {
-        question: "¿Cuánto dura la sesión?",
-        answer: "La sesión privada CDMX dura 75 minutos.",
+          "Body Reset Fix es una sesión puntual. French Body Reset Full es un protocolo de 3 sesiones para un reset más completo.",
       },
       {
         question: "¿Cómo reservo?",
         answer:
-          "Envía un WhatsApp. Grégory o el workflow CRM calificará tu solicitud y te propondrá la próxima disponibilidad.",
+          "Envía un WhatsApp o completa el formulario. Grégory revisará tu solicitud y te orientará según disponibilidad.",
       },
     ],
   },
 
   en: {
     ...campaignCore,
-    route: "/en/mexico-city-private-session",
+    route: "/en/mexico-city-french-body-reset",
     language: "EN",
     htmlLang: "en",
     whatsappUrls: {
@@ -559,7 +612,7 @@ export const CDMX_PRIVATE_SESSION_CAMPAIGNS: Record<"fr" | "en" | "es", Campaign
 
   fr: {
     ...campaignCore,
-    route: "/fr/seance-privee-mexico-city",
+    route: "/fr/french-body-reset-mexico-city",
     language: "FR",
     htmlLang: "fr",
     whatsappUrls: {
