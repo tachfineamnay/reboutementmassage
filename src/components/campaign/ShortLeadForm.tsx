@@ -1,15 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import type { CampaignLandingConfig, CampaignNeedCategory } from "@/data/campaign-landings";
+import type { CampaignLandingConfig } from "@/data/campaign-landings";
 import { trackCampaignEvent } from "@/lib/campaign-tracking";
 
 type ShortFormState = {
-  needType: CampaignNeedCategory | "";
+  needType: string;
   contact: string;
   preferredLanguage: "FR" | "EN" | "ES" | "";
   firstName: string;
-  zone: string;
   offerIntent: string;
   urgency: string;
   context: string;
@@ -50,6 +49,15 @@ function getOfferLabel(
   return copy.offerOptions?.find((option) => option.value === offerIntent)?.label ?? offerIntent;
 }
 
+function getOptionLabel(options: Array<{ value: string; label: string }> | undefined, value: string) {
+  return options?.find((option) => option.value === value)?.label ?? value;
+}
+
+function normalizeOfferIntent(value: string) {
+  if (value === "body_reset_fix" || value === "french_body_reset_full") return value;
+  return "orientation";
+}
+
 export default function ShortLeadForm({
   config,
   id = "solicitud",
@@ -65,7 +73,6 @@ export default function ShortLeadForm({
     contact: "",
     preferredLanguage: config.language,
     firstName: "",
-    zone: "",
     offerIntent: "",
     urgency: "",
     context: "",
@@ -94,7 +101,6 @@ export default function ShortLeadForm({
       contact: "",
       preferredLanguage: config.language,
       firstName: "",
-      zone: "",
       offerIntent: "",
       urgency: "",
       context: "",
@@ -109,7 +115,7 @@ export default function ShortLeadForm({
       if (
         !isValidFirstName(form.firstName) ||
         !isValidContact(form.contact) ||
-        !form.zone.trim() ||
+        !form.needType ||
         !form.offerIntent ||
         !form.urgency
       ) {
@@ -126,8 +132,16 @@ export default function ShortLeadForm({
     const eventId = createMetaEventId();
 
     const offerLabel = form.offerIntent ? getOfferLabel(copy, form.offerIntent) : "";
+    const needLabel = getOptionLabel(copy.needOptions, form.needType);
+    const urgencyLabel = getOptionLabel(copy.urgencyOptions, form.urgency);
+    const normalizedIntent = normalizeOfferIntent(form.offerIntent);
     const contextParts = isExtendedForm
-      ? [`Oferta deseada: ${offerLabel}`, form.context.trim()].filter(Boolean)
+      ? [
+          `${copy.tensionLabel}: ${needLabel}`,
+          copy.offerLabel ? `${copy.offerLabel}: ${offerLabel}` : `Formato: ${offerLabel}`,
+          copy.urgencyLabel ? `${copy.urgencyLabel}: ${urgencyLabel}` : `Urgencia: ${urgencyLabel}`,
+          form.context.trim() ? `${copy.contextLabel ?? "Mensaje"}: ${form.context.trim()}` : "",
+        ].filter(Boolean)
       : [`Langue préférée: ${form.preferredLanguage}`];
 
     try {
@@ -154,8 +168,12 @@ export default function ShortLeadForm({
             offerType: config.offerType,
             ...(isExtendedForm
               ? {
-                  offerIntent: form.offerIntent,
+                  offerIntent: normalizedIntent,
+                  offerLabel,
+                  needType: form.needType,
+                  needLabel,
                   urgency: form.urgency,
+                  urgencyLabel,
                 }
               : {}),
           },
@@ -164,14 +182,14 @@ export default function ShortLeadForm({
           propertyType: null,
           destination: config.cityName,
           leadSegment: config.leadSegment,
-          intent: isExtendedForm ? form.offerIntent : config.offerType || "private_session",
+          intent: isExtendedForm ? normalizedIntent : config.offerType || "private_session",
           preferredChannel: "ghl",
           routedToUrl: null,
-          urgency: isExtendedForm ? form.urgency : "Cette semaine",
-          needType: isExtendedForm ? form.zone.trim() : form.needType,
+          urgency: isExtendedForm ? urgencyLabel : "Cette semaine",
+          needType: isExtendedForm ? needLabel : form.needType,
           volumePotential: null,
           participantCount: null,
-          currentLocation: isExtendedForm ? form.zone.trim() : config.cityName,
+          currentLocation: config.cityName,
           landingPageId: config.landingPageId,
           destinationId: config.destinationId,
           offerId: config.offerId,
@@ -190,7 +208,7 @@ export default function ShortLeadForm({
         need_type: isExtendedForm ? undefined : (form.needType || undefined),
         meta_event_id: eventId,
         city: config.destinationSlug,
-        offer: isExtendedForm ? form.offerIntent : config.offerType,
+        offer: isExtendedForm ? normalizedIntent : config.offerType,
         session_duration: config.durationMinutes ? `${config.durationMinutes}_min` : undefined,
         content_name: config.tracking.viewContentName,
         lead_segment: config.leadSegment,
@@ -287,20 +305,23 @@ export default function ShortLeadForm({
                 />
               </label>
 
-              {copy.zoneLabel && (
-                <label className="campaign-short-form__field">
-                  <span className="campaign-short-form__label">{copy.zoneLabel}</span>
-                  <input
-                    className="campaign-short-form__input"
-                    type="text"
-                    placeholder={copy.zonePlaceholder}
-                    value={form.zone}
-                    onChange={(e) => setForm((f) => ({ ...f, zone: e.target.value }))}
-                    onFocus={handleFocus}
-                    required
-                  />
-                </label>
-              )}
+              <label className="campaign-short-form__field">
+                <span className="campaign-short-form__label">{copy.tensionLabel}</span>
+                <select
+                  className="campaign-short-form__input"
+                  value={form.needType}
+                  onChange={(e) => setForm((f) => ({ ...f, needType: e.target.value }))}
+                  onFocus={handleFocus}
+                  required
+                >
+                  <option value="">{copy.tensionPlaceholder}</option>
+                  {copy.needOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
               {copy.offerLabel && copy.offerOptions?.length ? (
                 <label className="campaign-short-form__field">
@@ -363,7 +384,7 @@ export default function ShortLeadForm({
                 <select
                   className="campaign-short-form__input"
                   value={form.needType}
-                  onChange={(e) => setForm((f) => ({ ...f, needType: e.target.value as CampaignNeedCategory }))}
+                  onChange={(e) => setForm((f) => ({ ...f, needType: e.target.value }))}
                   onFocus={handleFocus}
                   required
                 >

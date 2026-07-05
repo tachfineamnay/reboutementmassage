@@ -32,6 +32,15 @@ export type CampaignOfferBlock = {
   ctaLabel?: string;
 };
 
+export type CampaignOfferCard = {
+  title: string;
+  subtitle: string;
+  description: string;
+  includes: string[];
+  ctaLabel: string;
+  whatsappIntent: WhatsappIntent;
+};
+
 export type CampaignLandingConfig = {
   id: string;
   route: string;
@@ -55,14 +64,17 @@ export type CampaignLandingConfig = {
     eyebrow: string;
     title: string;
     subtitle: string;
+    body?: string;
     microNote: string;
     ctaPrimary: string;
     ctaSecondary: string;
+    ctaSecondaryHref?: string;
     proofLine: string;
     imageAlt: string;
   };
   forYouIf: {
     title: string;
+    body?: string;
     items: string[];
   };
   difference: {
@@ -78,6 +90,13 @@ export type CampaignLandingConfig = {
     showPrice: boolean;
     priceLabel?: string;
     priceValue?: string;
+    cards?: CampaignOfferCard[];
+  };
+  finalCta?: {
+    title: string;
+    body: string;
+    primary: string;
+    secondary: string;
   };
   offerBlocks?: CampaignOfferBlock[];
   proof: {
@@ -158,7 +177,7 @@ export type CampaignLandingConfig = {
   };
 };
 
-const DEFAULT_WHATSAPP_NUMBER = "33665517735";
+const DEFAULT_WHATSAPP_NUMBER = "";
 
 export function getCdmxWhatsappNumber() {
   return process.env.NEXT_PUBLIC_CDMX_WHATSAPP_NUMBER?.replace(/\D/g, "") || DEFAULT_WHATSAPP_NUMBER;
@@ -167,15 +186,15 @@ export function getCdmxWhatsappNumber() {
 const CDMX_WHATSAPP_MESSAGES: Record<"fr" | "en" | "es", Record<WhatsappIntent, string>> = {
   es: {
     default:
-      "Hola Grégory, estoy en CDMX y me gustaría orientación sobre Body Reset Fix o French Body Reset Full.",
+      "Hola Grégory, estoy en CDMX y quiero reservar una sesión de Body Reset. Me interesa saber si me conviene Body Reset Fix o French Body Reset Full.",
     book_intent:
-      "Hola Grégory, estoy en CDMX y quiero reservar una sesión Body Reset Fix.",
+      "Hola Grégory, estoy en CDMX y quiero reservar Body Reset Fix para una zona prioritaria.",
     more_info_intent:
-      "Hola Grégory, estoy en CDMX y me gustaría información sobre French Body Reset Full.",
+      "Hola Grégory, estoy en CDMX y quiero información sobre French Body Reset Full, el protocolo de 3 sesiones.",
     testimonial_cta:
-      "Hola Grégory, vi el testimonio y me gustaría saber si Body Reset es adecuado para mí en CDMX.",
+      "Hola Grégory, vi la información de Body Reset en CDMX y quiero saber qué formato me conviene.",
     sticky_cta:
-      "Hola Grégory, estoy en CDMX y quiero reservar una sesión Body Reset.",
+      "Hola Grégory, estoy en CDMX y quiero reservar una sesión de Body Reset.",
   },
   en: {
     default:
@@ -204,8 +223,10 @@ const CDMX_WHATSAPP_MESSAGES: Record<"fr" | "en" | "es", Record<WhatsappIntent, 
 };
 
 function buildCdmxWhatsappUrl(locale: "fr" | "en" | "es", intent: WhatsappIntent) {
+  const phone = getCdmxWhatsappNumber();
+  if (!phone) return "#";
   const text = CDMX_WHATSAPP_MESSAGES[locale][intent];
-  return `https://wa.me/${getCdmxWhatsappNumber()}?text=${encodeURIComponent(text)}`;
+  return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
 }
 
 export function getCdmxWhatsappUrl(locale: "fr" | "en" | "es", intent: WhatsappIntent = "default") {

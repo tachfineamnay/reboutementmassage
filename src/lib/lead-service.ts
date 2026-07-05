@@ -86,6 +86,9 @@ const DEFAULT_TAGS = ["source-site-premium", "channel-ghl"];
 const DEFAULT_GHL_SOURCE = "Landing Méthode TMS";
 const GHL_INTENT_LABELS: Record<string, string> = {
   private_session: "Demande privée Méthode TMS",
+  body_reset_fix: "Body Reset Fix CDMX",
+  french_body_reset_full: "French Body Reset Full CDMX",
+  orientation: "Orientation Body Reset CDMX",
   hospitality_partner: "Partenaire hospitality",
   training: "Formation TMS",
   workshop: "Workshop TMS",

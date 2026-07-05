@@ -14,6 +14,7 @@ function WhatsAppIcon() {
 
 export default function CampaignHero({ config }: { config: CampaignLandingConfig }) {
   const whatsappUrl = config.whatsappUrls.default;
+  const secondaryHref = config.hero.ctaSecondaryHref ?? "#solicitud";
 
   function handleWhatsappClick() {
     trackCampaignEvent("hero_whatsapp_clicked", {
@@ -54,6 +55,7 @@ export default function CampaignHero({ config }: { config: CampaignLandingConfig
           <span className="eyebrow eyebrow--gold">{config.hero.eyebrow}</span>
           <h1 className="campaign-hero__title">{config.hero.title}</h1>
           <p className="campaign-hero__sub">{config.hero.subtitle}</p>
+          {config.hero.body && <p className="campaign-hero__body">{config.hero.body}</p>}
           <p className="campaign-hero__note">{config.hero.microNote}</p>
 
           <div className="campaign-hero__ctas">
@@ -68,7 +70,7 @@ export default function CampaignHero({ config }: { config: CampaignLandingConfig
               <span>{config.hero.ctaPrimary}</span>
             </a>
             <a
-              href="#solicitud"
+              href={secondaryHref}
               className="btn-secondary campaign-hero__cta-book"
               onClick={handleBookingClick}
             >

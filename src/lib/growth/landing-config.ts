@@ -48,6 +48,26 @@ function asOfferBlocks(value: unknown): CampaignLandingConfig["offerBlocks"] {
     }));
 }
 
+function asOfferCards(value: unknown): CampaignLandingConfig["offerBlock"]["cards"] {
+  if (!Array.isArray(value)) return undefined;
+  const cards = value
+    .filter((v): v is Record<string, unknown> => typeof v === "object" && v !== null)
+    .map((card) => ({
+      title: String(card.title ?? ""),
+      subtitle: String(card.subtitle ?? ""),
+      description: String(card.description ?? ""),
+      includes: asStringArray(card.includes),
+      ctaLabel: String(card.ctaLabel ?? ""),
+      whatsappIntent:
+        typeof card.whatsappIntent === "string"
+          ? (card.whatsappIntent as WhatsappIntent)
+          : ("book_intent" as WhatsappIntent),
+    }))
+    .filter((card) => card.title && card.ctaLabel);
+
+  return cards.length ? cards : undefined;
+}
+
 function asFaq(value: unknown): Array<{ question: string; answer: string }> {
   if (!Array.isArray(value)) return [];
   return value
@@ -175,6 +195,20 @@ function buildWhatsappMessages(
   };
 }
 
+function buildWhatsappUrl(channel: WhatsappChannel | null, message: string) {
+  if (!channel) return "#";
+  const phone = channel.phoneE164.replace(/\D/g, "");
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+}
+
+function asStringRecord(value: unknown): Record<string, string> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return {};
+  return Object.entries(value).reduce<Record<string, string>>((acc, [key, raw]) => {
+    if (typeof raw === "string") acc[key] = raw;
+    return acc;
+  }, {});
+}
+
 export function landingPageToCampaignConfig(landing: LandingPageWithRelations): CampaignLandingConfig {
   const content = (landing.content ?? {}) as JsonRecord;
   const lang = localeToLang(landing.locale);
@@ -187,6 +221,7 @@ export function landingPageToCampaignConfig(landing: LandingPageWithRelations): 
   const heroExtra = (content.hero ?? {}) as JsonRecord;
   const stickyCta = (content.stickyCta ?? {}) as JsonRecord;
   const sections = (content.sections ?? {}) as JsonRecord;
+  const finalCta = (content.finalCta ?? {}) as JsonRecord;
   const offer = landing.offer;
 
   const painItems = asStringArray(landing.painChips);
@@ -202,23 +237,35 @@ export function landingPageToCampaignConfig(landing: LandingPageWithRelations): 
   const channel = landing.whatsappChannel;
   const messages = buildWhatsappMessages(channel, content, lang);
   const cityContext = { city: landing.destination.cityName };
+  const hasContentMessages = typeof content.whatsappMessages === "object" && content.whatsappMessages !== null;
   const whatsappUrls = {
-    default: channel
-      ? generateWhatsappUrl(channel, landing.locale, "default", cityContext)
-      : "#",
-    book_intent: channel
-      ? generateWhatsappUrl(channel, landing.locale, "book_intent", cityContext)
-      : "#",
-    more_info_intent: channel
-      ? generateWhatsappUrl(channel, landing.locale, "more_info_intent", cityContext)
-      : "#",
-    testimonial_cta: channel
-      ? generateWhatsappUrl(channel, landing.locale, "testimonial_cta", cityContext)
-      : "#",
-    sticky_cta: channel
-      ? generateWhatsappUrl(channel, landing.locale, "sticky_cta", cityContext)
-      : "#",
+    default: hasContentMessages
+      ? buildWhatsappUrl(channel, messages.default)
+      : channel
+        ? generateWhatsappUrl(channel, landing.locale, "default", cityContext)
+        : "#",
+    book_intent: hasContentMessages
+      ? buildWhatsappUrl(channel, messages.book_intent)
+      : channel
+        ? generateWhatsappUrl(channel, landing.locale, "book_intent", cityContext)
+        : "#",
+    more_info_intent: hasContentMessages
+      ? buildWhatsappUrl(channel, messages.more_info_intent)
+      : channel
+        ? generateWhatsappUrl(channel, landing.locale, "more_info_intent", cityContext)
+        : "#",
+    testimonial_cta: hasContentMessages
+      ? buildWhatsappUrl(channel, messages.testimonial_cta)
+      : channel
+        ? generateWhatsappUrl(channel, landing.locale, "testimonial_cta", cityContext)
+        : "#",
+    sticky_cta: hasContentMessages
+      ? buildWhatsappUrl(channel, messages.sticky_cta)
+      : channel
+        ? generateWhatsappUrl(channel, landing.locale, "sticky_cta", cityContext)
+        : "#",
   };
+  const branchData = asStringRecord(content.branchData);
 
   return {
     id: landing.id,
@@ -252,23 +299,31 @@ export function landingPageToCampaignConfig(landing: LandingPageWithRelations): 
     branchData: {
       campaignCity: landing.destination.slug,
       offer: "private_session",
+      offerFamily: branchData.offerFamily ?? "body_reset",
       landing: landing.slug,
       landingPageId: landing.id,
       destinationId: landing.destinationId,
       offerId: landing.offerId ?? "",
       durationMinutes: String(offer?.durationMinutes ?? 75),
+      ...branchData,
     },
     hero: {
       eyebrow: String(heroExtra.eyebrow ?? `${landing.destination.displayNameEn} · Private session`),
       title: landing.heroTitle,
       subtitle: landing.heroSubtitle ?? "",
+      body: typeof heroExtra.body === "string" ? heroExtra.body : undefined,
       microNote: landing.microNote ?? "",
       ctaPrimary: landing.primaryCta ?? "WhatsApp",
       ctaSecondary: landing.secondaryCta ?? "Book",
+      ctaSecondaryHref: typeof heroExtra.secondaryHref === "string" ? heroExtra.secondaryHref : undefined,
       proofLine: String(heroExtra.proofLine ?? ""),
       imageAlt: String(heroExtra.imageAlt ?? landing.heroTitle),
     },
-    forYouIf: { title: forYouTitle, items: painItems },
+    forYouIf: {
+      title: forYouTitle,
+      body: typeof content.forYouIfBody === "string" ? content.forYouIfBody : undefined,
+      items: painItems,
+    },
     difference: {
       title: String(difference.title ?? ""),
       body: String(difference.body ?? ""),
@@ -282,7 +337,20 @@ export function landingPageToCampaignConfig(landing: LandingPageWithRelations): 
       showPrice: offer?.showPrice ?? false,
       priceLabel: offer?.priceNoteEn ?? undefined,
       priceValue: offer?.priceAmount ? String(offer.priceAmount) : undefined,
+      cards: asOfferCards(offerBlock.cards),
     },
+    finalCta:
+      typeof finalCta.title === "string" &&
+      typeof finalCta.body === "string" &&
+      typeof finalCta.primary === "string" &&
+      typeof finalCta.secondary === "string"
+        ? {
+            title: finalCta.title,
+            body: finalCta.body,
+            primary: finalCta.primary,
+            secondary: finalCta.secondary,
+          }
+        : undefined,
     offerBlocks: asOfferBlocks(content.offerBlocks),
     proof: { badges: asBadgeArray(landing.proofBadges) },
     testimonial: {

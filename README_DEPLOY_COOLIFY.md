@@ -6,7 +6,7 @@ Coolify settings:
 - Dockerfile Location: /Dockerfile
 - Ports Exposes: 3000
 - Ports Mappings: empty
-- Environment Variables: set `DATABASE_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `SITE_URL`, and upload variables listed in `.env.example`
+- Environment Variables: set `DATABASE_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `SESSION_SECRET`, `SITE_URL`, `NEXT_PUBLIC_CDMX_WHATSAPP_NUMBER`, and upload variables listed in `.env.example`
 - Force HTTPS: disable for first test, enable after HTTP works
 - Test temporary domain first with http://xxxxx.sslip.io
 
@@ -53,4 +53,4 @@ sh ./scripts/run-seed.sh
 
 The production container does not include `tsx`. Seed is bundled at image build time as `scripts/seed.bundle.cjs`. Do not use `pnpm exec tsx prisma/seed.ts` in Coolify.
 
-Required env for seed: `DATABASE_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`. Optional: `SEED_GROWTH_CDMX=1` (default).
+Required env for seed: `DATABASE_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `NEXT_PUBLIC_CDMX_WHATSAPP_NUMBER`. Optional: `SEED_GROWTH_CDMX=1` (default).

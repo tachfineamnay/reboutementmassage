@@ -2,6 +2,11 @@ import Image from "next/image";
 import type { CampaignLandingConfig } from "@/data/campaign-landings";
 
 export default function DifferenceBlock({ config }: { config: CampaignLandingConfig }) {
+  const paragraphs = config.difference.body
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+
   return (
     <section className="campaign-difference">
       <div className="campaign-difference__image">
@@ -15,7 +20,11 @@ export default function DifferenceBlock({ config }: { config: CampaignLandingCon
       </div>
       <div className="campaign-difference__copy">
         <h2 className="section-title section-title--cream">{config.difference.title}</h2>
-        <p className="campaign-difference__body">{config.difference.body}</p>
+        <div className="campaign-difference__body">
+          {paragraphs.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+        </div>
         <ul className="campaign-difference__list">
           {config.difference.points.map((point) => (
             <li key={point}>{point}</li>

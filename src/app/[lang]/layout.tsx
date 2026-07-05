@@ -8,6 +8,7 @@ import { MetaPixel } from "@/components/MetaPixel";
 import { TikTokPixel } from "@/components/TikTokPixel";
 import { absoluteUrl, isLocale } from "@/lib/seo";
 import "../globals.css";
+import "../campaign-growth.css";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],

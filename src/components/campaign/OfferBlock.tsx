@@ -1,10 +1,19 @@
-import type { CampaignLandingConfig, CampaignOfferBlock, WhatsappIntent } from "@/data/campaign-landings";
+import type {
+  CampaignLandingConfig,
+  CampaignOfferBlock,
+  CampaignOfferCard,
+  WhatsappIntent,
+} from "@/data/campaign-landings";
 import { trackCampaignEvent } from "@/lib/campaign-tracking";
 
 export default function OfferBlock({ config }: { config: CampaignLandingConfig }) {
-  const blocks: CampaignOfferBlock[] = config.offerBlocks?.length
-    ? config.offerBlocks
-    : [{ ...config.offerBlock, whatsappIntent: "book_intent" as WhatsappIntent }];
+  const cards: CampaignOfferCard[] = config.offerBlock.cards?.length
+    ? config.offerBlock.cards
+    : toOfferCards(
+        config.offerBlocks?.length
+          ? config.offerBlocks
+          : [{ ...config.offerBlock, whatsappIntent: "book_intent" as WhatsappIntent }]
+      );
 
   function handleWhatsappClick(whatsappIntent: WhatsappIntent = "book_intent", offerTitle?: string) {
     trackCampaignEvent("hero_whatsapp_clicked", {
@@ -12,6 +21,7 @@ export default function OfferBlock({ config }: { config: CampaignLandingConfig }
       cta_location: "offer",
       city: config.destinationSlug,
       offer: offerTitle ?? config.offerType,
+      offer_intent: whatsappIntent,
       session_duration: config.durationMinutes ? `${config.durationMinutes}_min` : undefined,
     });
   }
@@ -21,33 +31,26 @@ export default function OfferBlock({ config }: { config: CampaignLandingConfig }
   }
 
   return (
-    <section className="campaign-offer">
-      <div className="container container--narrow">
-        {config.offerBlocks?.length ? (
-          <h2 className="campaign-offer__section-title">{config.offerBlock.title}</h2>
-        ) : null}
-        <div className={config.offerBlocks?.length ? "campaign-offer__grid" : undefined}>
-          {blocks.map((offer) => {
+    <section className="campaign-offer" id="opciones">
+      <div className="container">
+        <h2 className="campaign-offer__section-title">{config.offerBlock.title}</h2>
+        <div className="campaign-offer__grid">
+          {cards.map((offer) => {
             const intent = offer.whatsappIntent ?? "book_intent";
             const whatsappUrl = getWhatsappUrl(intent);
 
             return (
               <div key={offer.title} className="campaign-offer__card">
-                <h2 className="campaign-offer__title">{offer.title}</h2>
+                <div className="campaign-offer__card-head">
+                  <h3 className="campaign-offer__title">{offer.title}</h3>
+                  {offer.subtitle && <p className="campaign-offer__subtitle">{offer.subtitle}</p>}
+                </div>
+                {offer.description && <p className="campaign-offer__description">{offer.description}</p>}
                 <ul className="campaign-offer__list">
-                  {offer.bullets.map((bullet) => (
+                  {offer.includes.map((bullet) => (
                     <li key={bullet}>{bullet}</li>
                   ))}
                 </ul>
-                {offer.showPrice && offer.priceLabel && offer.priceValue && (
-                  <p className="campaign-offer__price">
-                    <span>{offer.priceLabel}</span>
-                    <strong>{offer.priceValue}</strong>
-                  </p>
-                )}
-                {offer.launchRateLine && (
-                  <p className="campaign-offer__launch">{offer.launchRateLine}</p>
-                )}
                 <a
                   href={whatsappUrl}
                   target="_blank"
@@ -55,7 +58,7 @@ export default function OfferBlock({ config }: { config: CampaignLandingConfig }
                   className="btn-primary campaign-offer__cta"
                   onClick={() => handleWhatsappClick(intent, offer.title)}
                 >
-                  {offer.ctaLabel ?? config.hero.ctaPrimary}
+                  {offer.ctaLabel}
                 </a>
               </div>
             );
@@ -64,4 +67,15 @@ export default function OfferBlock({ config }: { config: CampaignLandingConfig }
       </div>
     </section>
   );
+}
+
+function toOfferCards(blocks: CampaignOfferBlock[]): CampaignOfferCard[] {
+  return blocks.map((block) => ({
+    title: block.title,
+    subtitle: "",
+    description: block.launchRateLine ?? "",
+    includes: block.bullets,
+    ctaLabel: block.ctaLabel ?? "WhatsApp",
+    whatsappIntent: block.whatsappIntent ?? "book_intent",
+  }));
 }

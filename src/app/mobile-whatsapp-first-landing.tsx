@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import CampaignFaq from "@/components/campaign/CampaignFaq";
+import CampaignFinalCta from "@/components/campaign/CampaignFinalCta";
 import CampaignHero from "@/components/campaign/CampaignHero";
 import CampaignProcess from "@/components/campaign/CampaignProcess";
 import DifferenceBlock from "@/components/campaign/DifferenceBlock";
@@ -50,14 +51,15 @@ export default function MobileWhatsappFirstLanding({ config }: { config: Campaig
       />
       <main className="campaign-page">
         <CampaignHero config={config} />
-        <ForYouIfBlock config={config} />
         <DifferenceBlock config={config} />
         <OfferBlock config={config} />
+        <ForYouIfBlock config={config} />
         <ProofBadges config={config} />
         <TestimonialVideoBlock config={config} />
         <CampaignProcess config={config} />
         <ShortLeadForm config={config} id="solicitud" />
         <CampaignFaq config={config} />
+        <CampaignFinalCta config={config} />
       </main>
       <SharedFooter lang={config.language} />
       <MobileStickyCta config={config} />

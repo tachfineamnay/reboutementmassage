@@ -1,4 +1,3 @@
-import type { CampaignNeedCategory } from "@/data/campaign-landings";
 import { trackMetaContact, trackMetaLead, trackMetaViewContent } from "@/components/MetaPixel";
 
 export type CampaignEventName =
@@ -37,7 +36,7 @@ export type CampaignTrackingParams = {
   utm_content?: string;
   creative_angle?: string;
   cta_location?: CtaLocation | string;
-  need_type?: CampaignNeedCategory;
+  need_type?: string;
   faq_question?: string;
   meta_event_id?: string;
 };
