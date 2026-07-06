@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import MobileWhatsappFirstLanding from "@/app/mobile-whatsapp-first-landing";
 import { TrackingProvider } from "@/components/TrackingProvider";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { MetaPixel } from "@/components/MetaPixel";
 import { TikTokPixel } from "@/components/TikTokPixel";
+import LandingRenderer from "@/components/landing/LandingRenderer";
 import type { LandingPageWithRelations } from "@/lib/growth/types";
 import { landingPageToDynamicConfig } from "@/lib/growth/landing-config";
 import { trackGrowthEvent } from "@/lib/growth/tracking";
@@ -52,16 +52,23 @@ export default function DynamicLandingPage({
       locale={config.htmlLang}
       offerType={config.offerType}
       session_duration={config.durationMinutes ? `${config.durationMinutes}_min` : undefined}
+      previewMode={Boolean(isPreview)}
     >
-      <GoogleAnalytics measurementId={landing.trackingProfile?.ga4MeasurementId} enabled={landing.trackingProfile?.enableGA4} />
-      <MetaPixel pixelId={landing.trackingProfile?.metaPixelId} enabled={landing.trackingProfile?.enableMeta} />
-      <TikTokPixel pixelId={landing.trackingProfile?.tiktokPixelId} enabled={landing.trackingProfile?.enableTikTok} />
+      <GoogleAnalytics
+        measurementId={landing.trackingProfile?.ga4MeasurementId}
+        enabled={!isPreview && landing.trackingProfile?.enableGA4}
+      />
+      <MetaPixel pixelId={landing.trackingProfile?.metaPixelId} enabled={!isPreview && landing.trackingProfile?.enableMeta} />
+      <TikTokPixel
+        pixelId={landing.trackingProfile?.tiktokPixelId}
+        enabled={!isPreview && landing.trackingProfile?.enableTikTok}
+      />
       {isPreview && (
         <div className="campaign-preview-banner" role="status">
           Preview mode — landing not indexed
         </div>
       )}
-      <MobileWhatsappFirstLanding config={config} />
+      <LandingRenderer landing={landing} isPreview={isPreview} />
     </TrackingProvider>
   );
 }

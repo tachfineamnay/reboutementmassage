@@ -24,14 +24,19 @@ Post-deploy checks:
 ```sh
 cd /app
 pnpm exec prisma migrate deploy
+pnpm exec prisma generate
 ```
 
 Then verify these URLs from the deployed domain:
 
 - `/admin/dashboard`
 - `/admin/health`
+- `/admin/pages`
+- `/admin/pages/new`
 - `/admin/landings/new`
 - `/admin/demandes?quick=todo`
+
+Landing Studio depends on `@puckeditor/core`. Coolify builds must install from the committed `pnpm-lock.yaml`; keep `pnpm install --frozen-lockfile`, `pnpm exec tsc --noEmit`, `pnpm lint`, `pnpm test`, and `pnpm build` green before redeploy.
 
 ## PNPM/Corepack dans le conteneur Coolify
 

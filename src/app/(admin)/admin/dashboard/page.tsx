@@ -31,7 +31,7 @@ function readiness(value: number) {
 }
 
 function landingHref(landingPageId: string) {
-  return `/admin/landings/${landingPageId}/edit`;
+  return `/admin/pages/${landingPageId}/studio`;
 }
 
 export default async function AdminDashboardPage() {
@@ -53,13 +53,13 @@ export default async function AdminDashboardPage() {
     {
       label: "Pages readiness < 80",
       value: data.urgency.lowReadinessPages,
-      href: "/admin/landings?readiness=low",
+      href: "/admin/pages?readiness=low",
       tone: "warning" as const,
     },
     {
       label: "Pages live noindex",
       value: data.urgency.liveNoindexPages,
-      href: "/admin/landings?status=LIVE&noindex=true",
+      href: "/admin/pages?status=LIVE&noindex=true",
       tone: "danger" as const,
     },
     {
@@ -76,7 +76,7 @@ export default async function AdminDashboardPage() {
       <AdminPageHeader
         title="Tableau de bord"
         meta={`Pilotage business, leads et pages locales — ${data.windows.timeZone}`}
-        action={{ href: "/admin/landings/new", label: "Créer une page" }}
+        action={{ href: "/admin/pages/new", label: "Créer une page" }}
       />
 
       {hasUrgency ? (
@@ -108,7 +108,7 @@ export default async function AdminDashboardPage() {
           <AdminStatCard label="Formulaires envoyés" value={data.kpis.formSubmits7Days} />
           <AdminStatCard label="Taux WhatsApp" value={percent(data.kpis.whatsappConversionRate)} />
           <AdminStatCard label="Taux formulaire" value={percent(data.kpis.formConversionRate)} tone="green" />
-          <AdminStatCard label="Pages live" value={data.kpis.livePages} href="/admin/landings?status=LIVE" />
+          <AdminStatCard label="Pages live" value={data.kpis.livePages} href="/admin/pages?status=LIVE" />
           <AdminStatCard
             label="Readiness moyen"
             value={data.kpis.livePages > 0 ? readiness(data.kpis.averageReadiness) : "0 page live"}
@@ -119,7 +119,7 @@ export default async function AdminDashboardPage() {
       <AdminSection title="Actions rapides">
         <AdminQuickActions
           actions={[
-            { href: "/admin/landings/new", label: "+ Créer une page", primary: true },
+            { href: "/admin/pages/new", label: "+ Créer une page", primary: true },
             { href: "/admin/demandes?quick=todo", label: "Voir demandes à traiter" },
             { href: "/admin/testimonials/new", label: "Ajouter témoignage" },
             { href: "/admin/crm-routing", label: "Vérifier GHL" },

@@ -15,7 +15,8 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { href: "/admin/dashboard", label: "Tableau de bord", icon: "◎", primary: true },
   { href: "/admin/demandes", label: "Demandes", icon: "☎" },
-  { href: "/admin/landings", label: "Pages locales", icon: "◆" },
+  { href: "/admin/pages", label: "Pages", icon: "▦" },
+  { href: "/admin/landings", label: "Pages expert", icon: "◆" },
   { href: "/admin/offers", label: "Offres", icon: "◇" },
   { href: "/admin/destinations", label: "Destinations", icon: "⌖" },
   { href: "/admin/whatsapp", label: "WhatsApp", icon: "☏" },

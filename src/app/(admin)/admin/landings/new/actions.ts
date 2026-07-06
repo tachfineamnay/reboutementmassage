@@ -10,6 +10,8 @@ import { prisma } from "@/lib/prisma";
 import { computeLandingBuilderReadiness } from "@/lib/admin/builder/landing-builder-readiness";
 import { mapBuilderToLandingDraft } from "@/lib/admin/builder/landing-builder-mapper";
 import { LandingBuilderSchema } from "@/lib/admin/builder/landing-builder-schema";
+import { computePuckReadiness } from "@/lib/builder/puck-readiness";
+import { growthLandingInclude } from "@/lib/growth/types";
 
 function text(formData: FormData, key: string, fallback = "") {
   return String(formData.get(key) ?? fallback).trim();
@@ -127,8 +129,17 @@ export async function createLandingFromBuilderAction(formData: FormData) {
         readinessScore: readiness.score,
         readinessIssues: readiness.issues as Prisma.InputJsonValue,
       },
+      include: growthLandingInclude,
     });
     landingId = created.id;
+    const puckReadiness = computePuckReadiness(created);
+    await prisma.landingPage.update({
+      where: { id: created.id },
+      data: {
+        readinessScore: puckReadiness.score,
+        readinessIssues: puckReadiness.issues as Prisma.InputJsonValue,
+      },
+    });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       duplicateSlug = true;
@@ -138,7 +149,7 @@ export async function createLandingFromBuilderAction(formData: FormData) {
   }
 
   if (duplicateSlug || !landingId) {
-    redirect("/admin/landings/new?error=duplicate");
+    redirect("/admin/pages/new?error=duplicate");
   }
 
   await recordAdminAuditLog({
@@ -150,7 +161,9 @@ export async function createLandingFromBuilderAction(formData: FormData) {
   }).catch((error) => console.error("[landing-builder] audit log failed", error));
 
   revalidatePath("/admin/landings");
+  revalidatePath("/admin/pages");
   revalidatePath("/admin/dashboard");
   revalidatePath(`/admin/landings/${landingId}/edit`);
-  redirect(`/admin/landings/${landingId}/edit?created=1`);
+  revalidatePath(`/admin/pages/${landingId}/studio`);
+  redirect(`/admin/pages/${landingId}/studio?created=1`);
 }

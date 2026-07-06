@@ -1,0 +1,10 @@
+export { default as HeroSection } from "./HeroSection";
+export { default as PainChipsSection } from "./PainChipsSection";
+export { default as ProofBadgesSection } from "./ProofBadgesSection";
+export { default as OfferSection } from "./OfferSection";
+export { default as DifferenceSection } from "./DifferenceSection";
+export { default as TestimonialSection } from "./TestimonialSection";
+export { default as ProcessSection } from "./ProcessSection";
+export { default as LeadFormSection } from "./LeadFormSection";
+export { default as FAQSection } from "./FAQSection";
+export { default as FinalCtaSection } from "./FinalCtaSection";

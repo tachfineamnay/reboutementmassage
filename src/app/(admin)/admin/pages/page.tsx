@@ -3,13 +3,14 @@ import type { Prisma } from "@prisma/client";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ensureAdminSchema } from "@/lib/admin-schema";
-import { localeToLang } from "@/lib/growth/types";
+import { getLandingPublicPath, getPreviewUrl } from "@/lib/builder/puck-utils";
+import { isPuckLanding } from "@/lib/builder/default-puck-data";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import AdminEmptyState from "@/components/admin/growth/AdminEmptyState";
 import AdminStatusBadge from "@/components/admin/growth/AdminStatusBadge";
 import ReadinessScoreBadge from "@/components/admin/growth/ReadinessScoreBadge";
 
-export const metadata: Metadata = { title: "Pages locales — TMS Admin", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Pages — TMS Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = {
@@ -25,7 +26,7 @@ type PageProps = {
 
 const fmt = new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
 
-export default async function LandingsPage({ searchParams }: PageProps) {
+export default async function PagesAdminPage({ searchParams }: PageProps) {
   await ensureAdminSchema();
   const { status, destinationId, locale, q, readiness, noindex } = await searchParams;
 
@@ -57,17 +58,26 @@ export default async function LandingsPage({ searchParams }: PageProps) {
     prisma.destination.findMany({ select: { id: true, cityName: true }, orderBy: { cityName: "asc" } }),
   ]);
 
-  const hasFilters = !!(status || destinationId || locale || q || readiness || noindex);
+  const hasFilters = Boolean(status || destinationId || locale || q || readiness || noindex);
 
   return (
     <div className="admin-page">
-      <AdminPageHeader title="Pages locales" meta={`${total} page${total !== 1 ? "s" : ""}`} action={{ href: "/admin/pages/new", label: "+ Créer une page" }} />
+      <AdminPageHeader
+        title="Pages"
+        meta={`${total} landing${total !== 1 ? "s" : ""}`}
+        description="Studio visuel Puck pour les pages locales. Le mode expert historique reste disponible."
+        action={{ href: "/admin/pages/new", label: "+ Créer une page" }}
+      />
 
       <form className="admin-filters" method="GET">
         <input type="text" name="q" defaultValue={q} placeholder="Rechercher…" className="admin-input admin-filters__search" />
         <select name="destinationId" defaultValue={destinationId ?? ""} className="admin-input admin-filters__select">
           <option value="">Toutes destinations</option>
-          {destinations.map((d) => <option key={d.id} value={d.id}>{d.cityName}</option>)}
+          {destinations.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.cityName}
+            </option>
+          ))}
         </select>
         <select name="locale" defaultValue={locale ?? ""} className="admin-input admin-filters__select">
           <option value="">Toutes langues</option>
@@ -81,6 +91,7 @@ export default async function LandingsPage({ searchParams }: PageProps) {
           <option value="READY">Prêt</option>
           <option value="LIVE">Live</option>
           <option value="PAUSED">Pause</option>
+          <option value="ARCHIVED">Archivé</option>
         </select>
         <select name="readiness" defaultValue={readiness ?? ""} className="admin-input admin-filters__select">
           <option value="">Toute readiness</option>
@@ -91,52 +102,78 @@ export default async function LandingsPage({ searchParams }: PageProps) {
           <option value="true">Noindex</option>
           <option value="false">Indexable</option>
         </select>
-        <button type="submit" className="admin-btn admin-btn--ghost">Filtrer</button>
-        {hasFilters && <Link href="/admin/landings" className="admin-btn admin-btn--ghost">Réinitialiser</Link>}
-        <Link href="/admin/pages" className="admin-btn admin-btn--ghost">Studio Puck</Link>
+        <button type="submit" className="admin-btn admin-btn--ghost">
+          Filtrer
+        </button>
+        {hasFilters ? (
+          <Link href="/admin/pages" className="admin-btn admin-btn--ghost">
+            Réinitialiser
+          </Link>
+        ) : null}
       </form>
 
       {items.length === 0 ? (
-        <AdminEmptyState message="Aucune landing." action={{ href: "/admin/landings/new", label: "Créer une landing" }} />
+        <AdminEmptyState message="Aucune landing." action={{ href: "/admin/pages/new", label: "Créer une page" }} />
       ) : (
         <div className="admin-table-wrapper">
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Titre</th>
-                <th>Slug</th>
+                <th>Page</th>
                 <th>Destination</th>
-                <th>Locale</th>
-                <th>Readiness</th>
+                <th>Langue</th>
                 <th>Statut</th>
-                <th>Modifié</th>
+                <th>Score</th>
+                <th>Dernière modif</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {items.map((l) => (
-                <tr key={l.id}>
-                  <td className="admin-table__title">
-                    <Link href={`/admin/landings/${l.id}/edit`} className="admin-table__title-link">{l.heroTitle}</Link>
-                    <span className="admin-table__meta">{l.template}</span>
-                  </td>
-                  <td>
-                    <code className="admin-table__slug-code">/{localeToLang(l.locale)}/{l.slug}</code>
-                  </td>
-                  <td>{l.destination.cityName}</td>
-                  <td><span className="badge badge--locale">{l.locale}</span></td>
-                  <td><ReadinessScoreBadge score={l.readinessScore} /></td>
-                  <td><AdminStatusBadge status={l.status} /></td>
-                  <td className="admin-table__date">{fmt.format(l.updatedAt)}</td>
-                  <td className="admin-table__actions">
-                    <Link href={`/admin/pages/${l.id}/studio`} className="admin-action">Studio</Link>
-                    <Link href={`/admin/landings/${l.id}/edit`} className="admin-action">Expert</Link>
-                    {l.status === "LIVE" && (
-                      <a href={`/${localeToLang(l.locale)}/${l.slug}`} target="_blank" rel="noopener noreferrer" className="admin-action admin-action--view">↗</a>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {items.map((landing) => {
+                const liveUrl = getLandingPublicPath(landing);
+                const previewUrl = getPreviewUrl(landing);
+                const hasStudio = isPuckLanding(landing.content);
+
+                return (
+                  <tr key={landing.id}>
+                    <td className="admin-table__title">
+                      <Link href={`/admin/pages/${landing.id}/studio`} className="admin-table__title-link">
+                        {landing.heroTitle}
+                      </Link>
+                      <span className="admin-table__meta">
+                        {hasStudio ? "Studio Puck" : "Legacy"} · <code className="admin-table__slug-code">{liveUrl}</code>
+                      </span>
+                    </td>
+                    <td>{landing.destination.cityName}</td>
+                    <td>
+                      <span className="badge badge--locale">{landing.locale}</span>
+                    </td>
+                    <td>
+                      <AdminStatusBadge status={landing.status} />
+                    </td>
+                    <td>
+                      <ReadinessScoreBadge score={landing.readinessScore} />
+                    </td>
+                    <td className="admin-table__date">{fmt.format(landing.updatedAt)}</td>
+                    <td className="admin-table__actions">
+                      <Link href={`/admin/pages/${landing.id}/studio`} className="admin-action">
+                        Studio
+                      </Link>
+                      <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="admin-action">
+                        Preview
+                      </a>
+                      <Link href={`/admin/landings/${landing.id}/edit`} className="admin-action">
+                        Expert
+                      </Link>
+                      {landing.status === "LIVE" ? (
+                        <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="admin-action admin-action--view">
+                          Voir live
+                        </a>
+                      ) : null}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

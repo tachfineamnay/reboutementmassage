@@ -81,7 +81,7 @@ export default function ShortLeadForm({
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
-  const { track } = useGrowthTracking();
+  const { track, previewMode } = useGrowthTracking();
 
   function handleFocus() {
     if (!started) {
@@ -144,6 +144,12 @@ export default function ShortLeadForm({
           form.context.trim() ? `${copy.contextLabel ?? "Mensaje"}: ${form.context.trim()}` : "",
         ].filter(Boolean)
       : [`Langue préférée: ${form.preferredLanguage}`];
+
+    if (previewMode) {
+      setSubmitted(true);
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await fetch("/api/lead", {

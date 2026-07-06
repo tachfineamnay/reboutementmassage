@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { initializePuckDataForLandingDraft } from "@/lib/builder/default-puck-data";
 import type { LandingBuilderInput } from "./landing-builder-schema";
 
 export function mapBuilderToLandingDraft(input: LandingBuilderInput): Prisma.LandingPageUncheckedCreateInput {
@@ -16,7 +17,7 @@ export function mapBuilderToLandingDraft(input: LandingBuilderInput): Prisma.Lan
     },
   };
 
-  return {
+  const draft: Prisma.LandingPageUncheckedCreateInput = {
     destinationId: input.market.destinationId,
     offerId: input.offer.offerId,
     whatsappChannelId: input.offer.whatsappChannelId,
@@ -45,4 +46,7 @@ export function mapBuilderToLandingDraft(input: LandingBuilderInput): Prisma.Lan
     xDefault: input.seo.xDefault,
     hreflangGroupId: input.seo.hreflangGroupId,
   };
+
+  draft.content = initializePuckDataForLandingDraft(draft);
+  return draft;
 }

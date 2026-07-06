@@ -27,10 +27,15 @@ type TrackingContextValue = {
   offerType?: string;
   session_duration?: string;
   variantId?: string;
+  previewMode: boolean;
   track: (event: CampaignEventName, params?: CampaignTrackingParams) => void;
 };
 
 const TrackingContext = createContext<TrackingContextValue | null>(null);
+
+export function shouldTrackGrowthEvent(previewMode?: boolean) {
+  return !previewMode;
+}
 
 export function TrackingProvider({
   children,
@@ -45,6 +50,7 @@ export function TrackingProvider({
   offerType,
   session_duration,
   variantId,
+  previewMode = false,
 }: {
   children: ReactNode;
   profile?: TrackingProfile | null;
@@ -58,6 +64,7 @@ export function TrackingProvider({
   offerType?: string;
   session_duration?: string;
   variantId?: string;
+  previewMode?: boolean;
 }) {
   const value = useMemo<TrackingContextValue>(
     () => ({
@@ -82,7 +89,9 @@ export function TrackingProvider({
       offerType,
       session_duration,
       variantId,
+      previewMode,
       track: (event, params = {}) => {
+        if (!shouldTrackGrowthEvent(previewMode)) return;
         trackGrowthEvent(event, {
           landingPageId,
           destinationId,
@@ -98,7 +107,20 @@ export function TrackingProvider({
         });
       },
     }),
-    [profile, landingPageId, destinationId, offerId, language, city, country, locale, offerType, session_duration, variantId]
+    [
+      profile,
+      landingPageId,
+      destinationId,
+      offerId,
+      language,
+      city,
+      country,
+      locale,
+      offerType,
+      session_duration,
+      variantId,
+      previewMode,
+    ]
   );
 
   return <TrackingContext.Provider value={value}>{children}</TrackingContext.Provider>;
@@ -109,6 +131,7 @@ export function useGrowthTracking() {
   if (!ctx) {
     return {
       profile: null,
+      previewMode: false,
       track: (event: CampaignEventName, params?: CampaignTrackingParams) =>
         trackGrowthEvent(event, params),
     };
