@@ -1,4 +1,5 @@
 import { trackCampaignEvent, type CampaignEventName, type CampaignTrackingParams, normalizeNeedType } from "@/lib/campaign-tracking";
+import { normalizeGrowthLocale } from "@/lib/growth/events";
 
 export type GrowthTrackPayload = CampaignTrackingParams & {
   landingPageId?: string;
@@ -28,7 +29,7 @@ export function trackGrowthEvent(event: CampaignEventName, payload: GrowthTrackP
         landingPageId: payload.landingPageId,
         destinationId: payload.destinationId,
         offerId: payload.offerId,
-        locale: payload.language,
+        locale: normalizeGrowthLocale(payload.language ?? payload.locale),
         source: payload.source,
         medium: payload.utm_medium,
         campaign: payload.utm_campaign,

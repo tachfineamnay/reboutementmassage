@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { ensureAdminSchema } from "@/lib/admin-schema";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import AdminEmptyState from "@/components/admin/growth/AdminEmptyState";
 import { upsertMediaAssetAction, deleteMediaAssetAction } from "@/lib/growth/actions";
 
-export const metadata: Metadata = { title: "Médias — Platform Admin", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Médias — TMS Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = {
@@ -136,9 +137,12 @@ export default async function MediaPage({ searchParams }: PageProps) {
                       <tr key={a.id} style={{ background: editId === a.id ? "rgba(255,255,255,0.04)" : "transparent" }}>
                         <td style={{ width: "60px" }}>
                           {a.assetType === "IMAGE" || a.assetType === "POSTER" ? (
-                            <img
+                            <Image
                               src={a.url}
                               alt=""
+                              width={40}
+                              height={40}
+                              unoptimized
                               style={{ width: "40px", height: "40px", objectFit: "cover", borderRadius: "4px", border: "1px solid var(--admin-border)" }}
                             />
                           ) : (

@@ -4,7 +4,7 @@ import { ensureAdminSchema } from "@/lib/admin-schema";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import { upsertTrackingProfileAction } from "@/lib/growth/actions";
 
-export const metadata: Metadata = { title: "New analytics profile — Platform Admin", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "New analytics profile — TMS Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 export default async function NewTrackingPage() {

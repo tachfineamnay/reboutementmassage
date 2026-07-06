@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { CampaignLandingConfig } from "@/data/campaign-landings";
-import { trackCampaignEvent } from "@/lib/campaign-tracking";
+import { useGrowthTracking } from "@/components/TrackingProvider";
 
 export default function TestimonialVideoBlock({ config }: { config: CampaignLandingConfig }) {
   const whatsappUrl = config.whatsappUrls.testimonial_cta;
@@ -12,6 +12,7 @@ export default function TestimonialVideoBlock({ config }: { config: CampaignLand
   const [isVisible, setIsVisible] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const hasVideo = Boolean(config.testimonial.videoSrc);
+  const { track } = useGrowthTracking();
 
   useEffect(() => {
     const node = sectionRef.current;
@@ -21,7 +22,7 @@ export default function TestimonialVideoBlock({ config }: { config: CampaignLand
       ([entry]) => {
         if (entry?.isIntersecting) {
           setIsVisible(true);
-          trackCampaignEvent("testimonial_viewed", {
+          track("testimonial_viewed", {
             language: config.htmlLang,
             cta_location: "testimonial",
             city: config.destinationSlug,
@@ -36,13 +37,13 @@ export default function TestimonialVideoBlock({ config }: { config: CampaignLand
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [config.htmlLang]);
+  }, [config.destinationSlug, config.durationMinutes, config.htmlLang, config.offerType, track]);
 
   function handlePlay() {
     if (!hasVideo || !videoRef.current) return;
     void videoRef.current.play();
     setIsPlaying(true);
-    trackCampaignEvent("video_played", {
+    track("video_played", {
       language: config.htmlLang,
       cta_location: "testimonial",
       city: config.destinationSlug,
@@ -52,7 +53,7 @@ export default function TestimonialVideoBlock({ config }: { config: CampaignLand
   }
 
   function handleCtaClick() {
-    trackCampaignEvent("hero_whatsapp_clicked", {
+    track("hero_whatsapp_clicked", {
       language: config.htmlLang,
       cta_location: "testimonial",
       city: config.destinationSlug,

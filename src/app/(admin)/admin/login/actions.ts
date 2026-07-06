@@ -1,77 +1,74 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createSession } from "@/lib/auth";
+import {
+  authenticateAdminUser,
+  getSafeAdminRedirect,
+  isAdminLoginLocked,
+  normalizeAdminEmail,
+  recordAdminAuditLog,
+  recordAdminLoginAttempt,
+} from "@/lib/admin/auth-hardening";
+import { getClientIp } from "@/lib/rate-limit";
 import { LoginSchema } from "@/lib/schemas";
-import { timingSafeEqual } from "crypto";
 
 type LoginState = { error: string } | undefined;
 
-/**
- * Authentification via variables d'environnement (MVP).
- *
- * ADMIN_EMAIL  : email de l'administrateur
- * ADMIN_PASSWORD : mot de passe en clair (stocké uniquement côté serveur)
- * SESSION_SECRET : clé de signature JWT
- *
- * Les credentials ne transitent jamais côté client.
- * La comparaison de mot de passe est timing-safe.
- */
 export async function loginAction(
   _prevState: LoginState,
   formData: FormData
 ): Promise<LoginState> {
-  // --- Validation de base ---
   const raw = {
     email: formData.get("email"),
     password: formData.get("password"),
   };
+  const safeRedirect = getSafeAdminRedirect(formData.get("from"));
+  const requestHeaders = await headers();
+  const ipAddress = getClientIp(requestHeaders);
 
   const parsed = LoginSchema.safeParse(raw);
   if (!parsed.success) {
     return { error: "Email ou mot de passe invalide." };
   }
 
-  const { email, password } = parsed.data;
+  const email = normalizeAdminEmail(parsed.data.email);
+  const { password } = parsed.data;
+  const lock = await isAdminLoginLocked(email, ipAddress);
 
-  // --- Lecture des credentials serveur ---
-  const adminEmail = process.env.ADMIN_EMAIL;
-  const adminPassword = process.env.ADMIN_PASSWORD;
-
-  if (!adminEmail || !adminPassword) {
-    console.error("[auth] ADMIN_EMAIL ou ADMIN_PASSWORD non défini");
-    return { error: "Configuration serveur incorrecte." };
+  if (lock.locked) {
+    await recordAdminAuditLog({
+      actorEmail: email,
+      action: "admin.login.locked",
+      resource: "admin_session",
+      ipAddress,
+      metadata: { retryAfterSeconds: lock.retryAfterSeconds },
+    }).catch((error) => console.error("[auth] audit log failed", error));
+    return { error: "Trop de tentatives. Réessayez dans quelques minutes." };
   }
 
-  // --- Comparaison timing-safe (évite les timing attacks) ---
-  const emailMatch = safeCompare(email, adminEmail);
-  const passwordMatch = safeCompare(password, adminPassword);
+  const admin = await authenticateAdminUser(email, password);
+  await recordAdminLoginAttempt(email, ipAddress, Boolean(admin));
 
-  if (!emailMatch || !passwordMatch) {
+  if (!admin) {
+    await recordAdminAuditLog({
+      actorEmail: email,
+      action: "admin.login.failed",
+      resource: "admin_session",
+      ipAddress,
+    }).catch((error) => console.error("[auth] audit log failed", error));
     return { error: "Identifiants incorrects." };
   }
 
-  // --- Création de la session JWT (cookie httpOnly) ---
-  await createSession("env-admin", adminEmail);
+  await recordAdminAuditLog({
+    actorId: admin.id,
+    actorEmail: admin.email,
+    action: "admin.login.succeeded",
+    resource: "admin_session",
+    ipAddress,
+  }).catch((error) => console.error("[auth] audit log failed", error));
+  await createSession(admin.id, admin.email);
 
-  redirect("/admin/overview");
-}
-
-/**
- * Comparaison de chaînes en temps constant.
- * Évite les attaques par timing.
- */
-function safeCompare(a: string, b: string): boolean {
-  try {
-    const bufA = Buffer.from(a);
-    const bufB = Buffer.from(b);
-    if (bufA.length !== bufB.length) {
-      // Longueurs différentes → compare quand même pour consommer du temps
-      timingSafeEqual(bufA, Buffer.alloc(bufA.length));
-      return false;
-    }
-    return timingSafeEqual(bufA, bufB);
-  } catch {
-    return false;
-  }
+  redirect(safeRedirect);
 }

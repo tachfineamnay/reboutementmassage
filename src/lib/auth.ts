@@ -85,7 +85,13 @@ export async function updateSession() {
   if (!token || !payload) return null;
 
   const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
-  cookieStore.set(COOKIE_NAME, token, {
+  const refreshedToken = await encrypt({
+    userId: payload.userId,
+    email: payload.email,
+    expiresAt,
+  });
+
+  cookieStore.set(COOKIE_NAME, refreshedToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     expires: expiresAt,

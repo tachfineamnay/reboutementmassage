@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client";
 import { Resend } from "resend";
 import { z } from "zod";
 import { matchCrmRoutingRule, parseCustomFields, parseTags } from "@/lib/growth/crm-routing";
+import { incrementLandingLeadMetric } from "@/lib/growth/landing-metrics";
 import { prisma } from "@/lib/prisma";
 
 type LeadSubmissionStatus = "CAPTURED" | "MOCKED" | "SENT_TO_GHL" | "FAILED" | "ARCHIVED";
@@ -505,6 +506,12 @@ async function createLeadSubmission(payload: LeadPayload, tags: string[]) {
       },
       select: { id: true },
     });
+
+    if (payload.landingPageId) {
+      await incrementLandingLeadMetric(payload.landingPageId).catch((error) => {
+        console.error("Landing lead metric increment failed", error);
+      });
+    }
 
     return lead.id;
   } catch (error) {

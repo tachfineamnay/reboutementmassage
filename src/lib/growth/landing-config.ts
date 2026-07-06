@@ -266,6 +266,15 @@ export function landingPageToCampaignConfig(landing: LandingPageWithRelations): 
         : "#",
   };
   const branchData = asStringRecord(content.branchData);
+  const heroImageAlt =
+    landing.locale === "EN"
+      ? landing.heroImage?.altEn
+      : landing.locale === "ES"
+        ? landing.heroImage?.altEs
+        : landing.heroImage?.altFr;
+  const heroImageSrc =
+    landing.heroImage?.url ??
+    (typeof heroExtra.imageSrc === "string" ? heroExtra.imageSrc : undefined);
 
   return {
     id: landing.id,
@@ -317,7 +326,8 @@ export function landingPageToCampaignConfig(landing: LandingPageWithRelations): 
       ctaSecondary: landing.secondaryCta ?? "Book",
       ctaSecondaryHref: typeof heroExtra.secondaryHref === "string" ? heroExtra.secondaryHref : undefined,
       proofLine: String(heroExtra.proofLine ?? ""),
-      imageAlt: String(heroExtra.imageAlt ?? landing.heroTitle),
+      imageSrc: heroImageSrc,
+      imageAlt: String(heroImageAlt ?? heroExtra.imageAlt ?? landing.heroTitle),
     },
     forYouIf: {
       title: forYouTitle,

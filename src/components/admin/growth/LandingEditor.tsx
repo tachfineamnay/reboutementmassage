@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { upsertLandingAction, publishLandingAction, archiveLandingAction } from "@/lib/growth/actions";
 import Link from "next/link";
+import Image from "next/image";
 
 interface MediaAsset {
   id: string;
@@ -670,9 +671,12 @@ export default function LandingEditor({
                 </select>
                 {selectedHeroImage && (
                   <div style={{ marginTop: "8px" }}>
-                    <img
+                    <Image
                       src={selectedHeroImage.url}
                       alt="Aperçu Hero"
+                      width={100}
+                      height={100}
+                      unoptimized
                       style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "6px", border: "1px solid var(--admin-border)" }}
                     />
                   </div>
@@ -696,9 +700,12 @@ export default function LandingEditor({
                 </select>
                 {selectedOgImage && (
                   <div style={{ marginTop: "8px" }}>
-                    <img
+                    <Image
                       src={selectedOgImage.url}
                       alt="Aperçu OG"
+                      width={100}
+                      height={100}
+                      unoptimized
                       style={{ width: "100px", height: "100px", objectFit: "cover", borderRadius: "6px", border: "1px solid var(--admin-border)" }}
                     />
                   </div>

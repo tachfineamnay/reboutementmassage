@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import type { CampaignLandingConfig } from "@/data/campaign-landings";
-import { trackCampaignEvent } from "@/lib/campaign-tracking";
+import { useGrowthTracking } from "@/components/TrackingProvider";
 
 function WhatsAppIcon() {
   return (
@@ -15,9 +15,12 @@ function WhatsAppIcon() {
 export default function CampaignHero({ config }: { config: CampaignLandingConfig }) {
   const whatsappUrl = config.whatsappUrls.default;
   const secondaryHref = config.hero.ctaSecondaryHref ?? "#solicitud";
+  const heroImageSrc = config.hero.imageSrc || "/hero.webp";
+  const heroImageAlt = config.hero.imageAlt || config.hero.title;
+  const { track } = useGrowthTracking();
 
   function handleWhatsappClick() {
-    trackCampaignEvent("hero_whatsapp_clicked", {
+    track("hero_whatsapp_clicked", {
       language: config.htmlLang,
       cta_location: "hero",
       city: config.destinationSlug,
@@ -27,7 +30,7 @@ export default function CampaignHero({ config }: { config: CampaignLandingConfig
   }
 
   function handleBookingClick() {
-    trackCampaignEvent("booking_clicked", {
+    track("booking_clicked", {
       language: config.htmlLang,
       cta_location: "hero",
       city: config.destinationSlug,
@@ -40,8 +43,8 @@ export default function CampaignHero({ config }: { config: CampaignLandingConfig
     <section className="campaign-hero" id="top">
       <div className="campaign-hero__photo" aria-hidden="true">
         <Image
-          src="/hero.webp"
-          alt=""
+          src={heroImageSrc}
+          alt={heroImageAlt}
           fill
           priority
           sizes="100vw"

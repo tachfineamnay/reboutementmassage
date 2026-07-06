@@ -2,16 +2,17 @@
 
 import { useState } from "react";
 import type { CampaignLandingConfig } from "@/data/campaign-landings";
-import { trackCampaignEvent } from "@/lib/campaign-tracking";
+import { useGrowthTracking } from "@/components/TrackingProvider";
 
 export default function CampaignFaq({ config }: { config: CampaignLandingConfig }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const { track } = useGrowthTracking();
 
   function toggle(index: number) {
     const next = openIndex === index ? null : index;
     setOpenIndex(next);
     if (next !== null) {
-      trackCampaignEvent("faq_opened", {
+      track("faq_opened", {
         language: config.htmlLang,
         faq_question: config.faq[index]?.question,
       });

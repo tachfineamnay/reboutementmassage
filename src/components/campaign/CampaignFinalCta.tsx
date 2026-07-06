@@ -1,13 +1,15 @@
 "use client";
 
 import type { CampaignLandingConfig } from "@/data/campaign-landings";
-import { trackCampaignEvent } from "@/lib/campaign-tracking";
+import { useGrowthTracking } from "@/components/TrackingProvider";
 
 export default function CampaignFinalCta({ config }: { config: CampaignLandingConfig }) {
+  const { track } = useGrowthTracking();
+
   if (!config.finalCta) return null;
 
   function handleWhatsappClick() {
-    trackCampaignEvent("hero_whatsapp_clicked", {
+    track("hero_whatsapp_clicked", {
       language: config.htmlLang,
       cta_location: "final_cta",
       city: config.destinationSlug,
@@ -17,7 +19,7 @@ export default function CampaignFinalCta({ config }: { config: CampaignLandingCo
   }
 
   function handleFormClick() {
-    trackCampaignEvent("booking_clicked", {
+    track("booking_clicked", {
       language: config.htmlLang,
       cta_location: "final_cta",
       city: config.destinationSlug,

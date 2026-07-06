@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ensureAdminSchema } from "@/lib/admin-schema";
+import { getReportingWindows } from "@/lib/admin/date-windows";
 import { computeSeoScore } from "@/lib/utils";
 import ArticleStatusBadge from "@/components/admin/ArticleStatusBadge";
 import GoogleImportButton from "@/components/admin/GoogleImportButton";
@@ -14,7 +15,7 @@ import {
 } from "@/lib/admin-leads";
 
 export const metadata: Metadata = {
-  title: "Overview — Platform Admin",
+  title: "SEO / contenu — TMS Admin",
   robots: { index: false, follow: false },
 };
 
@@ -146,50 +147,32 @@ async function getOverviewSections() {
   }
 }
 
-function getDayBounds(date: Date) {
-  const start = new Date(date);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
-  end.setDate(start.getDate() + 1);
-  return { start, end };
-}
-
-function getWeekStart(date: Date) {
-  const start = new Date(date);
-  start.setHours(0, 0, 0, 0);
-  const day = start.getDay();
-  const daysSinceMonday = day === 0 ? 6 : day - 1;
-  start.setDate(start.getDate() - daysSinceMonday);
-  return start;
-}
-
 async function getOverviewLeadStats(now: Date): Promise<{
   stats: LeadStats;
   callbacks: CallbackLead[];
 }> {
-  const today = getDayBounds(now);
-  const weekStart = getWeekStart(now);
+  const windows = getReportingWindows(now);
 
   const [total, todayCount, week, failed, callbacksToday, callbacks] = await Promise.all([
     prisma.leadSubmission.count(),
     prisma.leadSubmission.count({
-      where: { createdAt: { gte: today.start, lt: today.end } },
+      where: { createdAt: { gte: windows.today.start, lt: windows.today.end } },
     }),
     prisma.leadSubmission.count({
-      where: { createdAt: { gte: weekStart } },
+      where: { createdAt: { gte: windows.currentWeek.start, lt: windows.currentWeek.end } },
     }),
     prisma.leadSubmission.count({
       where: { status: "FAILED" },
     }),
     prisma.leadSubmission.count({
       where: {
-        selectedAt: { gte: today.start, lt: today.end },
+        selectedAt: { gte: windows.today.start, lt: windows.today.end },
         status: { not: "ARCHIVED" },
       },
     }),
     prisma.leadSubmission.findMany({
       where: {
-        selectedAt: { gte: today.start, lt: today.end },
+        selectedAt: { gte: windows.today.start, lt: windows.today.end },
         status: { not: "ARCHIVED" },
       },
       orderBy: { selectedAt: "asc" },
@@ -424,9 +407,9 @@ export default async function OverviewPage() {
       {/* Header */}
       <div className="admin-page__header">
         <div>
-          <h1 className="admin-page__title">Platform Admin</h1>
+          <h1 className="admin-page__title">SEO / contenu</h1>
           <p className="admin-page__meta" style={{ marginTop: "4px" }}>
-            Santé business, demandes reçues, contenus et SEO
+            Articles, performances Google, contenus à corriger et sections SEO
           </p>
         </div>
         <div style={{ display: "flex", gap: "8px" }}>

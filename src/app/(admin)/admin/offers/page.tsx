@@ -6,7 +6,7 @@ import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import AdminEmptyState from "@/components/admin/growth/AdminEmptyState";
 import AdminStatusBadge from "@/components/admin/growth/AdminStatusBadge";
 
-export const metadata: Metadata = { title: "Offres — Platform Admin", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Offres — TMS Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = { searchParams: Promise<{ status?: string; destinationId?: string; q?: string }> };

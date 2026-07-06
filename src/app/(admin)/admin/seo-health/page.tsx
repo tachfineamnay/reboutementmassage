@@ -7,7 +7,7 @@ import { computeLandingReadiness } from "@/lib/growth/landing-readiness";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import ReadinessScoreBadge from "@/components/admin/growth/ReadinessScoreBadge";
 
-export const metadata: Metadata = { title: "SEO — Platform Admin", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "SEO — TMS Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type SeoIssue = {

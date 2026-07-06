@@ -9,7 +9,7 @@ import SeoScoreBadge from "@/components/admin/SeoScoreBadge";
 import DeleteArticleButton from "./DeleteArticleButton";
 
 export const metadata: Metadata = {
-  title: "Studio Articles — Platform Admin",
+  title: "Studio Articles — TMS Admin",
   robots: { index: false, follow: false },
 };
 

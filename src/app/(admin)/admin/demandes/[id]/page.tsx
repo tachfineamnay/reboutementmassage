@@ -6,7 +6,6 @@ import { ensureAdminSchema } from "@/lib/admin-schema";
 import {
   formatLeadChannel,
   formatLeadSlot,
-  formatSourcePage,
   isEmailContact,
   LEAD_STATUS_CLASSES,
   LEAD_STATUS_LABELS,
@@ -54,7 +53,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 
   return {
-    title: lead ? `${lead.firstName} — Lead — Platform Admin` : "Lead — Platform Admin",
+    title: lead ? `${lead.firstName} — Lead — TMS Admin` : "Lead — TMS Admin",
     robots: { index: false, follow: false },
   };
 }

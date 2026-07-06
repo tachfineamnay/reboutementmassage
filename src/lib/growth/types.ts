@@ -68,7 +68,7 @@ export type LandingPageWithRelations = LandingPage & {
   whatsappChannel: WhatsappChannel | null;
   trackingProfile: TrackingProfile | null;
   crmRoutingRule: CrmRoutingRule | null;
-  heroImage?: { url: string } | null;
+  heroImage?: { url: string; altFr: string | null; altEn: string | null; altEs: string | null } | null;
   ogImage?: { url: string } | null;
 };
 

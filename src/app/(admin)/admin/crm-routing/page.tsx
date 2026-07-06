@@ -8,7 +8,7 @@ import AdminEmptyState from "@/components/admin/growth/AdminEmptyState";
 import AdminStatusBadge from "@/components/admin/growth/AdminStatusBadge";
 import { matchCrmRoutingRule } from "@/lib/growth/crm-routing";
 
-export const metadata: Metadata = { title: "Lead Routing — Platform Admin", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Lead Routing — TMS Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = {

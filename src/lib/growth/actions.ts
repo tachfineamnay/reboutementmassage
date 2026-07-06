@@ -5,11 +5,13 @@ import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
+import type { SessionPayload } from "@/lib/auth";
 import { ensureAdminSchema } from "@/lib/admin-schema";
+import { recordAdminAuditLog } from "@/lib/admin/auth-hardening";
 import { parseJsonField } from "@/lib/growth/admin-api";
 import { v4 as uuidv4 } from "uuid";
-import { writeFile, unlink } from "fs/promises";
-import { getLocalPath, getUploadUrl, ensureUploadsDir } from "@/lib/server-utils";
+import { unlink } from "fs/promises";
+import { saveUploadedMedia } from "@/lib/upload";
 import {
   assertCanPublish,
   computeLandingReadiness,
@@ -22,6 +24,21 @@ async function requireGrowthAdmin() {
   if (!session) throw new Error("Non authentifié.");
   await ensureAdminSchema();
   return session;
+}
+
+async function auditGrowthMutation(
+  session: SessionPayload,
+  action: string,
+  resource: string,
+  resourceId?: string | null
+) {
+  await recordAdminAuditLog({
+    actorId: session.userId,
+    actorEmail: session.email,
+    action,
+    resource,
+    resourceId: resourceId ?? undefined,
+  }).catch((error) => console.error("[growth] audit log failed", error));
 }
 
 function str(formData: FormData, key: string, fallback = ""): string {
@@ -91,7 +108,7 @@ export async function archiveDestinationAction(formData: FormData) {
   const id = str(formData, "id");
   if (!id) return;
   await prisma.destination.update({ where: { id }, data: { status: "ARCHIVED" } });
-  revalidateGrowth("/admin/destinations", "/admin/growth");
+  revalidateGrowth("/admin/destinations", "/admin/dashboard");
   redirect("/admin/destinations");
 }
 
@@ -136,7 +153,7 @@ export async function archiveOfferAction(formData: FormData) {
   const id = str(formData, "id");
   if (!id) return;
   await prisma.offer.update({ where: { id }, data: { status: "ARCHIVED" } });
-  revalidateGrowth("/admin/offers", "/admin/growth");
+  revalidateGrowth("/admin/offers", "/admin/dashboard");
   redirect("/admin/offers");
 }
 
@@ -351,12 +368,12 @@ export async function upsertLandingAction(formData: FormData) {
     data: { readinessScore: readiness.score, readinessIssues: readiness.issues },
   });
 
-  revalidateGrowth("/admin/landings", `/admin/landings/${landingId}/edit`, "/admin/growth");
+  revalidateGrowth("/admin/landings", `/admin/landings/${landingId}/edit`, "/admin/dashboard");
   redirect(`/admin/landings/${landingId}/edit?saved=1`);
 }
 
 export async function publishLandingAction(formData: FormData) {
-  await requireGrowthAdmin();
+  const session = await requireGrowthAdmin();
   const id = str(formData, "id");
   if (!id) throw new Error("ID manquant.");
 
@@ -385,16 +402,18 @@ export async function publishLandingAction(formData: FormData) {
     throw err;
   }
 
-  revalidateGrowth("/admin/landings", `/admin/landings/${id}/edit`, "/admin/growth");
+  await auditGrowthMutation(session, "growth.landing.publish", "landingPage", id);
+  revalidateGrowth("/admin/landings", `/admin/landings/${id}/edit`, "/admin/dashboard");
   redirect(`/admin/landings/${id}/edit?published=1`);
 }
 
 export async function archiveLandingAction(formData: FormData) {
-  await requireGrowthAdmin();
+  const session = await requireGrowthAdmin();
   const id = str(formData, "id");
   if (!id) return;
   await prisma.landingPage.update({ where: { id }, data: { status: "ARCHIVED" } });
-  revalidateGrowth("/admin/landings", "/admin/growth");
+  await auditGrowthMutation(session, "growth.landing.archive", "landingPage", id);
+  revalidateGrowth("/admin/landings", "/admin/dashboard");
   redirect("/admin/landings");
 }
 
@@ -452,7 +471,7 @@ export async function archiveTestimonialAction(formData: FormData) {
 // ── Experiments ──────────────────────────────────────────────────────────────
 
 export async function upsertExperimentAction(formData: FormData) {
-  await requireGrowthAdmin();
+  const session = await requireGrowthAdmin();
   const id = str(formData, "id");
   const startAtRaw = str(formData, "startAt");
   const endAtRaw = str(formData, "endAt");
@@ -521,15 +540,17 @@ export async function upsertExperimentAction(formData: FormData) {
     }
   }
 
+  await auditGrowthMutation(session, id ? "growth.experiment.update" : "growth.experiment.create", "experiment", experimentId);
   revalidateGrowth("/admin/experiments", `/admin/experiments/${experimentId}/edit`);
   redirect(`/admin/experiments/${experimentId}/edit?saved=1`);
 }
 
 export async function archiveExperimentAction(formData: FormData) {
-  await requireGrowthAdmin();
+  const session = await requireGrowthAdmin();
   const id = str(formData, "id");
   if (!id) return;
   await prisma.experiment.update({ where: { id }, data: { status: "ARCHIVED" } });
+  await auditGrowthMutation(session, "growth.experiment.archive", "experiment", id);
   revalidateGrowth("/admin/experiments");
   redirect("/admin/experiments");
 }
@@ -568,7 +589,7 @@ export async function archiveRedirectRuleAction(formData: FormData) {
 }
 
 export async function upsertMediaAssetAction(formData: FormData) {
-  await requireGrowthAdmin();
+  const session = await requireGrowthAdmin();
   const id = optStr(formData, "id");
   const assetTypeRaw = str(formData, "assetType", "IMAGE");
   const assetType: MediaAssetType = ["IMAGE", "VIDEO", "POSTER", "DOCUMENT"].includes(assetTypeRaw)
@@ -592,6 +613,7 @@ export async function upsertMediaAssetAction(formData: FormData) {
     usageNotes,
     externalUrl,
   };
+  let mediaId = id;
 
   if (id) {
     await prisma.mediaAsset.update({
@@ -601,38 +623,14 @@ export async function upsertMediaAssetAction(formData: FormData) {
   } else {
     const file = formData.get("file");
     if (file instanceof File && file.size > 0) {
-      const mimeTypes: Record<string, string> = {
-        "image/jpeg": "jpg",
-        "image/png": "png",
-        "image/webp": "webp",
-        "image/gif": "gif",
-        "video/mp4": "mp4",
-        "video/webm": "webm",
-        "application/pdf": "pdf",
-      };
-      const ext = mimeTypes[file.type] || "bin";
-      const filename = `${uuidv4()}.${ext}`;
-
-      await ensureUploadsDir();
-      const localPath = getLocalPath(filename);
-      const buffer = Buffer.from(await file.arrayBuffer());
-      await writeFile(localPath, buffer);
-      const url = getUploadUrl(filename);
-
-      await prisma.mediaAsset.create({
-        data: {
-          ...baseData,
-          filename,
-          originalName: file.name,
-          mimeType: file.type,
-          url,
-          localPath,
-          size: file.size,
-        },
+      const asset = await saveUploadedMedia(file, {
+        folder: "media",
+        ...baseData,
       });
+      mediaId = asset.id;
     } else if (externalUrl) {
       const filename = `ext-${uuidv4()}`;
-      await prisma.mediaAsset.create({
+      const asset = await prisma.mediaAsset.create({
         data: {
           ...baseData,
           filename,
@@ -643,17 +641,19 @@ export async function upsertMediaAssetAction(formData: FormData) {
           size: 0,
         },
       });
+      mediaId = asset.id;
     } else {
       throw new Error("Veuillez fournir un fichier ou une URL externe.");
     }
   }
 
+  await auditGrowthMutation(session, id ? "growth.media.update" : "growth.media.create", "mediaAsset", mediaId);
   revalidateGrowth("/admin/media");
   redirect("/admin/media");
 }
 
 export async function deleteMediaAssetAction(formData: FormData) {
-  await requireGrowthAdmin();
+  const session = await requireGrowthAdmin();
   const id = str(formData, "id");
   if (!id) return;
 
@@ -694,6 +694,7 @@ export async function deleteMediaAssetAction(formData: FormData) {
     await unlink(asset.localPath).catch(() => null);
   }
 
+  await auditGrowthMutation(session, "growth.media.delete", "mediaAsset", id);
   revalidateGrowth("/admin/media");
   redirect("/admin/media?deleted=1");
 }

@@ -267,6 +267,34 @@ model AdminUser {
   @@map("admin_users")
 }
 
+model AdminLoginAttempt {
+  id        String   @id @default(cuid())
+  email     String
+  ipAddress String
+  success   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+  @@index([ipAddress, createdAt])
+  @@map("admin_login_attempts")
+}
+
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actorEmail String?
+  action     String
+  resource   String?
+  resourceId String?
+  ipAddress  String?
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+  @@map("admin_audit_logs")
+}
+
 model AdminSetting {
   key       String   @id
   value     String   @db.Text
@@ -1281,7 +1309,7 @@ model LandingPage {
 
 model PixelEventLog {
   id              String              @id @default(cuid())
-  eventId         String
+  eventId         String              @unique
   eventName       String
   landingPageId   String?
   landingPage     LandingPage?        @relation(fields: [landingPageId], references: [id], onDelete: SetNull)
@@ -1309,7 +1337,6 @@ model PixelEventLog {
   @@index([eventName, createdAt])
   @@index([landingPageId, createdAt])
   @@index([destinationId, createdAt])
-  @@index([eventId])
   @@map("pixel_event_logs")
 }
 

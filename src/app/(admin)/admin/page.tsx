@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 
 /**
- * /admin → redirection permanente vers /admin/overview
+ * /admin -> redirection permanente vers le tableau de bord principal.
  */
 export default function AdminRootPage() {
-  redirect("/admin/overview");
+  redirect("/admin/dashboard");
 }

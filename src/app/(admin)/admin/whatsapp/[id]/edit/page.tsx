@@ -8,7 +8,7 @@ import { upsertWhatsappChannelAction, archiveWhatsappChannelAction } from "@/lib
 import { isValidE164 } from "@/lib/growth/whatsapp";
 import WhatsappTestButtons from "@/components/admin/WhatsappTestButtons";
 
-export const metadata: Metadata = { title: "Éditer WhatsApp — Platform Admin", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Éditer WhatsApp — TMS Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }> };

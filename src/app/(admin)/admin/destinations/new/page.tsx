@@ -4,7 +4,7 @@ import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import { upsertDestinationAction } from "@/lib/growth/actions";
 
 export const metadata: Metadata = {
-  title: "Nouvelle destination — Platform Admin",
+  title: "Nouvelle destination — TMS Admin",
   robots: { index: false, follow: false },
 };
 

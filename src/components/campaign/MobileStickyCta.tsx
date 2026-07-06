@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import type { CampaignLandingConfig } from "@/data/campaign-landings";
-import { trackCampaignEvent } from "@/lib/campaign-tracking";
+import { useGrowthTracking } from "@/components/TrackingProvider";
 
 export default function MobileStickyCta({ config }: { config: CampaignLandingConfig }) {
   const whatsappUrl = config.whatsappUrls.sticky_cta;
   const [visible, setVisible] = useState(false);
+  const { track } = useGrowthTracking();
 
   useEffect(() => {
     function handleScroll() {
@@ -19,7 +20,7 @@ export default function MobileStickyCta({ config }: { config: CampaignLandingCon
   }, []);
 
   function handleWhatsappClick() {
-    trackCampaignEvent("sticky_whatsapp_clicked", {
+    track("sticky_whatsapp_clicked", {
       language: config.htmlLang,
       cta_location: "sticky",
       city: config.destinationSlug,
@@ -29,7 +30,7 @@ export default function MobileStickyCta({ config }: { config: CampaignLandingCon
   }
 
   function handleBookingClick() {
-    trackCampaignEvent("booking_clicked", {
+    track("booking_clicked", {
       language: config.htmlLang,
       cta_location: "sticky",
       city: config.destinationSlug,

@@ -1,0 +1,81 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  gap: 24px;
+  align-items: start;
+}
+
+.sidebar {
+  display: grid;
+  gap: 16px;
+}
+
+.panel,
+.preview,
+.stepper {
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  background: var(--admin-surface);
+}
+
+.panel {
+  padding: 18px;
+}
+
+.stepper {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  list-style: none;
+}
+
+.step {
+  border: 1px solid var(--admin-border);
+  border-radius: 999px;
+  padding: 8px 10px;
+  color: var(--admin-muted);
+  font-size: 12px;
+}
+
+.stepActive {
+  border-color: rgba(212, 175, 55, 0.6);
+  color: var(--admin-text);
+  background: rgba(212, 175, 55, 0.12);
+}
+
+.preview {
+  padding: 20px;
+}
+
+.previewTitle {
+  margin: 8px 0;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.previewActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.readinessList {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.expert {
+  margin-top: 24px;
+}
+
+.expertSummary {
+  width: fit-content;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 980px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

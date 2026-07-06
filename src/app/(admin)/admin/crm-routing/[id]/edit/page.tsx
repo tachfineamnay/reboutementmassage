@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import { upsertCrmRoutingRuleAction, archiveCrmRoutingRuleAction } from "@/lib/growth/actions";
 
-export const metadata: Metadata = { title: "Edit lead routing rule — Platform Admin", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Edit lead routing rule — TMS Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }> };

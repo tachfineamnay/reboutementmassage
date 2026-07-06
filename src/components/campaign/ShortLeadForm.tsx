@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { CampaignLandingConfig } from "@/data/campaign-landings";
-import { trackCampaignEvent } from "@/lib/campaign-tracking";
+import { useGrowthTracking } from "@/components/TrackingProvider";
 
 type ShortFormState = {
   needType: string;
@@ -81,11 +81,12 @@ export default function ShortLeadForm({
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const { track } = useGrowthTracking();
 
   function handleFocus() {
     if (!started) {
       setStarted(true);
-      trackCampaignEvent("form_started", {
+      track("form_started", {
         language: config.htmlLang,
         cta_location: "form",
         city: config.destinationSlug,
@@ -202,7 +203,7 @@ export default function ShortLeadForm({
         throw new Error("LEAD_SUBMISSION_FAILED");
       }
 
-      trackCampaignEvent("form_submitted", {
+      track("form_submitted", {
         language: config.htmlLang,
         cta_location: "form",
         need_type: isExtendedForm ? undefined : (form.needType || undefined),

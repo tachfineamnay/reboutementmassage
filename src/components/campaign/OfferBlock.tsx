@@ -1,12 +1,15 @@
+"use client";
+
 import type {
   CampaignLandingConfig,
   CampaignOfferBlock,
   CampaignOfferCard,
   WhatsappIntent,
 } from "@/data/campaign-landings";
-import { trackCampaignEvent } from "@/lib/campaign-tracking";
+import { useGrowthTracking } from "@/components/TrackingProvider";
 
 export default function OfferBlock({ config }: { config: CampaignLandingConfig }) {
+  const { track } = useGrowthTracking();
   const cards: CampaignOfferCard[] = config.offerBlock.cards?.length
     ? config.offerBlock.cards
     : toOfferCards(
@@ -16,7 +19,7 @@ export default function OfferBlock({ config }: { config: CampaignLandingConfig }
       );
 
   function handleWhatsappClick(whatsappIntent: WhatsappIntent = "book_intent", offerTitle?: string) {
-    trackCampaignEvent("hero_whatsapp_clicked", {
+    track("hero_whatsapp_clicked", {
       language: config.htmlLang,
       cta_location: "offer",
       city: config.destinationSlug,

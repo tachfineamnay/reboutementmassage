@@ -3,10 +3,8 @@ import type { Locale, Prisma } from "@prisma/client";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ensureAdminSchema } from "@/lib/admin-schema";
+import { getReportingWindows } from "@/lib/admin/date-windows";
 import {
-  formatLeadChannel,
-  formatLeadSlot,
-  formatSourcePage,
   isEmailContact,
   isLeadStatus,
   LEAD_STATUS_CLASSES,
@@ -16,7 +14,7 @@ import {
 import { archiveLeadAction } from "./actions";
 
 export const metadata: Metadata = {
-  title: "Leads — Platform Admin",
+  title: "Leads — TMS Admin",
   robots: { index: false, follow: false },
 };
 
@@ -38,6 +36,7 @@ type PageProps = {
     intent?: string;
     leadSegment?: string;
     needType?: string;
+    quick?: string;
   }>;
 };
 
@@ -92,7 +91,9 @@ export default async function DemandesPage({ searchParams }: PageProps) {
   const type = one(params.type);
   const q = one(params.q);
   const period = one(params.period);
+  const quick = one(params.quick);
   const page = Math.max(1, Number(one(params.page) ?? "1"));
+  const windows = getReportingWindows();
 
   const destinationId = one(params.destinationId);
   const landingPageId = one(params.landingPageId);
@@ -106,8 +107,32 @@ export default async function DemandesPage({ searchParams }: PageProps) {
   const validStatus = isLeadStatus(status) ? status : undefined;
   const validLocale = LOCALES.includes(locale as Locale) ? (locale as Locale) : undefined;
   const periodStart = getPeriodStart(period);
+  const quickWhere: Prisma.LeadSubmissionWhereInput =
+    quick === "todo"
+      ? { status: { in: ["CAPTURED", "FAILED"] } }
+      : quick === "callbacks-today"
+        ? {
+            selectedAt: { gte: windows.today.start, lt: windows.today.end },
+            status: { not: "ARCHIVED" },
+          }
+        : quick === "failed"
+          ? { status: "FAILED" }
+          : quick === "new"
+            ? { status: "CAPTURED" }
+            : quick === "cdmx"
+              ? {
+                  OR: [
+                    { destination: { contains: "CDMX", mode: "insensitive" } },
+                    { currentLocation: { contains: "CDMX", mode: "insensitive" } },
+                    { growthDestination: { cityName: { contains: "Mexico", mode: "insensitive" } } },
+                  ],
+                }
+              : quick === "archived"
+                ? { status: "ARCHIVED" }
+                : {};
 
   const where: Prisma.LeadSubmissionWhereInput = {
+    ...quickWhere,
     ...(validStatus ? { status: validStatus } : {}),
     ...(validLocale ? { locale: validLocale } : {}),
     ...(type ? { type } : {}),
@@ -133,7 +158,6 @@ export default async function DemandesPage({ searchParams }: PageProps) {
   const [
     legacyLeads,
     total,
-    typeRows,
     destinations,
     landings,
     offers,
@@ -155,11 +179,6 @@ export default async function DemandesPage({ searchParams }: PageProps) {
       },
     }),
     prisma.leadSubmission.count({ where }),
-    prisma.leadSubmission.findMany({
-      distinct: ["type"],
-      orderBy: { type: "asc" },
-      select: { type: true },
-    }),
     prisma.destination.findMany({ select: { id: true, cityName: true }, orderBy: { cityName: "asc" } }),
     prisma.landingPage.findMany({ select: { id: true, slug: true, locale: true }, orderBy: { slug: "asc" } }),
     prisma.offer.findMany({ select: { id: true, publicNameFr: true }, orderBy: { publicNameFr: "asc" } }),
@@ -173,6 +192,7 @@ export default async function DemandesPage({ searchParams }: PageProps) {
   const leads = legacyLeads;
   const pages = Math.ceil(total / LIMIT);
   const hasFilters = !!(
+    quick ||
     validStatus ||
     validLocale ||
     type ||
@@ -187,6 +207,30 @@ export default async function DemandesPage({ searchParams }: PageProps) {
     leadSegment ||
     needType
   );
+  const hasAdvancedFilters = !!(
+    validStatus ||
+    validLocale ||
+    type ||
+    q ||
+    period ||
+    destinationId ||
+    landingPageId ||
+    offerId ||
+    source ||
+    campaign ||
+    intent ||
+    leadSegment ||
+    needType
+  );
+  const quickFilters = [
+    { href: "/admin/demandes", label: "Tous", active: !quick && !hasAdvancedFilters },
+    { href: "/admin/demandes?quick=todo", label: "À traiter", active: quick === "todo" },
+    { href: "/admin/demandes?quick=callbacks-today", label: "À rappeler aujourd'hui", active: quick === "callbacks-today" },
+    { href: "/admin/demandes?quick=failed", label: "Échecs GHL", active: quick === "failed" },
+    { href: "/admin/demandes?quick=new", label: "Nouveaux", active: quick === "new" },
+    { href: "/admin/demandes?quick=cdmx", label: "CDMX", active: quick === "cdmx" },
+    { href: "/admin/demandes?quick=archived", label: "Archivés", active: quick === "archived" },
+  ];
 
   return (
     <div className="admin-page admin-page--wide">
@@ -200,108 +244,78 @@ export default async function DemandesPage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      <form className="admin-filters" method="GET" action="/admin/demandes" style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "20px" }}>
-        <input
-          type="text"
-          name="q"
-          defaultValue={q}
-          placeholder="Recherche prénom..."
-          className="admin-input admin-filters__search"
-          style={{ minWidth: "180px" }}
-        />
-        <select name="status" defaultValue={validStatus ?? ""} className="admin-input admin-filters__select">
-          <option value="">Tous statuts</option>
-          {Object.entries(LEAD_STATUS_LABELS).map(([val, label]) => (
-            <option key={val} value={val}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <select name="destinationId" defaultValue={destinationId ?? ""} className="admin-input admin-filters__select">
-          <option value="">Destinations CMS</option>
-          {destinations.map((d) => (
-            <option key={d.id} value={d.id}>
-              {d.cityName}
-            </option>
-          ))}
-        </select>
-        <select name="landingPageId" defaultValue={landingPageId ?? ""} className="admin-input admin-filters__select">
-          <option value="">CMS pages</option>
-          {landings.map((l) => (
-            <option key={l.id} value={l.id}>
-              /{l.locale.toLowerCase()}/{l.slug}
-            </option>
-          ))}
-        </select>
-        <select name="offerId" defaultValue={offerId ?? ""} className="admin-input admin-filters__select">
-          <option value="">Offres CMS</option>
-          {offers.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.publicNameFr}
-            </option>
-          ))}
-        </select>
-        <select name="locale" defaultValue={validLocale ?? ""} className="admin-input admin-filters__select">
-          <option value="">Toutes langues</option>
-          <option value="FR">FR</option>
-          <option value="EN">EN</option>
-          <option value="ES">ES</option>
-        </select>
-        <select name="source" defaultValue={source ?? ""} className="admin-input admin-filters__select">
-          <option value="">Sources</option>
-          {sources.map((s) => (
-            <option key={s.source} value={s.source ?? ""}>
-              {s.source}
-            </option>
-          ))}
-        </select>
-        <select name="campaign" defaultValue={campaign ?? ""} className="admin-input admin-filters__select">
-          <option value="">Campagnes</option>
-          {campaigns.map((c) => (
-            <option key={c.campaign} value={c.campaign ?? ""}>
-              {c.campaign}
-            </option>
-          ))}
-        </select>
-        <select name="intent" defaultValue={intent ?? ""} className="admin-input admin-filters__select">
-          <option value="">Intentions</option>
-          {intents.map((i) => (
-            <option key={i.intent} value={i.intent ?? ""}>
-              {i.intent}
-            </option>
-          ))}
-        </select>
-        <select name="leadSegment" defaultValue={leadSegment ?? ""} className="admin-input admin-filters__select">
-          <option value="">Segments</option>
-          {segments.map((seg) => (
-            <option key={seg.leadSegment} value={seg.leadSegment ?? ""}>
-              {seg.leadSegment}
-            </option>
-          ))}
-        </select>
-        <select name="needType" defaultValue={needType ?? ""} className="admin-input admin-filters__select">
-          <option value="">Besoins</option>
-          {needs.map((n) => (
-            <option key={n.needType} value={n.needType ?? ""}>
-              {n.needType}
-            </option>
-          ))}
-        </select>
-        <select name="period" defaultValue={period ?? ""} className="admin-input admin-filters__select">
-          <option value="">Toutes périodes</option>
-          <option value="today">Aujourd&apos;hui</option>
-          <option value="week">7 derniers jours</option>
-          <option value="month">30 derniers jours</option>
-        </select>
-        <button type="submit" className="admin-btn admin-btn--ghost">
-          Filtrer
-        </button>
-        {hasFilters && (
-          <Link href="/admin/demandes" className="admin-btn admin-btn--ghost">
-            Réinitialiser
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "16px" }}>
+        {quickFilters.map((filter) => (
+          <Link
+            key={filter.href}
+            href={filter.href}
+            className={`admin-btn ${filter.active ? "admin-btn--primary" : "admin-btn--ghost"}`}
+          >
+            {filter.label}
           </Link>
-        )}
-      </form>
+        ))}
+      </div>
+
+      <details open={hasAdvancedFilters} style={{ marginBottom: "20px" }}>
+        <summary className="admin-btn admin-btn--ghost" style={{ width: "fit-content", marginBottom: "12px" }}>
+          Filtres avancés
+        </summary>
+        <form className="admin-filters" method="GET" action="/admin/demandes" style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+          <input type="text" name="q" defaultValue={q} placeholder="Recherche prénom..." className="admin-input admin-filters__search" style={{ minWidth: "180px" }} />
+          <select name="status" defaultValue={validStatus ?? ""} className="admin-input admin-filters__select">
+            <option value="">Tous statuts</option>
+            {Object.entries(LEAD_STATUS_LABELS).map(([val, label]) => (
+              <option key={val} value={val}>{label}</option>
+            ))}
+          </select>
+          <select name="destinationId" defaultValue={destinationId ?? ""} className="admin-input admin-filters__select">
+            <option value="">Destinations CMS</option>
+            {destinations.map((d) => <option key={d.id} value={d.id}>{d.cityName}</option>)}
+          </select>
+          <select name="landingPageId" defaultValue={landingPageId ?? ""} className="admin-input admin-filters__select">
+            <option value="">Pages locales</option>
+            {landings.map((l) => <option key={l.id} value={l.id}>/{l.locale.toLowerCase()}/{l.slug}</option>)}
+          </select>
+          <select name="offerId" defaultValue={offerId ?? ""} className="admin-input admin-filters__select">
+            <option value="">Offres CMS</option>
+            {offers.map((o) => <option key={o.id} value={o.id}>{o.publicNameFr}</option>)}
+          </select>
+          <select name="locale" defaultValue={validLocale ?? ""} className="admin-input admin-filters__select">
+            <option value="">Toutes langues</option>
+            <option value="FR">FR</option>
+            <option value="EN">EN</option>
+            <option value="ES">ES</option>
+          </select>
+          <select name="source" defaultValue={source ?? ""} className="admin-input admin-filters__select">
+            <option value="">Sources</option>
+            {sources.map((s) => <option key={s.source} value={s.source ?? ""}>{s.source}</option>)}
+          </select>
+          <select name="campaign" defaultValue={campaign ?? ""} className="admin-input admin-filters__select">
+            <option value="">Campagnes</option>
+            {campaigns.map((c) => <option key={c.campaign} value={c.campaign ?? ""}>{c.campaign}</option>)}
+          </select>
+          <select name="intent" defaultValue={intent ?? ""} className="admin-input admin-filters__select">
+            <option value="">Intentions</option>
+            {intents.map((i) => <option key={i.intent} value={i.intent ?? ""}>{i.intent}</option>)}
+          </select>
+          <select name="leadSegment" defaultValue={leadSegment ?? ""} className="admin-input admin-filters__select">
+            <option value="">Segments</option>
+            {segments.map((seg) => <option key={seg.leadSegment} value={seg.leadSegment ?? ""}>{seg.leadSegment}</option>)}
+          </select>
+          <select name="needType" defaultValue={needType ?? ""} className="admin-input admin-filters__select">
+            <option value="">Besoins</option>
+            {needs.map((n) => <option key={n.needType} value={n.needType ?? ""}>{n.needType}</option>)}
+          </select>
+          <select name="period" defaultValue={period ?? ""} className="admin-input admin-filters__select">
+            <option value="">Toutes périodes</option>
+            <option value="today">Aujourd&apos;hui</option>
+            <option value="week">7 derniers jours</option>
+            <option value="month">30 derniers jours</option>
+          </select>
+          <button type="submit" className="admin-btn admin-btn--ghost">Filtrer</button>
+          {hasFilters && <Link href="/admin/demandes" className="admin-btn admin-btn--ghost">Réinitialiser</Link>}
+        </form>
+      </details>
 
       {leads.length === 0 ? (
         <div className="admin-empty">
@@ -321,15 +335,10 @@ export default async function DemandesPage({ searchParams }: PageProps) {
                 <th>Prénom</th>
                 <th>Contact</th>
                 <th>Destination</th>
-                <th>Landing</th>
-                <th>Offre</th>
                 <th>Besoin</th>
                 <th>Intention</th>
-                <th>Segment</th>
-                <th>Langue</th>
-                <th>Statut GHL</th>
-                <th>Source</th>
-                <th>Action</th>
+                <th>Statut</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -349,28 +358,13 @@ export default async function DemandesPage({ searchParams }: PageProps) {
                     </td>
                     <td className="admin-table__contact">{lead.contact}</td>
                     <td>{lead.growthDestination?.cityName ?? lead.destination ?? "—"}</td>
-                    <td>
-                      {lead.landingPage ? (
-                        <Link href={`/admin/landings/${lead.landingPageId}/edit`} style={{ textDecoration: "underline" }}>
-                          /{lead.landingPage.locale.toLowerCase()}/{lead.landingPage.slug}
-                        </Link>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td>{lead.growthOffer?.publicNameFr ?? "—"}</td>
                     <td>{lead.needType ?? "—"}</td>
                     <td>{lead.intent ?? "—"}</td>
-                    <td>{lead.leadSegment ?? "—"}</td>
-                    <td>
-                      <span className="badge badge--locale">{lead.locale}</span>
-                    </td>
                     <td>
                       <span className={LEAD_STATUS_CLASSES[lead.status]}>
                         {LEAD_STATUS_LABELS[lead.status]}
                       </span>
                     </td>
-                    <td>{lead.source ?? "—"}</td>
                     <td className="admin-table__actions">
                       <Link href={`/admin/demandes/${lead.id}`} className="admin-action">
                         Détail
@@ -378,6 +372,11 @@ export default async function DemandesPage({ searchParams }: PageProps) {
                       {phone && (
                         <a href={`tel:${phone.tel}`} className="admin-action">
                           Appeler
+                        </a>
+                      )}
+                      {phone && (
+                        <a href={`https://wa.me/${phone.tel.replace(/^\+/, "")}`} className="admin-action" target="_blank" rel="noreferrer">
+                          WhatsApp
                         </a>
                       )}
                       {isEmail && (
@@ -420,6 +419,7 @@ export default async function DemandesPage({ searchParams }: PageProps) {
                 intent,
                 leadSegment,
                 needType,
+                quick,
                 page: String(page - 1),
               })}
               className="admin-btn admin-btn--ghost admin-btn--sm"
@@ -446,6 +446,7 @@ export default async function DemandesPage({ searchParams }: PageProps) {
                 intent,
                 leadSegment,
                 needType,
+                quick,
                 page: String(page + 1),
               })}
               className="admin-btn admin-btn--ghost admin-btn--sm"

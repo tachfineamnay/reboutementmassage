@@ -1,25 +1,16 @@
 import { prisma } from "@/lib/prisma";
-
-const METRIC_FIELD_MAP: Record<string, keyof import("@prisma/client").Prisma.LandingMetricDailyUpdateInput> = {
-  landing_viewed: "views",
-  hero_whatsapp_clicked: "whatsappClicks",
-  sticky_whatsapp_clicked: "stickyClicks",
-  form_started: "formStarts",
-  form_submitted: "formSubmits",
-  booking_clicked: "bookingClicks",
-  video_played: "videoPlays",
-};
+import { getLandingMetricField, type GrowthMetricEventName } from "@/lib/growth/events";
+import { getUtcDateOnly } from "@/lib/admin/date-windows";
 
 export async function incrementLandingMetric(
   landingPageId: string,
-  eventName: string,
+  eventName: GrowthMetricEventName,
   increment = 1
 ) {
-  const field = METRIC_FIELD_MAP[eventName];
+  const field = getLandingMetricField(eventName);
   if (!field) return;
 
-  const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
+  const today = getUtcDateOnly();
 
   await prisma.landingMetricDaily.upsert({
     where: {
@@ -34,4 +25,8 @@ export async function incrementLandingMetric(
       [field]: { increment },
     },
   });
+}
+
+export async function incrementLandingLeadMetric(landingPageId: string, increment = 1) {
+  return incrementLandingMetric(landingPageId, "lead_created", increment);
 }

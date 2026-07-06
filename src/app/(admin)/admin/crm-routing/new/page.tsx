@@ -4,7 +4,7 @@ import { ensureAdminSchema } from "@/lib/admin-schema";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import { upsertCrmRoutingRuleAction } from "@/lib/growth/actions";
 
-export const metadata: Metadata = { title: "New lead routing rule — Platform Admin", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "New lead routing rule — TMS Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 export default async function NewCrmRoutingPage() {

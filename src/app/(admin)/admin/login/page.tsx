@@ -1,88 +1,14 @@
-"use client";
+import LoginForm from "./LoginForm";
 
-import { useActionState } from "react";
-import { loginAction } from "./actions";
+type LoginPageProps = {
+  searchParams: Promise<{
+    from?: string | string[];
+  }>;
+};
 
-export default function AdminLoginPage() {
-  const [state, action, isPending] = useActionState(loginAction, undefined);
+export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
+  const params = await searchParams;
+  const from = Array.isArray(params.from) ? params.from[0] : params.from;
 
-  return (
-    <div className="login-page">
-      <div className="login-card">
-        {/* Brand */}
-        <div className="login-brand">
-          <span className="login-brand__icon">Platform Admin</span>
-          <span className="login-brand__sub">Business cockpit</span>
-        </div>
-
-        <h1 className="login-title">Connexion</h1>
-
-        <form action={action} className="login-form" noValidate>
-          {/* Erreur serveur */}
-          {state?.error && (
-            <div
-              className="admin-alert admin-alert--error"
-              role="alert"
-              aria-live="polite"
-            >
-              {state.error}
-            </div>
-          )}
-
-          {/* Email */}
-          <div className="admin-field">
-            <label className="admin-label" htmlFor="login-email">
-              Email
-            </label>
-            <input
-              id="login-email"
-              name="email"
-              type="email"
-              required
-              autoComplete="email"
-              autoFocus
-              className="admin-input"
-              placeholder="admin@votre-domaine.fr"
-              aria-invalid={!!state?.error}
-              disabled={isPending}
-            />
-          </div>
-
-          {/* Mot de passe */}
-          <div className="admin-field">
-            <label className="admin-label" htmlFor="login-password">
-              Mot de passe
-            </label>
-            <input
-              id="login-password"
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              className="admin-input"
-              placeholder="••••••••"
-              aria-invalid={!!state?.error}
-              disabled={isPending}
-            />
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            className="admin-btn admin-btn--primary admin-btn--full"
-            disabled={isPending}
-          >
-            {isPending ? (
-              <span className="login-btn-inner">
-                <span className="login-spinner" aria-hidden="true" />
-                Connexion en cours…
-              </span>
-            ) : (
-              "Se connecter"
-            )}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
+  return <LoginForm from={from ?? "/admin/dashboard"} />;
 }

@@ -7,7 +7,7 @@ import { computeLandingReadiness } from "@/lib/growth/landing-readiness";
 import LandingEditor from "@/components/admin/growth/LandingEditor";
 import type { ComponentProps } from "react";
 
-export const metadata: Metadata = { title: "Edit page — Platform Admin", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Edit page — TMS Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = {

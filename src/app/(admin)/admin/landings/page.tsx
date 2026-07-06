@@ -8,7 +8,7 @@ import AdminEmptyState from "@/components/admin/growth/AdminEmptyState";
 import AdminStatusBadge from "@/components/admin/growth/AdminStatusBadge";
 import ReadinessScoreBadge from "@/components/admin/growth/ReadinessScoreBadge";
 
-export const metadata: Metadata = { title: "Pages — Platform Admin", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Pages — TMS Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = { searchParams: Promise<{ status?: string; destinationId?: string; locale?: string; q?: string }> };

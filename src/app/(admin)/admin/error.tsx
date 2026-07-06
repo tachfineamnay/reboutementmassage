@@ -41,7 +41,7 @@ export default function AdminError({
         <div className="admin-alert admin-alert--error" style={{ marginBottom: 16 }}>
           {schemaError ? (
             <>
-              Les tables Platform Admin (Growth CMS) sont absentes ou incomplètes en
+              Les tables TMS Admin (Growth CMS) sont absentes ou incomplètes en
               production. Appliquez les migrations Prisma puis redéployez.
             </>
           ) : (

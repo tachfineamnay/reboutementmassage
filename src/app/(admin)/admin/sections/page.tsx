@@ -3,7 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = {
-  title: "Landing Sections — Platform Admin",
+  title: "Landing Sections — TMS Admin",
   robots: { index: false, follow: false },
 };
 

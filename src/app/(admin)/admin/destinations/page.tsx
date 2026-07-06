@@ -7,7 +7,7 @@ import AdminEmptyState from "@/components/admin/growth/AdminEmptyState";
 import AdminStatusBadge from "@/components/admin/growth/AdminStatusBadge";
 
 export const metadata: Metadata = {
-  title: "Destinations — Platform Admin",
+  title: "Destinations — TMS Admin",
   robots: { index: false, follow: false },
 };
 

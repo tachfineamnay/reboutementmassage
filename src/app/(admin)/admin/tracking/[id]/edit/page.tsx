@@ -6,7 +6,7 @@ import { ensureAdminSchema } from "@/lib/admin-schema";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import { upsertTrackingProfileAction, archiveTrackingProfileAction } from "@/lib/growth/actions";
 
-export const metadata: Metadata = { title: "Edit analytics profile — Platform Admin", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Edit analytics profile — TMS Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }> };

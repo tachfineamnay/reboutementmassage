@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { ensureAdminSchema } from "@/lib/admin-schema";
 import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import { upsertTestimonialAction, archiveTestimonialAction } from "@/lib/growth/actions";
 
-export const metadata: Metadata = { title: "Éditer témoignage — Platform Admin", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Éditer témoignage — TMS Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }> };
@@ -100,7 +101,14 @@ export default async function EditTestimonialPage({ params, searchParams }: Page
             </select>
             {selectedPoster && (
               <div style={{ marginTop: "6px" }}>
-                <img src={selectedPoster.url} alt="" style={{ width: "60px", height: "60px", objectFit: "cover", borderRadius: "4px" }} />
+                <Image
+                  src={selectedPoster.url}
+                  alt=""
+                  width={60}
+                  height={60}
+                  unoptimized
+                  style={{ width: "60px", height: "60px", objectFit: "cover", borderRadius: "4px" }}
+                />
               </div>
             )}
           </label>

@@ -4,7 +4,7 @@ import { getOpenAISettingsStatus } from "@/lib/openai";
 import OpenAISettingsForm from "@/components/admin/OpenAISettingsForm";
 
 export const metadata: Metadata = {
-  title: "Settings — Platform Admin",
+  title: "Settings — TMS Admin",
   robots: { index: false, follow: false },
 };
 

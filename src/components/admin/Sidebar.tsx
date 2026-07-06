@@ -12,52 +12,20 @@ type NavItem = {
   primary?: boolean;
 };
 
-type NavGroup = {
-  label?: string;
-  items: NavItem[];
-};
-
-const NAV_GROUPS: NavGroup[] = [
-  {
-    items: [{ href: "/admin/growth", label: "Overview", icon: "◎", primary: true }],
-  },
-  {
-    label: "Website",
-    items: [
-      { href: "/admin/landings", label: "Pages", icon: "◆" },
-      { href: "/admin/media", label: "Media Library", icon: "▣" },
-      { href: "/admin/testimonials", label: "Testimonials", icon: "❝" },
-      { href: "/admin/seo-health", label: "SEO", icon: "⌕" },
-      { href: "/admin/redirects", label: "Redirects", icon: "↪" },
-    ],
-  },
-  {
-    label: "Marketing",
-    items: [
-      { href: "/admin/offers", label: "Offers", icon: "◇" },
-      { href: "/admin/experiments", label: "Experiments", icon: "⚗" },
-      { href: "/admin/tracking", label: "Analytics", icon: "◉" },
-    ],
-  },
-  {
-    label: "Sales",
-    items: [
-      { href: "/admin/destinations", label: "Destinations", icon: "⌖" },
-      { href: "/admin/whatsapp", label: "WhatsApp", icon: "☏" },
-      { href: "/admin/crm-routing", label: "Lead Routing", icon: "⇄" },
-    ],
-  },
-  {
-    label: "CRM",
-    items: [{ href: "/admin/demandes", label: "Leads", icon: "☎" }],
-  },
-  {
-    label: "System",
-    items: [
-      { href: "/admin/health", label: "Diagnostics", icon: "♥" },
-      { href: "/admin/settings", label: "Settings", icon: "⚙", exact: true },
-    ],
-  },
+const NAV_ITEMS: NavItem[] = [
+  { href: "/admin/dashboard", label: "Tableau de bord", icon: "◎", primary: true },
+  { href: "/admin/demandes", label: "Demandes", icon: "☎" },
+  { href: "/admin/landings", label: "Pages locales", icon: "◆" },
+  { href: "/admin/offers", label: "Offres", icon: "◇" },
+  { href: "/admin/destinations", label: "Destinations", icon: "⌖" },
+  { href: "/admin/whatsapp", label: "WhatsApp", icon: "☏" },
+  { href: "/admin/crm-routing", label: "Routage GHL", icon: "⇄" },
+  { href: "/admin/tracking", label: "Tracking", icon: "◉" },
+  { href: "/admin/testimonials", label: "Témoignages", icon: "❝" },
+  { href: "/admin/media", label: "Médias", icon: "▣" },
+  { href: "/admin/overview", label: "SEO", icon: "⌕", exact: true },
+  { href: "/admin/health", label: "Santé technique", icon: "♥" },
+  { href: "/admin/settings", label: "Réglages", icon: "⚙", exact: true },
 ];
 
 export default function AdminSidebar() {
@@ -81,37 +49,32 @@ export default function AdminSidebar() {
   return (
     <aside className="admin-sidebar">
       <div className="admin-sidebar__brand">
-        <Link href="/admin/growth" className="admin-sidebar__logo">
-          <span className="admin-sidebar__logo-icon">PA</span>
-          <span className="admin-sidebar__logo-text">Platform Admin</span>
+        <Link href="/admin/dashboard" className="admin-sidebar__logo">
+          <span className="admin-sidebar__logo-icon">TMS</span>
+          <span className="admin-sidebar__logo-text">TMS Admin</span>
         </Link>
       </div>
 
-      <nav className="admin-sidebar__nav" aria-label="Platform Admin navigation">
-        {NAV_GROUPS.map((group) => (
-          <div key={group.label ?? "overview"} className="admin-sidebar__group">
-            {group.label && (
-              <p className="admin-sidebar__group-label">{group.label}</p>
-            )}
-            <ul className="admin-sidebar__list">
-              {group.items.map((item) => (
-                <li key={item.href} className="admin-sidebar__item">
-                  <Link
-                    href={item.href}
-                    className={`admin-sidebar__link ${
-                      isActive(item) ? "admin-sidebar__link--active" : ""
-                    } ${item.primary ? "admin-sidebar__link--primary" : "admin-sidebar__link--secondary"}`}
-                  >
-                    <span className="admin-sidebar__icon" aria-hidden="true">
-                      {item.icon}
-                    </span>
-                    <span>{item.label}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+      <nav className="admin-sidebar__nav" aria-label="TMS Admin navigation">
+        <div className="admin-sidebar__group">
+          <ul className="admin-sidebar__list">
+            {NAV_ITEMS.map((item) => (
+              <li key={item.href} className="admin-sidebar__item">
+                <Link
+                  href={item.href}
+                  className={`admin-sidebar__link ${
+                    isActive(item) ? "admin-sidebar__link--active" : ""
+                  } ${item.primary ? "admin-sidebar__link--primary" : "admin-sidebar__link--secondary"}`}
+                >
+                  <span className="admin-sidebar__icon" aria-hidden="true">
+                    {item.icon}
+                  </span>
+                  <span>{item.label}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       </nav>
 
       <div className="admin-sidebar__footer">

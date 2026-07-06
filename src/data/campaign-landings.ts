@@ -70,6 +70,7 @@ export type CampaignLandingConfig = {
     ctaSecondary: string;
     ctaSecondaryHref?: string;
     proofLine: string;
+    imageSrc?: string;
     imageAlt: string;
   };
   forYouIf: {

@@ -15,9 +15,16 @@ import TestimonialVideoBlock from "@/components/campaign/TestimonialVideoBlock";
 import SharedFooter from "@/components/SharedFooter";
 import SharedHeader from "@/components/SharedHeader";
 import type { CampaignLandingConfig } from "@/data/campaign-landings";
-import { trackLandingViewed } from "@/lib/campaign-tracking";
+import { trackGrowthEvent } from "@/lib/growth/tracking";
 
-export default function MobileWhatsappFirstLanding({ config }: { config: CampaignLandingConfig }) {
+type MobileLandingConfig = CampaignLandingConfig & {
+  landingPageId?: string | null;
+  destinationId?: string;
+  offerId?: string | null;
+  variantId?: string;
+};
+
+export default function MobileWhatsappFirstLanding({ config }: { config: MobileLandingConfig }) {
   const headerWhatsappUrl = config.whatsappUrls.default;
 
   useEffect(() => {
@@ -27,12 +34,18 @@ export default function MobileWhatsappFirstLanding({ config }: { config: Campaig
     document.documentElement.lang = config.htmlLang;
     document.body.classList.add("has-campaign-sticky");
 
-    trackLandingViewed(config.htmlLang, {
-      city: config.destinationSlug || config.branchData.campaignCity,
-      offer: config.offerType || config.branchData.offer,
-      session_duration: config.durationMinutes ? `${config.durationMinutes}_min` : undefined,
-      content_name: config.tracking?.viewContentName,
-    });
+    if (!config.landingPageId) {
+      trackGrowthEvent("landing_viewed", {
+        language: config.htmlLang,
+        city: config.destinationSlug,
+        country: config.country,
+        locale: config.htmlLang,
+        offer: config.offerType,
+        offerType: config.offerType,
+        session_duration: config.durationMinutes ? `${config.durationMinutes}_min` : undefined,
+        content_name: config.tracking.viewContentName,
+      });
+    }
 
     return () => {
       document.body.classList.remove("has-campaign-sticky");

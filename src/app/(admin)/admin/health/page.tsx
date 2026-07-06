@@ -11,7 +11,7 @@ import AdminStatusBadge from "@/components/admin/growth/AdminStatusBadge";
 import { isValidE164 } from "@/lib/growth/whatsapp";
 import { getUploadsDir } from "@/lib/server-utils";
 
-export const metadata: Metadata = { title: "Diagnostics — Platform Admin", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Diagnostics — TMS Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type Check = {
@@ -192,7 +192,7 @@ export default async function HealthPage() {
     {
       name: "Canaux WhatsApp actifs (ACTIVE)",
       status: activeWhatsappCount > 0 ? "ok" : "warn",
-      detail: `${activeWhatsappCount} canal(aux) actif(s) sur ${whatsappChannels.length}`,
+      detail: `${activeWhatsappCount} canal(aux) actif(s), ${inactiveWhatsapp.length} inactif(s) sur ${whatsappChannels.length}`,
       href: "/admin/whatsapp",
     },
     {
@@ -222,7 +222,7 @@ export default async function HealthPage() {
     {
       name: "Active analytics without pixel",
       status: activeTrackingNoPixelCount > 0 ? "warn" : "ok",
-      detail: `${activeTrackingNoPixelCount} profil(s)`,
+      detail: `${activeTrackingNoPixelCount} profil(s), ${inactiveTracking.length} inactif(s)`,
       href: "/admin/tracking",
     },
     {
@@ -249,7 +249,7 @@ export default async function HealthPage() {
     {
       name: "Live pages without active lead routing",
       status: liveLandingsNoActiveRoutingCount > 0 ? "fail" : "ok",
-      detail: `${liveLandingsNoActiveRoutingCount} page(s)`,
+      detail: `${liveLandingsNoActiveRoutingCount} page(s), ${destinationsWithActiveRulesCount} destination(s) avec règle active`,
       href: "/admin/crm-routing",
     },
     {
@@ -271,7 +271,7 @@ export default async function HealthPage() {
 
   return (
     <div className="admin-page">
-      <AdminPageHeader title="Diagnostics" meta="Platform Admin operational health" />
+      <AdminPageHeader title="Diagnostics" meta="TMS Admin operational health" />
 
       <div className="admin-table-wrapper">
         <table className="admin-table">

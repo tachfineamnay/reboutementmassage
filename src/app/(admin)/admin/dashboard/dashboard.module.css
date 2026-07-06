@@ -1,0 +1,40 @@
+.correctionGrid,
+.systemGrid {
+  display: grid;
+  gap: 24px;
+}
+
+.correctionGrid {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.systemGrid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.correctionCard,
+.systemCard {
+  padding: 16px;
+}
+
+.correctionList {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.correctionList li {
+  display: grid;
+  gap: 5px;
+}
+
+.systemCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
