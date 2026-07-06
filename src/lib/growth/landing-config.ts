@@ -219,6 +219,7 @@ export function landingPageToCampaignConfig(landing: LandingPageWithRelations): 
   const offerBlock = (content.offerBlock ?? {}) as JsonRecord;
   const testimonial = (content.testimonial ?? {}) as JsonRecord;
   const heroExtra = (content.hero ?? {}) as JsonRecord;
+  const shortFormExtra = (content.shortForm ?? {}) as JsonRecord;
   const stickyCta = (content.stickyCta ?? {}) as JsonRecord;
   const sections = (content.sections ?? {}) as JsonRecord;
   const finalCta = (content.finalCta ?? {}) as JsonRecord;
@@ -266,6 +267,12 @@ export function landingPageToCampaignConfig(landing: LandingPageWithRelations): 
         : "#",
   };
   const branchData = asStringRecord(content.branchData);
+  const leadSegment =
+    typeof content.leadSegment === "string"
+      ? content.leadSegment
+      : typeof shortFormExtra.leadSegment === "string"
+        ? shortFormExtra.leadSegment
+        : "b2c_premium";
   const heroImageAlt =
     landing.locale === "EN"
       ? landing.heroImage?.altEn
@@ -285,7 +292,7 @@ export function landingPageToCampaignConfig(landing: LandingPageWithRelations): 
     destination: landing.destination.cityName,
     offer: "private_session",
     leadType: `Client privé ${landing.destination.slug.toUpperCase()}`,
-    leadSegment: "b2c_premium",
+    leadSegment,
     landingPageId: landing.id,
     destinationId: landing.destinationId,
     offerId: landing.offerId,
@@ -313,6 +320,7 @@ export function landingPageToCampaignConfig(landing: LandingPageWithRelations): 
       landingPageId: landing.id,
       destinationId: landing.destinationId,
       offerId: landing.offerId ?? "",
+      leadSegment,
       durationMinutes: String(offer?.durationMinutes ?? 75),
       ...branchData,
     },

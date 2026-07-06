@@ -17,6 +17,21 @@ Database schema:
 - If PostgreSQL is not ready during the first attempt, the legacy patch retries in the background while Next.js remains available.
 - `RUN_DB_PUSH=1` is optional and runs `prisma db push` after migrations (use only for dev-like environments).
 - A failed migration or schema sync is logged but never stops `node server.js`.
+- Do not run `db push` as the normal production path. Keep `RUN_MIGRATE_DEPLOY=1` and leave `RUN_DB_PUSH=0` unless you are intentionally repairing a dev-like database.
+
+Post-deploy checks:
+
+```sh
+cd /app
+pnpm exec prisma migrate deploy
+```
+
+Then verify these URLs from the deployed domain:
+
+- `/admin/dashboard`
+- `/admin/health`
+- `/admin/landings/new`
+- `/admin/demandes?quick=todo`
 
 ## PNPM/Corepack dans le conteneur Coolify
 
@@ -48,9 +63,15 @@ Or run the bundled script (after redeploy):
 ```sh
 cd /app
 sh ./scripts/run-migrate-deploy.sh
-sh ./scripts/run-seed.sh
 ```
 
 The production container does not include `tsx`. Seed is bundled at image build time as `scripts/seed.bundle.cjs`. Do not use `pnpm exec tsx prisma/seed.ts` in Coolify.
+
+Seed is voluntary, not part of normal boot. Run it only when you intentionally want to create/update seed data:
+
+```sh
+cd /app
+sh ./scripts/run-seed.sh
+```
 
 Required env for seed: `DATABASE_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `NEXT_PUBLIC_CDMX_WHATSAPP_NUMBER`. Optional: `SEED_GROWTH_CDMX=1` (default).

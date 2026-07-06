@@ -39,6 +39,7 @@ export type CampaignTrackingParams = {
   need_type?: string;
   faq_question?: string;
   meta_event_id?: string;
+  eventId?: string;
 };
 
 declare global {

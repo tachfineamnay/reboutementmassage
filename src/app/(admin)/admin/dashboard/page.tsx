@@ -53,13 +53,13 @@ export default async function AdminDashboardPage() {
     {
       label: "Pages readiness < 80",
       value: data.urgency.lowReadinessPages,
-      href: "/admin/landings?status=LIVE",
+      href: "/admin/landings?readiness=low",
       tone: "warning" as const,
     },
     {
       label: "Pages live noindex",
       value: data.urgency.liveNoindexPages,
-      href: "/admin/landings?status=LIVE",
+      href: "/admin/landings?status=LIVE&noindex=true",
       tone: "danger" as const,
     },
     {
@@ -109,7 +109,10 @@ export default async function AdminDashboardPage() {
           <AdminStatCard label="Taux WhatsApp" value={percent(data.kpis.whatsappConversionRate)} />
           <AdminStatCard label="Taux formulaire" value={percent(data.kpis.formConversionRate)} tone="green" />
           <AdminStatCard label="Pages live" value={data.kpis.livePages} href="/admin/landings?status=LIVE" />
-          <AdminStatCard label="Readiness moyen" value={readiness(data.kpis.averageReadiness)} />
+          <AdminStatCard
+            label="Readiness moyen"
+            value={data.kpis.livePages > 0 ? readiness(data.kpis.averageReadiness) : "0 page live"}
+          />
         </div>
       </AdminSection>
 
@@ -249,7 +252,7 @@ export default async function AdminDashboardPage() {
           <SystemStatus
             label="WhatsApp actif"
             ok={data.system.activeWhatsappChannels > 0 && data.system.liveMissingWhatsapp === 0}
-            detail={`${data.system.activeWhatsappChannels} canal actif, ${data.system.liveMissingWhatsapp} page(s) live à corriger`}
+            detail={`${data.system.activeWhatsappChannels} canal opérationnel, ${data.system.liveMissingWhatsapp} page(s) live à corriger`}
             href="/admin/whatsapp"
           />
           <SystemStatus

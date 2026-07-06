@@ -213,6 +213,7 @@ export default function ShortLeadForm({
         session_duration: config.durationMinutes ? `${config.durationMinutes}_min` : undefined,
         content_name: config.tracking.viewContentName,
         lead_segment: config.leadSegment,
+        eventId,
       });
 
       setSubmitted(true);

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { Prisma } from "@prisma/client";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ensureAdminSchema } from "@/lib/admin-schema";
@@ -8,23 +9,34 @@ import AdminEmptyState from "@/components/admin/growth/AdminEmptyState";
 import AdminStatusBadge from "@/components/admin/growth/AdminStatusBadge";
 import ReadinessScoreBadge from "@/components/admin/growth/ReadinessScoreBadge";
 
-export const metadata: Metadata = { title: "Pages — TMS Admin", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Pages locales — TMS Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
-type PageProps = { searchParams: Promise<{ status?: string; destinationId?: string; locale?: string; q?: string }> };
+type PageProps = {
+  searchParams: Promise<{
+    status?: string;
+    destinationId?: string;
+    locale?: string;
+    q?: string;
+    readiness?: string;
+    noindex?: string;
+  }>;
+};
 
 const fmt = new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
 
 export default async function LandingsPage({ searchParams }: PageProps) {
   await ensureAdminSchema();
-  const { status, destinationId, locale, q } = await searchParams;
+  const { status, destinationId, locale, q, readiness, noindex } = await searchParams;
 
-  const where = {
+  const where: Prisma.LandingPageWhereInput = {
     ...(status && ["DRAFT", "READY", "LIVE", "PAUSED", "ARCHIVED"].includes(status)
       ? { status: status as "DRAFT" | "READY" | "LIVE" | "PAUSED" | "ARCHIVED" }
       : {}),
     ...(destinationId ? { destinationId } : {}),
     ...(locale && ["FR", "EN", "ES"].includes(locale) ? { locale: locale as "FR" | "EN" | "ES" } : {}),
+    ...(readiness === "low" ? { readinessScore: { lt: 80 } } : {}),
+    ...(noindex === "true" ? { noindex: true } : noindex === "false" ? { noindex: false } : {}),
     ...(q
       ? {
           OR: [
@@ -45,11 +57,11 @@ export default async function LandingsPage({ searchParams }: PageProps) {
     prisma.destination.findMany({ select: { id: true, cityName: true }, orderBy: { cityName: "asc" } }),
   ]);
 
-  const hasFilters = !!(status || destinationId || locale || q);
+  const hasFilters = !!(status || destinationId || locale || q || readiness || noindex);
 
   return (
     <div className="admin-page">
-      <AdminPageHeader title="Pages" meta={`${total} page${total !== 1 ? "s" : ""}`} action={{ href: "/admin/landings/new", label: "+ New page" }} />
+      <AdminPageHeader title="Pages locales" meta={`${total} page${total !== 1 ? "s" : ""}`} action={{ href: "/admin/landings/new", label: "+ Créer une page" }} />
 
       <form className="admin-filters" method="GET">
         <input type="text" name="q" defaultValue={q} placeholder="Rechercher…" className="admin-input admin-filters__search" />
@@ -69,6 +81,15 @@ export default async function LandingsPage({ searchParams }: PageProps) {
           <option value="READY">Prêt</option>
           <option value="LIVE">Live</option>
           <option value="PAUSED">Pause</option>
+        </select>
+        <select name="readiness" defaultValue={readiness ?? ""} className="admin-input admin-filters__select">
+          <option value="">Toute readiness</option>
+          <option value="low">Readiness &lt; 80</option>
+        </select>
+        <select name="noindex" defaultValue={noindex ?? ""} className="admin-input admin-filters__select">
+          <option value="">Indexation</option>
+          <option value="true">Noindex</option>
+          <option value="false">Indexable</option>
         </select>
         <button type="submit" className="admin-btn admin-btn--ghost">Filtrer</button>
         {hasFilters && <Link href="/admin/landings" className="admin-btn admin-btn--ghost">Réinitialiser</Link>}

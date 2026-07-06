@@ -11,10 +11,10 @@ import {
   LEAD_STATUS_LABELS,
   normalizePhoneContact,
 } from "@/lib/admin-leads";
-import { archiveLeadAction } from "./actions";
+import { archiveLeadAction, retryLeadToGhlAction } from "./actions";
 
 export const metadata: Metadata = {
-  title: "Leads — TMS Admin",
+  title: "Demandes — TMS Admin",
   robots: { index: false, follow: false },
 };
 
@@ -107,6 +107,7 @@ export default async function DemandesPage({ searchParams }: PageProps) {
   const validStatus = isLeadStatus(status) ? status : undefined;
   const validLocale = LOCALES.includes(locale as Locale) ? (locale as Locale) : undefined;
   const periodStart = getPeriodStart(period);
+  const cdmxTerms = ["CDMX", "Mexico", "Ciudad de México", "Mexico City"];
   const quickWhere: Prisma.LeadSubmissionWhereInput =
     quick === "todo"
       ? { status: { in: ["CAPTURED", "FAILED"] } }
@@ -121,11 +122,11 @@ export default async function DemandesPage({ searchParams }: PageProps) {
             ? { status: "CAPTURED" }
             : quick === "cdmx"
               ? {
-                  OR: [
-                    { destination: { contains: "CDMX", mode: "insensitive" } },
-                    { currentLocation: { contains: "CDMX", mode: "insensitive" } },
-                    { growthDestination: { cityName: { contains: "Mexico", mode: "insensitive" } } },
-                  ],
+                  OR: cdmxTerms.flatMap((term) => [
+                    { destination: { contains: term, mode: "insensitive" as const } },
+                    { currentLocation: { contains: term, mode: "insensitive" as const } },
+                    { growthDestination: { cityName: { contains: term, mode: "insensitive" as const } } },
+                  ]),
                 }
               : quick === "archived"
                 ? { status: "ARCHIVED" }
@@ -236,7 +237,7 @@ export default async function DemandesPage({ searchParams }: PageProps) {
     <div className="admin-page admin-page--wide">
       <div className="admin-page__header">
         <div>
-          <h1 className="admin-page__title">Leads</h1>
+          <h1 className="admin-page__title">Demandes</h1>
           <p className="admin-page__meta">
             {total} demande{total !== 1 ? "s" : ""}
             {hasFilters ? " filtrée(s)" : " reçue(s)"}
@@ -384,11 +385,19 @@ export default async function DemandesPage({ searchParams }: PageProps) {
                           Email
                         </a>
                       )}
+                      {lead.status === "FAILED" && (
+                        <form action={retryLeadToGhlAction}>
+                          <input type="hidden" name="id" value={lead.id} />
+                          <button type="submit" className="admin-action">
+                            Relancer GHL
+                          </button>
+                        </form>
+                      )}
                       {lead.status !== "ARCHIVED" && (
                         <form action={archiveLeadAction}>
                           <input type="hidden" name="id" value={lead.id} />
                           <button type="submit" className="admin-action admin-action--danger">
-                            Archiver
+                            Marquer traité
                           </button>
                         </form>
                       )}

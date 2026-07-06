@@ -115,7 +115,7 @@ export async function getAdminDashboardData(now = new Date()) {
         trackingProfile: { select: { status: true } },
       },
     }),
-    prisma.whatsappChannel.count({ where: { status: "ACTIVE" } }),
+    prisma.whatsappChannel.count({ where: { status: { in: ["ACTIVE", "CONNECTED_GHL"] } } }),
     prisma.trackingProfile.count({ where: { status: "ACTIVE" } }),
   ]);
 
@@ -157,7 +157,10 @@ export async function getAdminDashboardData(now = new Date()) {
     .sort((a, b) => b.views - a.views)
     .slice(0, 8);
   const liveMissingWhatsapp = liveLandings.filter(
-    (landing) => !landing.whatsappChannelId || landing.whatsappChannel?.status !== "ACTIVE"
+    (landing) =>
+      !landing.whatsappChannelId ||
+      !landing.whatsappChannel ||
+      !["ACTIVE", "CONNECTED_GHL"].includes(landing.whatsappChannel.status)
   ).length;
   const liveMissingTracking = liveLandings.filter(
     (landing) => !landing.trackingProfileId || landing.trackingProfile?.status !== "ACTIVE"

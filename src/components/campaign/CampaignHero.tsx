@@ -16,7 +16,6 @@ export default function CampaignHero({ config }: { config: CampaignLandingConfig
   const whatsappUrl = config.whatsappUrls.default;
   const secondaryHref = config.hero.ctaSecondaryHref ?? "#solicitud";
   const heroImageSrc = config.hero.imageSrc || "/hero.webp";
-  const heroImageAlt = config.hero.imageAlt || config.hero.title;
   const { track } = useGrowthTracking();
 
   function handleWhatsappClick() {
@@ -44,7 +43,7 @@ export default function CampaignHero({ config }: { config: CampaignLandingConfig
       <div className="campaign-hero__photo" aria-hidden="true">
         <Image
           src={heroImageSrc}
-          alt={heroImageAlt}
+          alt=""
           fill
           priority
           sizes="100vw"
