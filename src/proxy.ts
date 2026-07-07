@@ -6,12 +6,28 @@ import { getCanonicalLocalizedPath, isLocale, type Locale } from "@/lib/seo";
 const PUBLIC_ROUTES = ["/admin/login"];
 const SUPPORTED_LOCALES: Locale[] = ["fr", "en", "es"];
 
+// Routes publiques statiques qui ne doivent jamais dépendre du lookup RedirectRule.
+const STATIC_PUBLIC_BYPASS_PATHS = new Set(["/es/reset-corporal-frances-cdmx"]);
+
 function normalizeHost(value: string) {
   return value
     .replace(/^https?:\/\//i, "")
     .replace(/\/.*$/, "")
     .replace(/:\d+$/, "")
     .toLowerCase();
+}
+
+function normalizeOrigin(value: string) {
+  const trimmed = value.trim().replace(/\/+$/, "");
+  if (!trimmed) return "";
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `http://${trimmed}`;
+}
+
+function getInternalAppOrigin() {
+  const configured = normalizeOrigin(process.env.INTERNAL_APP_ORIGIN ?? "");
+  if (configured) return configured;
+
+  return `http://127.0.0.1:${process.env.PORT || "3000"}`;
 }
 
 function getCanonicalHostRedirectUrl(request: NextRequest) {
@@ -63,6 +79,12 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(canonicalHostRedirectUrl, 308);
   }
 
+  // ── 0.0. Routes publiques statiques critiques ──────────────────────────────
+  // Ces routes doivent charger même si le lookup de redirections dynamiques est indisponible.
+  if (STATIC_PUBLIC_BYPASS_PATHS.has(pathname)) {
+    return NextResponse.next();
+  }
+
   // ── 0.1. Redirections dynamiques (RedirectRule) ───────────────────────────
   if (
     !pathname.startsWith("/admin") &&
@@ -70,7 +92,10 @@ export async function proxy(request: NextRequest) {
     !pathname.includes(".")
   ) {
     try {
-      const lookupUrl = new URL(`/api/redirects?path=${encodeURIComponent(pathname)}`, request.url);
+      const lookupUrl = new URL(
+        `/api/redirects?path=${encodeURIComponent(pathname)}`,
+        getInternalAppOrigin()
+      );
       const res = await fetch(lookupUrl, {
         method: "GET",
         headers: { "x-redirect-lookup": "1" },
@@ -85,7 +110,7 @@ export async function proxy(request: NextRequest) {
         }
       }
     } catch (error) {
-      console.error("Proxy dynamic redirection lookup error:", error);
+      console.error("Proxy dynamic redirection lookup failed; continuing without redirect.", error);
     }
   }
 
