@@ -4,7 +4,13 @@ import { useEffect, useState } from "react";
 import type { CampaignLandingConfig } from "@/data/campaign-landings";
 import { useGrowthTracking } from "@/components/TrackingProvider";
 
-export default function MobileStickyCta({ config }: { config: CampaignLandingConfig }) {
+export default function MobileStickyCta({
+  config,
+  singleCta = false,
+}: {
+  config: CampaignLandingConfig;
+  singleCta?: boolean;
+}) {
   const whatsappUrl = config.whatsappUrls.sticky_cta;
   const [visible, setVisible] = useState(false);
   const { track } = useGrowthTracking();
@@ -40,7 +46,10 @@ export default function MobileStickyCta({ config }: { config: CampaignLandingCon
   }
 
   return (
-    <div className={`campaign-sticky ${visible ? "is-visible" : ""}`} aria-hidden={!visible}>
+    <div
+      className={`campaign-sticky ${singleCta ? "campaign-sticky--single" : ""} ${visible ? "is-visible" : ""}`}
+      aria-hidden={!visible}
+    >
       <a
         href={whatsappUrl}
         target="_blank"
@@ -50,9 +59,11 @@ export default function MobileStickyCta({ config }: { config: CampaignLandingCon
       >
         {config.stickyCta.whatsapp}
       </a>
-      <a href="#solicitud" className="campaign-sticky__book" onClick={handleBookingClick}>
-        {config.stickyCta.booking}
-      </a>
+      {!singleCta && (
+        <a href="#solicitud" className="campaign-sticky__book" onClick={handleBookingClick}>
+          {config.stickyCta.booking}
+        </a>
+      )}
     </div>
   );
 }

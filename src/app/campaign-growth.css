@@ -618,6 +618,10 @@ textarea.campaign-short-form__input {
     border: 1px solid var(--forest);
     background: transparent;
   }
+
+  .campaign-sticky--single {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1065,6 +1069,70 @@ textarea.campaign-short-form__input {
   color: var(--mid);
 }
 
+/* ── Inline editorial links (maillage interne) ─────────────────── */
+.lp-inline-link {
+  color: var(--forest);
+  text-decoration: none;
+  border-bottom: 0.5px solid var(--gold);
+  transition: color .25s ease, border-color .25s ease;
+}
+.lp-inline-link:hover {
+  color: var(--gold);
+  border-color: var(--forest);
+}
+
+/* ── 04b PREGUNTAS RÁPIDAS (AEO) ───────────────────────────────── */
+.lp-aeo {
+  background: var(--cream);
+  padding: var(--pad-m) 0;
+}
+
+.lp-aeo__head {
+  max-width: 620px;
+  margin-bottom: 48px;
+}
+
+.lp-aeo__title { margin: 14px 0 0; }
+
+.lp-aeo__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 0.5px solid var(--line);
+}
+
+.lp-aeo__card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 32px 28px;
+  background: var(--white);
+  transition: transform .3s ease, box-shadow .3s ease;
+}
+.lp-aeo__card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(27,51,40,0.08);
+}
+
+.lp-aeo__q {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 19px;
+  line-height: 1.25;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+}
+
+.lp-aeo__a {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--mid);
+  text-wrap: pretty;
+}
+
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    RESPONSIVE â€” FBR v2
 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
@@ -1074,6 +1142,7 @@ textarea.campaign-short-form__input {
   .lp-benefits__grid { grid-template-columns: repeat(2, 1fr); }
   .lp-process .how-grid { grid-template-columns: repeat(2, 1fr); }
   .lp-benefit-item:nth-child(2) { border-right: none; }
+  .lp-aeo__grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 920px) {
@@ -1121,5 +1190,8 @@ textarea.campaign-short-form__input {
   .lp-offer-card__title { font-size: 24px; }
 
   .lp-offers__footer { flex-direction: column; align-items: flex-start; gap: 16px; }
+
+  .lp-aeo__grid { grid-template-columns: 1fr; }
+  .lp-aeo__card { padding: 24px 20px; }
 }
 

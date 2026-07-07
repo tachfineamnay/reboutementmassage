@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { absoluteUrl } from "@/lib/seo";
-import { CDMX_PRIVATE_SESSION_CAMPAIGNS } from "@/data/campaign-landings";
+import { absoluteUrl, renderJsonLd } from "@/lib/seo";
+import { CDMX_PRIVATE_SESSION_CAMPAIGNS, CDMX_WHATSAPP_URL } from "@/data/campaign-landings";
+import { RESET_CORPORAL_AEO_QUESTIONS } from "@/data/reset-corporal-aeo";
 import ResetCorporalPage from "@/app/reset-corporal-frances-page";
 
 type PageProps = {
@@ -56,33 +57,84 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-const jsonLd = JSON.stringify({
+const SERVICE_ID = `${absoluteUrl(CANONICAL)}#service`;
+const PERSON_ID = `${absoluteUrl("/es/biografia")}#gregory-tordjman`;
+
+// Visible FAQ = quick AEO questions + the detailed FAQ accordion shown on the page.
+const VISIBLE_FAQ = [
+  ...RESET_CORPORAL_AEO_QUESTIONS.map((item) => ({ question: item.q, answer: item.a })),
+  ...config.faq,
+];
+
+const jsonLd = renderJsonLd({
   "@context": "https://schema.org",
-  "@type": "Service",
-  name: "French Body Reset en CDMX",
-  description: config.meta.description,
-  url: absoluteUrl(CANONICAL),
-  provider: {
-    "@type": "Person",
-    name: "Grégory Tordjman",
-    url: absoluteUrl("/es"),
-  },
-  areaServed: {
-    "@type": "City",
-    name: "Ciudad de México",
-    addressCountry: "MX",
-  },
-  serviceType: "Manual therapy session",
-  offers: [
+  "@graph": [
     {
-      "@type": "Offer",
-      name: "Body Reset Fix",
-      description: "Sesión puntual para una tensión prioritaria: espalda, cuello, hombros o lumbar.",
+      "@type": "Person",
+      "@id": PERSON_ID,
+      name: "Grégory Tordjman",
+      url: absoluteUrl("/es/biografia"),
+      jobTitle: "Practicante manual · creador del Método TMS®",
     },
     {
-      "@type": "Offer",
-      name: "Body Reset Full",
-      description: "Sesión completa de reset corporal: espalda, cuello, pelvis, respiración y sistema nervioso.",
+      "@type": "Service",
+      "@id": SERVICE_ID,
+      name: "Reset Corporal Francés en CDMX",
+      alternateName: ["French Body Reset", "Body Reset CDMX", "Sesión manual profunda en CDMX"],
+      description: config.meta.description,
+      url: absoluteUrl(CANONICAL),
+      serviceType: "Trabajo corporal manual profundo",
+      provider: { "@id": PERSON_ID },
+      areaServed: [
+        { "@type": "City", name: "Ciudad de México" },
+        { "@type": "City", name: "CDMX" },
+        { "@type": "Country", name: "Mexico" },
+      ],
+      offers: [
+        {
+          "@type": "Offer",
+          name: "Body Reset Fix",
+          description:
+            "Sesión manual profunda enfocada en una zona prioritaria: espalda cargada, cuello rígido, hombros o lumbar.",
+          url: CDMX_WHATSAPP_URL,
+          availability: "https://schema.org/InStock",
+        },
+        {
+          "@type": "Offer",
+          name: "Body Reset Full",
+          description:
+            "Experiencia más completa para espalda, cuello, hombros, pelvis, respiración y tensión global.",
+          url: CDMX_WHATSAPP_URL,
+          availability: "https://schema.org/InStock",
+        },
+      ],
+    },
+    {
+      "@type": "FAQPage",
+      "@id": `${absoluteUrl(CANONICAL)}#faq`,
+      mainEntity: VISIBLE_FAQ.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: { "@type": "Answer", text: item.answer },
+      })),
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": `${absoluteUrl(CANONICAL)}#breadcrumb`,
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "French Body Reset",
+          item: absoluteUrl("/es"),
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Reset Corporal Francés en CDMX",
+          item: absoluteUrl(CANONICAL),
+        },
+      ],
     },
   ],
 });

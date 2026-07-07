@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import SharedHeader from "@/components/SharedHeader";
 import SharedFooter from "@/components/SharedFooter";
 import MobileStickyCta from "@/components/campaign/MobileStickyCta";
-import { CDMX_PRIVATE_SESSION_CAMPAIGNS, CDMX_STATIC_WA_URLS } from "@/data/campaign-landings";
+import { CDMX_PRIVATE_SESSION_CAMPAIGNS, CDMX_WHATSAPP_URL } from "@/data/campaign-landings";
+import { RESET_CORPORAL_AEO_QUESTIONS } from "@/data/reset-corporal-aeo";
 import { trackGrowthEvent } from "@/lib/growth/tracking";
 
 const config = CDMX_PRIVATE_SESSION_CAMPAIGNS.es;
@@ -102,13 +104,13 @@ function Hero() {
           </Reveal>
           <Reveal delay={0.32}>
             <p className="lp-hero__sub">
-              No es un masaje tradicional. Es un reset profundo del cuerpo: una experiencia manual precisa para liberar tensión, soltar el sistema nervioso y recuperar más ligereza, respiración y claridad.
+              No es un masaje tradicional. Es una sesión manual profunda en CDMX: un trabajo preciso y personalizado para liberar la tensión corporal, ayudar al cuerpo a bajar tensión y recuperar calma, ligereza y respiración.
             </p>
           </Reveal>
           <Reveal delay={0.44}>
             <div className="lp-hero__ctas">
               <a
-                href={CDMX_STATIC_WA_URLS.book_intent}
+                href={CDMX_WHATSAPP_URL}
                 target="_blank"
                 rel="noreferrer"
                 className="btn-primary lp-hero__cta-primary"
@@ -117,20 +119,6 @@ function Hero() {
               >
                 <WhatsAppIcon />
                 <span>Reservar por WhatsApp</span>
-              </a>
-              <a
-                href={CDMX_STATIC_WA_URLS.more_info_intent}
-                target="_blank"
-                rel="noreferrer"
-                className="lp-hero__cta-secondary"
-                id="hero-cta-info"
-                aria-label="Pedir información sobre French Body Reset"
-              >
-                Pedir información
-                <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
-                  <line x1="0" y1="5" x2="12" y2="5" stroke="currentColor" strokeWidth="0.7" />
-                  <polyline points="8,1 12,5 8,9" fill="none" stroke="currentColor" strokeWidth="0.7" />
-                </svg>
               </a>
             </div>
           </Reveal>
@@ -175,12 +163,15 @@ function Manifeste() {
         </Reveal>
         <Reveal delay={0.1}>
           <p className="lp-manifeste__lead">
-            Es un trabajo manual profundo, preciso y personalizado. No es relajación superficial: es una intervención calibrada que lee el cuerpo antes de actuar — tensiones, respiración, movilidad, sistema nervioso.
+            Es un trabajo corporal premium, profundo, preciso y personalizado. No es relajación superficial: es una sesión manual profunda en CDMX que lee el cuerpo antes de actuar — tensión corporal, respiración, movilidad y calma.
           </p>
         </Reveal>
         <Reveal delay={0.18}>
           <p className="lp-manifeste__body">
-            Cada sesión se adapta a lo que el cuerpo presenta ese día. No promete curación ni sustituye una consulta médica. Es un acompañamiento corporal premium para personas que quieren algo más que un masaje tradicional.
+            Una alternativa premium al masaje tradicional para quienes buscan un trabajo manual más profundo, preciso y personalizado. Es una terapia manual no médica: cada sesión se adapta a lo que el cuerpo presenta ese día y no sustituye una consulta médica. Conoce el enfoque de{" "}
+            <Link href="/es" className="lp-inline-link">French Body Reset</Link>{" "}
+            y la trayectoria de{" "}
+            <Link href="/es/biografia" className="lp-inline-link">Grégory Tordjman</Link>.
           </p>
         </Reveal>
         <Reveal delay={0.26}>
@@ -209,7 +200,7 @@ function Manifeste() {
 const STATS = [
   { value: "9,000+", label: "Cuerpos acompañados" },
   { value: "230+", label: "Terapeutas formados" },
-  { value: "Desde 2014", label: "Método clínico probado" },
+  { value: "Desde 2014", label: "Experiencia profesional" },
   { value: "CDMX", label: "Sesiones privadas disponibles" },
 ];
 
@@ -279,7 +270,7 @@ function Offres() {
               </div>
               <h3 className="lp-offer-card__title">Body Reset Fix</h3>
               <p className="lp-offer-card__desc">
-                Ideal si quieres trabajar una zona prioritaria: espalda, cuello, hombros, zona lumbar o tensión acumulada. Una sesión precisa para desbloquear lo esencial.
+                Ideal si quieres trabajar una zona prioritaria: espalda cargada, cuello rígido, hombros, zona lumbar o tensión acumulada. Una sesión precisa, más profunda que un masaje convencional, para desbloquear lo esencial.
               </p>
               <ul className="lp-offer-card__list" role="list">
                 {["Zona de trabajo: espalda, cuello, hombros o lumbar", "Lectura corporal previa", "Trabajo manual profundo y calibrado"].map((item) => (
@@ -287,7 +278,7 @@ function Offres() {
                 ))}
               </ul>
               <a
-                href={CDMX_STATIC_WA_URLS.book_intent}
+                href={CDMX_WHATSAPP_URL}
                 target="_blank"
                 rel="noreferrer"
                 className="btn-primary lp-offer-card__cta"
@@ -326,7 +317,7 @@ function Offres() {
                 ))}
               </ul>
               <a
-                href={CDMX_STATIC_WA_URLS.more_info_intent}
+                href={CDMX_WHATSAPP_URL}
                 target="_blank"
                 rel="noreferrer"
                 className="btn-primary lp-offer-card__cta"
@@ -342,22 +333,37 @@ function Offres() {
 
         <Reveal delay={0.22}>
           <div className="lp-offers__footer">
-            <p className="lp-offers__footer-note">¿No sabes cuál elegir?</p>
-            <a
-              href={CDMX_STATIC_WA_URLS.more_info_intent}
-              target="_blank"
-              rel="noreferrer"
-              className="btn-inline"
-              id="offers-help-cta"
-            >
-              <span>Escríbenos y te orientamos</span>
-              <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
-                <line x1="0" y1="5" x2="12" y2="5" stroke="currentColor" strokeWidth="0.7" />
-                <polyline points="8,1 12,5 8,9" fill="none" stroke="currentColor" strokeWidth="0.7" />
-              </svg>
-            </a>
+            <p className="lp-offers__footer-note">
+              ¿No sabes cuál elegir? Escríbenos por WhatsApp y te orientamos entre Body Reset Fix o Body Reset Full.
+            </p>
           </div>
         </Reveal>
+      </div>
+    </section>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   04b · PREGUNTAS RÁPIDAS (AEO) — cartes courtes, style éditorial premium
+───────────────────────────────────────────────────────────────────────── */
+function QuickQuestions() {
+  return (
+    <section className="lp-aeo" aria-label="Preguntas rápidas antes de reservar">
+      <div className="container">
+        <div className="lp-aeo__head">
+          <Reveal><span className="eyebrow eyebrow--gold">Antes de reservar</span></Reveal>
+          <Reveal delay={0.1}>
+            <h2 className="section-title lp-aeo__title">Preguntas rápidas antes de reservar</h2>
+          </Reveal>
+        </div>
+        <div className="lp-aeo__grid">
+          {RESET_CORPORAL_AEO_QUESTIONS.map((item, i) => (
+            <Reveal key={item.q} className="lp-aeo__card" delay={0.06 + i * 0.06}>
+              <h3 className="lp-aeo__q">{item.q}</h3>
+              <p className="lp-aeo__a">{item.a}</p>
+            </Reveal>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -368,10 +374,10 @@ function Offres() {
 ───────────────────────────────────────────────────────────────────────── */
 const FOR_YOU = [
   { italic: "Sientes la espalda cargada", note: "tensión acumulada, rigidez, pesadez" },
-  { italic: "Tienes cuello y hombros tensos", note: "contracturas, movilidad limitada, dolor persistente" },
+  { italic: "Tienes cuello rígido y hombros tensos", note: "contracturas, movilidad limitada, molestia persistente o tensión recurrente" },
   { italic: "Tu cuerpo se siente bloqueado", note: "sensación de bloqueo, falta de fluidez" },
   { italic: "Acumulas estrés físico o mental", note: "ritmo intenso, sobre-estimulación, fatiga profunda" },
-  { italic: "Buscas algo más profundo que un masaje", note: "no relajación superficial, sino trabajo real" },
+  { italic: "Buscas algo más profundo que un masaje", note: "más que un masaje terapéutico en Ciudad de México: no relajación superficial, sino trabajo real" },
   { italic: "Quieres atención premium personalizada", note: "experiencia seria, precisa, adaptada a ti" },
 ];
 
@@ -405,13 +411,13 @@ function ForYouIf() {
           <Reveal delay={0.65}>
             <div className="section-cta-row section-cta-row--light">
               <a
-                href={CDMX_STATIC_WA_URLS.book_intent}
+                href={CDMX_WHATSAPP_URL}
                 target="_blank"
                 rel="noreferrer"
                 className="btn-inline btn-inline--light"
                 id="foryou-cta"
               >
-                <span>Reservar mi sesión</span>
+                <span>Reservar por WhatsApp</span>
                 <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
                   <line x1="0" y1="5" x2="12" y2="5" stroke="currentColor" strokeWidth="0.7" />
                   <polyline points="8,1 12,5 8,9" fill="none" stroke="currentColor" strokeWidth="0.7" />
@@ -502,7 +508,7 @@ function Processus() {
         <Reveal delay={0.3}>
           <div className="lp-process__cta">
             <a
-              href={CDMX_STATIC_WA_URLS.book_intent}
+              href={CDMX_WHATSAPP_URL}
               target="_blank"
               rel="noreferrer"
               className="btn-primary"
@@ -511,19 +517,6 @@ function Processus() {
             >
               <WhatsAppIcon />
               <span>Reservar por WhatsApp</span>
-            </a>
-            <a
-              href={CDMX_STATIC_WA_URLS.more_info_intent}
-              target="_blank"
-              rel="noreferrer"
-              className="btn-inline"
-              id="process-info-cta"
-            >
-              <span>Tengo preguntas primero</span>
-              <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
-                <line x1="0" y1="5" x2="12" y2="5" stroke="currentColor" strokeWidth="0.7" />
-                <polyline points="8,1 12,5 8,9" fill="none" stroke="currentColor" strokeWidth="0.7" />
-              </svg>
             </a>
           </div>
         </Reveal>
@@ -551,17 +544,15 @@ function Corporate() {
         <Reveal delay={0.3}>
           <div className="section-cta-row" style={{ marginTop: "36px" }}>
             <a
-              href={CDMX_STATIC_WA_URLS.corporate}
+              href={CDMX_WHATSAPP_URL}
               target="_blank"
               rel="noreferrer"
-              className="btn-inline"
+              className="btn-primary"
               id="corporate-cta"
+              aria-label="Reservar sesión corporativa de French Body Reset por WhatsApp"
             >
-              <span>Pedir información corporativa</span>
-              <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
-                <line x1="0" y1="5" x2="12" y2="5" stroke="currentColor" strokeWidth="0.7" />
-                <polyline points="8,1 12,5 8,9" fill="none" stroke="currentColor" strokeWidth="0.7" />
-              </svg>
+              <WhatsAppIcon />
+              <span>Reservar por WhatsApp</span>
             </a>
           </div>
         </Reveal>
@@ -680,7 +671,7 @@ function BrandSignature() {
             <Reveal delay={0.4}>
               <div className="brand-sig__cta-row">
                 <a
-                  href={CDMX_STATIC_WA_URLS.book_intent}
+                  href={CDMX_WHATSAPP_URL}
                   target="_blank"
                   rel="noreferrer"
                   className="btn-primary"
@@ -691,21 +682,6 @@ function BrandSignature() {
                   <span>Reservar por WhatsApp</span>
                 </a>
                 <span className="brand-sig__note">+52 56 3300 3042</span>
-              </div>
-              <div style={{ marginTop: "14px" }}>
-                <a
-                  href={CDMX_STATIC_WA_URLS.more_info_intent}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn-inline"
-                  id="brand-sig-cta-info"
-                >
-                  <span>Pedir información primero</span>
-                  <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
-                    <line x1="0" y1="5" x2="12" y2="5" stroke="currentColor" strokeWidth="0.7" />
-                    <polyline points="8,1 12,5 8,9" fill="none" stroke="currentColor" strokeWidth="0.7" />
-                  </svg>
-                </a>
               </div>
             </Reveal>
           </div>
@@ -745,7 +721,7 @@ export default function ResetCorporalPage() {
         lang="ES"
         activePage="seances"
         heroStyle="dark"
-        ctaHrefOverride={CDMX_STATIC_WA_URLS.book_intent}
+        ctaHrefOverride={CDMX_WHATSAPP_URL}
         ctaLabelOverride="Reservar"
         ctaExternal
       />
@@ -755,6 +731,7 @@ export default function ResetCorporalPage() {
         <Manifeste />
         <TrustBar />
         <Offres />
+        <QuickQuestions />
         <ForYouIf />
         <Benefits />
         <Processus />
@@ -764,7 +741,7 @@ export default function ResetCorporalPage() {
       </main>
 
       <SharedFooter lang="ES" />
-      <MobileStickyCta config={config} />
+      <MobileStickyCta config={config} singleCta />
     </>
   );
 }

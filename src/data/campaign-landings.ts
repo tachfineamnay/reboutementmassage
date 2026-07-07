@@ -188,12 +188,18 @@ export function getCdmxWhatsappNumber() {
 // These bypass the env-var system for the stable /es/reset-corporal-frances-cdmx route
 const CDMX_STATIC_PHONE = "525633003042";
 
+// Single, unified WhatsApp link for the /es/reset-corporal-frances-cdmx landing.
+// Every CTA on that page must point here.
+export const CDMX_WHATSAPP_URL = `https://wa.me/${CDMX_STATIC_PHONE}?text=${encodeURIComponent(
+  "Hola, quiero reservar una sesi\u00f3n de French Body Reset en CDMX. Quiero saber qu\u00e9 formato me conviene: Body Reset Fix o Body Reset Full."
+)}`;
+
 export const CDMX_STATIC_WA_URLS = {
-  book_intent: `https://wa.me/${CDMX_STATIC_PHONE}?text=${encodeURIComponent("Hola, quiero reservar una sesi\u00f3n de French Body Reset en CDMX. \u00bfQu\u00e9 horarios tienes disponibles?")}`,
-  more_info_intent: `https://wa.me/${CDMX_STATIC_PHONE}?text=${encodeURIComponent("Hola, quiero m\u00e1s informaci\u00f3n sobre French Body Reset en CDMX. Quiero saber si la sesi\u00f3n es adecuada para m\u00ed.")}`,
-  corporate: `https://wa.me/${CDMX_STATIC_PHONE}?text=${encodeURIComponent("Hola, quiero informaci\u00f3n sobre sesiones corporativas o VIP de French Body Reset en CDMX.")}`,
-  sticky_cta: `https://wa.me/${CDMX_STATIC_PHONE}?text=${encodeURIComponent("Hola, quiero reservar una sesi\u00f3n de French Body Reset en CDMX. \u00bfQu\u00e9 horarios tienes disponibles?")}`,
-  default: `https://wa.me/${CDMX_STATIC_PHONE}?text=${encodeURIComponent("Hola, quiero reservar una sesi\u00f3n de French Body Reset en CDMX. \u00bfQu\u00e9 horarios tienes disponibles?")}`,
+  book_intent: CDMX_WHATSAPP_URL,
+  more_info_intent: CDMX_WHATSAPP_URL,
+  corporate: CDMX_WHATSAPP_URL,
+  sticky_cta: CDMX_WHATSAPP_URL,
+  default: CDMX_WHATSAPP_URL,
 };
 
 const CDMX_WHATSAPP_MESSAGES: Record<"fr" | "en" | "es", Record<WhatsappIntent, string>> = {
@@ -318,9 +324,9 @@ export const CDMX_PRIVATE_SESSION_CAMPAIGNS: Record<"fr" | "en" | "es", Campaign
       sticky_cta: CDMX_STATIC_WA_URLS.sticky_cta,
     },
     meta: {
-      title: "French Body Reset en CDMX | Reset Corporal Francés",
+      title: "Reset Corporal Francés en CDMX | Sesión manual profunda",
       description:
-        "Sesión privada de French Body Reset en Ciudad de México. Método manual francés, profundo y personalizado. Elige Body Reset Fix o Body Reset Full y reserva por WhatsApp.",
+        "Sesión privada de Reset Corporal Francés en Ciudad de México. Trabajo manual profundo, preciso y personalizado para tensión corporal, espalda cargada, cuello rígido y estrés acumulado. Reserva por WhatsApp.",
     },
     hero: {
       eyebrow: "CDMX · Sesión privada",
@@ -463,7 +469,7 @@ export const CDMX_PRIVATE_SESSION_CAMPAIGNS: Record<"fr" | "en" | "es", Campaign
     },
     stickyCta: {
       whatsapp: "Reservar por WhatsApp",
-      booking: "Pedir información",
+      booking: "",
     },
     whatsapp: {
       messages: CDMX_WHATSAPP_MESSAGES.es,
