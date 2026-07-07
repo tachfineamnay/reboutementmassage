@@ -184,6 +184,18 @@ export function getCdmxWhatsappNumber() {
   return process.env.NEXT_PUBLIC_CDMX_WHATSAPP_NUMBER?.replace(/\D/g, "") || DEFAULT_WHATSAPP_NUMBER;
 }
 
+// Hardcoded CDMX WhatsApp URLs for the static landing page
+// These bypass the env-var system for the stable /es/reset-corporal-frances-cdmx route
+const CDMX_STATIC_PHONE = "525633003042";
+
+export const CDMX_STATIC_WA_URLS = {
+  book_intent: `https://wa.me/${CDMX_STATIC_PHONE}?text=${encodeURIComponent("Hola, quiero reservar una sesi\u00f3n de French Body Reset en CDMX. \u00bfQu\u00e9 horarios tienes disponibles?")}`,
+  more_info_intent: `https://wa.me/${CDMX_STATIC_PHONE}?text=${encodeURIComponent("Hola, quiero m\u00e1s informaci\u00f3n sobre French Body Reset en CDMX. Quiero saber si la sesi\u00f3n es adecuada para m\u00ed.")}`,
+  corporate: `https://wa.me/${CDMX_STATIC_PHONE}?text=${encodeURIComponent("Hola, quiero informaci\u00f3n sobre sesiones corporativas o VIP de French Body Reset en CDMX.")}`,
+  sticky_cta: `https://wa.me/${CDMX_STATIC_PHONE}?text=${encodeURIComponent("Hola, quiero reservar una sesi\u00f3n de French Body Reset en CDMX. \u00bfQu\u00e9 horarios tienes disponibles?")}`,
+  default: `https://wa.me/${CDMX_STATIC_PHONE}?text=${encodeURIComponent("Hola, quiero reservar una sesi\u00f3n de French Body Reset en CDMX. \u00bfQu\u00e9 horarios tienes disponibles?")}`,
+};
+
 const CDMX_WHATSAPP_MESSAGES: Record<"fr" | "en" | "es", Record<WhatsappIntent, string>> = {
   es: {
     default:
@@ -299,99 +311,107 @@ export const CDMX_PRIVATE_SESSION_CAMPAIGNS: Record<"fr" | "en" | "es", Campaign
     language: "ES",
     htmlLang: "es",
     whatsappUrls: {
-      default: getCdmxWhatsappUrl("es", "default"),
-      book_intent: getCdmxWhatsappUrl("es", "book_intent"),
-      more_info_intent: getCdmxWhatsappUrl("es", "more_info_intent"),
-      testimonial_cta: getCdmxWhatsappUrl("es", "testimonial_cta"),
-      sticky_cta: getCdmxWhatsappUrl("es", "sticky_cta"),
+      default: CDMX_STATIC_WA_URLS.book_intent,
+      book_intent: CDMX_STATIC_WA_URLS.book_intent,
+      more_info_intent: CDMX_STATIC_WA_URLS.more_info_intent,
+      testimonial_cta: CDMX_STATIC_WA_URLS.more_info_intent,
+      sticky_cta: CDMX_STATIC_WA_URLS.sticky_cta,
     },
     meta: {
-      title: "Body Reset CDMX | No es un masaje clásico | Grégory Tordjman",
+      title: "French Body Reset en CDMX | Reset Corporal Francés",
       description:
-        "No es un masaje clásico. Sesión privada Body Reset en Ciudad de México con Grégory Tordjman — Body Reset Fix o French Body Reset Full. Disponibilidad limitada.",
+        "Sesión privada de French Body Reset en Ciudad de México. Método manual francés, profundo y personalizado. Elige Body Reset Fix o Body Reset Full y reserva por WhatsApp.",
     },
     hero: {
-      eyebrow: "Sesión privada · CDMX",
-      title: "Body Reset — CDMX",
+      eyebrow: "CDMX · Sesión privada",
+      title: "French Body Reset en Ciudad de México",
       subtitle:
-        "Una sesión privada para soltar tensiones y recuperar un cuerpo más libre.",
-      microNote: "Sesiones privadas en CDMX con cita previa. Disponibilidad limitada esta semana.",
-      ctaPrimary: "Consultar disponibilidad por WhatsApp",
-      ctaSecondary: "Reservar Body Reset",
-      proofLine: "Desde 2014 · 9,000+ cuerpos acompañados · 230+ terapeutas formados",
-      imageAlt: "Grégory Tordjman — Body Reset en CDMX",
+        "No es un masaje tradicional. Es un reset profundo del cuerpo: una experiencia manual precisa para liberar tensión, soltar el sistema nervioso y recuperar más ligereza, respiración y claridad.",
+      microNote: "Reserva simple por WhatsApp · Atención premium en CDMX",
+      ctaPrimary: "Reservar por WhatsApp",
+      ctaSecondary: "Pedir información",
+      ctaSecondaryHref: CDMX_STATIC_WA_URLS.more_info_intent,
+      proofLine: "Método francés · Preciso · Profundo · Personalizado",
+      imageAlt: "French Body Reset en Ciudad de México — sesión manual premium",
     },
     forYouIf: {
-      title: "Para ti si tu cuerpo se siente cargado.",
+      title: "Para ti si…",
       items: [
-        "Cuello rígido o espalda cargada",
-        "Cuerpo pesado después de semanas intensas",
-        "Estrés acumulado y poca movilidad",
-        "Buscas un enfoque profundo, no un masaje de spa",
+        "Sientes la espalda cargada",
+        "Tienes cuello y hombros tensos",
+        "Tu cuerpo se siente bloqueado",
+        "Acumulas estrés físico o mental",
+        "Buscas algo más profundo que un masaje tradicional",
+        "Quieres una experiencia manual seria, premium y personalizada",
       ],
     },
     difference: {
-      title: "No es un masaje clásico.",
-      body: "Body Reset es un acompañamiento manual premium: lectura del cuerpo, trabajo profundo calibrado y enfoque en tensión y movilidad. No promete curación ni sustituye una consulta médica.",
+      title: "No es un masaje. Es un reset del cuerpo.",
+      body: "Es un trabajo manual profundo, preciso y personalizado. No es relajación superficial: es una intervención calibrada que lee el cuerpo antes de actuar — tensiones, respiración, movilidad, sistema nervioso. Cada sesión se adapta a lo que el cuerpo presenta ese día.\n\nNo promete curación ni sustituye una consulta médica. Es un acompañamiento corporal premium para personas que quieren algo más que un masaje tradicional.",
       points: [
         "Lectura del cuerpo antes de intervenir",
-        "Trabajo manual profundo pero respetuoso",
-        "Enfoque en tensión, movilidad y bienestar corporal",
-        "Respuesta personal de Grégory por WhatsApp",
+        "Trabajo manual profundo, preciso y calibrado",
+        "Enfoque en tensión, respiración y sistema nervioso",
+        "Personalizado: cada sesión es diferente",
         "La orientación médica sigue siendo prioritaria cuando hace falta",
       ],
-      imageAlt: "Gesto manual de la Método TMS®",
+      imageAlt: "Sesión de French Body Reset — método manual francés en CDMX",
     },
     offerBlock: {
-      title: "Elige tu camino Body Reset",
+      title: "Dos formatos. Una misma calidad.",
       bullets: [],
       showPrice: false,
+      cards: [
+        {
+          title: "Body Reset Fix",
+          subtitle: "Sesión puntual para una tensión prioritaria",
+          description:
+            "Ideal si quieres trabajar una zona prioritaria: espalda, cuello, hombros, zona lumbar o tensión acumulada. Una sesión precisa para desbloquear lo esencial.",
+          includes: [
+            "Zona de trabajo: espalda, cuello, hombros o lumbar",
+            "Lectura corporal previa",
+            "Trabajo manual profundo y calibrado",
+            "Reserva directa por WhatsApp",
+          ],
+          ctaLabel: "Reservar Body Reset Fix",
+          whatsappIntent: "book_intent",
+        },
+        {
+          title: "Body Reset Full",
+          subtitle: "Experiencia completa · Reset profundo",
+          description:
+            "Una sesión más completa para resetear el cuerpo en profundidad: espalda, cuello, hombros, pelvis, respiración y sistema nervioso. Ideal si sientes el cuerpo cargado o saturado.",
+          includes: [
+            "Trabajo global: espalda, cuello, pelvis, hombros",
+            "Trabajo de respiración y sistema nervioso",
+            "Sesión más completa y personalizada",
+            "Orientación: Fix o Full por WhatsApp",
+          ],
+          ctaLabel: "Reservar Body Reset Full",
+          whatsappIntent: "more_info_intent",
+        },
+      ],
     },
-    offerBlocks: [
-      {
-        title: "Body Reset Fix",
-        bullets: [
-          "1 sesión puntual",
-          "Ideal para una tensión concreta",
-          "Respuesta personal por WhatsApp",
-        ],
-        showPrice: false,
-        whatsappIntent: "book_intent",
-        ctaLabel: "Reservar Body Reset Fix",
-      },
-      {
-        title: "French Body Reset Full",
-        bullets: [
-          "Protocolo de 3 sesiones",
-          "Para un reset corporal más completo",
-          "Acompañamiento personalizado",
-        ],
-        showPrice: false,
-        whatsappIntent: "more_info_intent",
-        ctaLabel: "Información French Body Reset Full",
-      },
-    ],
     proof: {
       badges: [
-        { value: "Desde 2014", label: "Método TMS®" },
+        { value: "Método francés", label: "creado por Grégory Tordjman" },
         { value: "9,000+", label: "cuerpos acompañados" },
         { value: "230+", label: "terapeutas formados" },
-        { value: "MX & US", label: "testimonios verificados" },
-        { value: "Grégory Tordjman", label: "método creado por" },
+        { value: "CDMX", label: "sesiones privadas disponibles" },
+        { value: "Desde 2014", label: "experiencia clínica probada" },
       ],
     },
     testimonial: {
       posterSrc: "/practice-01.webp",
-      cta: "Preguntar a Grégory si Body Reset es adecuado para ti",
+      cta: "Preguntar si la sesión es adecuada para mí",
     },
     process: {
-      title: "Cómo funciona",
+      title: "Reserva simple. Atención premium.",
       steps: [
-        "Envía un WhatsApp",
-        "Indica tu zona y lo que sientes",
-        "Grégory revisa la disponibilidad",
-        "Reserva tu sesión Body Reset",
-        "Recibe tu acompañamiento personalizado",
+        "Escribe por WhatsApp",
+        "Indica tu necesidad y disponibilidad",
+        "Recibe orientación: Fix o Full",
+        "Confirma tu sesión privada en CDMX",
       ],
     },
     shortForm: {
@@ -426,8 +446,8 @@ export const CDMX_PRIVATE_SESSION_CAMPAIGNS: Record<"fr" | "en" | "es", Campaign
       offerLabel: "Oferta deseada",
       offerPlaceholder: "Selecciona una opción",
       offerOptions: [
-        { value: "body_reset_fix", label: "Body Reset Fix — 1 sesión puntual" },
-        { value: "french_body_reset_full", label: "French Body Reset Full — protocolo de 3 sesiones" },
+        { value: "body_reset_fix", label: "Body Reset Fix — sesión puntual" },
+        { value: "body_reset_full", label: "Body Reset Full — reset completo" },
         { value: "unsure", label: "No sé todavía, quiero orientación" },
       ],
       urgencyLabel: "Urgencia",
@@ -442,39 +462,50 @@ export const CDMX_PRIVATE_SESSION_CAMPAIGNS: Record<"fr" | "en" | "es", Campaign
       contextPlaceholder: "Cuéntanos brevemente lo que sientes o lo que buscas",
     },
     stickyCta: {
-      whatsapp: "WhatsApp Grégory",
-      booking: "Reservar Body Reset",
+      whatsapp: "Reservar por WhatsApp",
+      booking: "Pedir información",
     },
     whatsapp: {
       messages: CDMX_WHATSAPP_MESSAGES.es,
     },
     sections: {
-      processEyebrow: "Proceso",
-      faqEyebrow: "FAQ",
+      processEyebrow: "¿Cómo funciona?",
+      faqEyebrow: "Preguntas",
       faqTitle: "Preguntas frecuentes",
     },
     faq: [
       {
-        question: "¿Reemplaza una consulta médica?",
+        question: "¿Es un masaje tradicional?",
         answer:
-          "No. Body Reset es un acompañamiento manual de bienestar corporal. No reemplaza un diagnóstico ni un tratamiento médico.",
+          "No. French Body Reset es un trabajo manual profundo y preciso, diferente de un masaje de spa o relajación. Comienza con una lectura del cuerpo y se adapta a lo que el cuerpo presenta ese día.",
       },
       {
-        question: "¿Duele?",
+        question: "¿Cuál es la diferencia entre Body Reset Fix y Body Reset Full?",
         answer:
-          "El trabajo puede ser profundo, pero está calibrado. Grégory trabaja con el cuerpo, nunca contra él.",
+          "Body Reset Fix es una sesión puntual enfocada en una zona prioritaria (espalda, cuello, hombros o lumbar). Body Reset Full es una sesión más completa que trabaja el cuerpo globalmente — espalda, cuello, pelvis, respiración y sistema nervioso.",
       },
       {
-        question: "¿Cuál es la diferencia entre Fix y Full?",
+        question: "¿Dónde se realiza la sesión en CDMX?",
         answer:
-          "Body Reset Fix es una sesión puntual. French Body Reset Full es un protocolo de 3 sesiones para un reset más completo.",
+          "La sesión se realiza en un espacio privado en CDMX. La ubicación exacta se confirma por WhatsApp al reservar, según disponibilidad y condiciones del lugar.",
       },
       {
-        question: "¿Cómo reservo?",
+        question: "¿Puedo escribir antes de reservar?",
         answer:
-          "Envía un WhatsApp o completa el formulario. Grégory revisará tu solicitud y te orientará según disponibilidad.",
+          "Sí. Puedes escribir directamente por WhatsApp para hacer preguntas, pedir orientación sobre qué formato te conviene, o confirmar disponibilidad sin ningún compromiso.",
+      },
+      {
+        question: "¿Qué pasa si tengo dolor fuerte o una lesión?",
+        answer:
+          "Esta sesión no sustituye diagnóstico ni tratamiento médico. Si tienes una lesión, dolor intenso o condición médica importante, consulta primero con un profesional de salud.",
       },
     ],
+    finalCta: {
+      title: "Tu cuerpo no necesita más ruido. Necesita un reset preciso.",
+      body: "Reserva simple por WhatsApp. Sin formularios complicados. Atención premium en CDMX.",
+      primary: "Reservar por WhatsApp",
+      secondary: "Pedir información",
+    },
   },
 
   en: {

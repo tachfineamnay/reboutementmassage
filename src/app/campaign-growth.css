@@ -629,3 +629,248 @@ textarea.campaign-short-form__input {
     font-size: 26px;
   }
 }
+
+/* ══════════════════════════════════════════════
+   French Body Reset CDMX — custom sections
+   /es/reset-corporal-frances-cdmx
+════════════════════════════════════════════════ */
+
+/* ── Benefits ── */
+.fbr-benefits {
+  padding: var(--pad-m) 0;
+  background: var(--cream);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.fbr-benefits__head {
+  margin-bottom: 42px;
+}
+
+.fbr-benefits__title {
+  max-width: 640px;
+  margin-top: 14px;
+  font-family: var(--serif);
+  font-size: 34px;
+  font-weight: 300;
+  line-height: 1.18;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+
+.fbr-benefits__disclaimer {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--mid);
+  font-style: italic;
+}
+
+.fbr-benefits__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px;
+  list-style: none;
+}
+
+.fbr-benefit-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 28px 24px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--white);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.fbr-benefit-card:hover {
+  box-shadow: 0 6px 24px rgba(27, 51, 40, 0.08);
+  transform: translateY(-2px);
+}
+
+.fbr-benefit-card__icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.fbr-benefit-card__title {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+.fbr-benefit-card__body {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--mid);
+}
+
+/* ── Mid-page CTA strip ── */
+.fbr-mid-cta {
+  padding: 56px 0;
+  background: var(--forest);
+  color: var(--cream);
+}
+
+.fbr-mid-cta__text {
+  max-width: 560px;
+  font-size: 18px;
+  line-height: 1.6;
+  margin-bottom: 28px;
+  color: rgba(250, 248, 243, 0.88);
+}
+
+.fbr-mid-cta__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.fbr-mid-cta .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fbr-mid-cta .btn-secondary {
+  color: var(--cream);
+  border-color: rgba(250, 248, 243, 0.4);
+}
+
+.fbr-mid-cta .btn-secondary:hover {
+  background: rgba(250, 248, 243, 0.12);
+}
+
+/* ── Corporate section ── */
+.fbr-corporate {
+  padding: var(--pad-m) 0;
+  background: var(--forest-light);
+}
+
+.fbr-corporate__card {
+  padding: 44px 40px;
+  border: 1px solid rgba(27, 51, 40, 0.15);
+  border-radius: 10px;
+  background: var(--cream);
+}
+
+.fbr-corporate__badge {
+  margin-bottom: 18px;
+}
+
+.fbr-corporate__title {
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 300;
+  line-height: 1.18;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+
+.fbr-corporate__body {
+  max-width: 580px;
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--mid);
+  margin-bottom: 28px;
+}
+
+.fbr-corporate__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Compliance note ── */
+.fbr-compliance {
+  padding: 24px 0;
+  border-top: 1px solid var(--line);
+  background: var(--cream);
+}
+
+.fbr-compliance__text {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--mid);
+  padding: 16px 20px;
+  border-left: 3px solid var(--gold-muted);
+  background: rgba(200, 170, 100, 0.06);
+  border-radius: 0 4px 4px 0;
+}
+
+/* ── Logo anchor ── */
+.fbr-logo-anchor {
+  padding: 40px 0;
+  background: var(--cream);
+  border-top: 1px solid var(--line);
+}
+
+.fbr-logo-anchor__inner {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.fbr-logo-anchor__img {
+  border-radius: 50%;
+  opacity: 0.88;
+}
+
+.fbr-logo-anchor__name {
+  font-size: 11px;
+}
+
+/* ── Responsive FBR ── */
+@media (max-width: 1040px) {
+  .fbr-benefits__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fbr-benefits__title {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 760px) {
+  .fbr-benefits__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fbr-benefits,
+  .fbr-corporate,
+  .fbr-mid-cta {
+    padding: 56px 0;
+  }
+
+  .fbr-benefits__title {
+    font-size: 26px;
+  }
+
+  .fbr-corporate__card {
+    padding: 28px 22px;
+  }
+
+  .fbr-corporate__title {
+    font-size: 24px;
+  }
+
+  .fbr-mid-cta__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fbr-mid-cta__actions .btn-primary,
+  .fbr-mid-cta__actions .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .fbr-logo-anchor__inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
