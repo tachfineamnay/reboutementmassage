@@ -1,4 +1,4 @@
-/* Campaign landing refinements */
+﻿/* Campaign landing refinements */
 .campaign-hero {
   min-height: 88vh;
   padding: 132px 0 88px;
@@ -630,247 +630,496 @@ textarea.campaign-short-form__input {
   }
 }
 
-/* ══════════════════════════════════════════════
-   French Body Reset CDMX — custom sections
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   French Body Reset CDMX v2 â€” design Ã©ditorial / niveau home
    /es/reset-corporal-frances-cdmx
-════════════════════════════════════════════════ */
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
-/* ── Benefits ── */
-.fbr-benefits {
-  padding: var(--pad-m) 0;
-  background: var(--cream);
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+/* â”€â”€ 01 HERO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.lp-hero {
+  position: relative;
+  min-height: 96vh;
+  background: var(--ink);
+  color: var(--cream);
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  padding: 0 0 110px;
 }
 
-.fbr-benefits__head {
-  margin-bottom: 42px;
+.lp-hero__photo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
 }
 
-.fbr-benefits__title {
-  max-width: 640px;
-  margin-top: 14px;
-  font-family: var(--serif);
-  font-size: 34px;
-  font-weight: 300;
-  line-height: 1.18;
-  letter-spacing: 0;
-  color: var(--ink);
+.lp-hero__vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(27,51,40,0.55) 0%, rgba(27,51,40,0.12) 35%, rgba(27,51,40,0.22) 60%, rgba(27,51,40,0.92) 100%),
+    linear-gradient(90deg, rgba(27,51,40,0.52) 0%, rgba(27,51,40,0) 55%);
 }
 
-.fbr-benefits__disclaimer {
-  margin-top: 10px;
-  font-size: 12px;
-  color: var(--mid);
-  font-style: italic;
-}
-
-.fbr-benefits__grid {
+.lp-hero__inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--x-pad);
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 22px;
-  list-style: none;
+  grid-template-columns: 1fr auto;
+  align-items: flex-end;
+  gap: 48px;
 }
 
-.fbr-benefit-card {
+.lp-hero__content { max-width: 760px; }
+
+.lp-hero__eyebrow {
+  display: block;
+  margin-bottom: 24px;
+}
+
+.lp-hero__title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(44px, 6vw, 72px);
+  line-height: 1.05;
+  letter-spacing: -0.018em;
+  color: var(--cream);
+  margin-bottom: 32px;
+}
+
+.lp-hero__sub {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 17px;
+  line-height: 1.72;
+  color: rgba(250,248,243,0.75);
+  max-width: 52ch;
+  margin-bottom: 40px;
+  text-wrap: pretty;
+}
+
+.lp-hero__ctas {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.lp-hero__cta-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lp-hero__cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(250,248,243,0.72);
+  transition: color .25s ease, gap .3s ease;
+  text-decoration: none;
+}
+.lp-hero__cta-secondary:hover { color: var(--cream); gap: 14px; }
+.lp-hero__cta-secondary svg { transition: transform .3s ease; }
+.lp-hero__cta-secondary:hover svg { transform: translateX(3px); }
+
+.lp-hero__proof {
+  margin-top: 28px;
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: rgba(250,248,243,0.42);
+  text-transform: uppercase;
+}
+
+.lp-hero__meta { text-align: right; padding-bottom: 4px; }
+.lp-hero__meta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.lp-hero__meta-dot { font-size: 10px; color: var(--gold-muted); opacity: 0.6; }
+
+/* â”€â”€ 02 MANIFESTE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.lp-manifeste {
+  background: var(--cream);
+  padding: var(--pad-l) 0;
+  text-align: center;
+}
+
+.lp-manifeste__inner {
+  position: relative;
+  overflow: visible;
+}
+
+.lp-manifeste__watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.04;
+}
+
+.lp-manifeste__title,
+.lp-manifeste__lead,
+.lp-manifeste__body,
+.lp-manifeste__points { position: relative; z-index: 1; }
+
+.lp-manifeste__title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-style: italic;
+  font-size: clamp(32px, 4.5vw, 50px);
+  line-height: 1.12;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  margin-bottom: 32px;
+  text-wrap: pretty;
+}
+
+.lp-manifeste__lead {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 18px;
+  line-height: 1.72;
+  color: var(--ink);
+  max-width: 56ch;
+  margin: 0 auto 20px;
+  text-wrap: pretty;
+}
+
+.lp-manifeste__body {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--mid);
+  max-width: 52ch;
+  margin: 0 auto 48px;
+  text-wrap: pretty;
+}
+
+.lp-manifeste__points {
+  list-style: none;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+
+.lp-manifeste__point {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--mid);
+}
+
+.lp-manifeste__check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 0.5px solid var(--gold);
+  color: var(--gold);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* â”€â”€ 04 OFFERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.lp-offers {
+  background: var(--white);
+  padding: var(--pad-m) 0;
+}
+
+.lp-offers__head {
+  max-width: 620px;
+  margin-bottom: 56px;
+}
+
+.lp-offers__title { margin: 14px 0 0; }
+
+.lp-offers__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+  border-top: 0.5px solid var(--line);
+  padding-top: 48px;
+}
+
+.lp-offer-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 28px 24px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 0.5px solid var(--line);
   background: var(--white);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition: box-shadow .35s ease, transform .35s ease;
+  overflow: hidden;
+}
+.lp-offer-card:hover {
+  box-shadow: 0 12px 48px rgba(27,51,40,0.09);
+  transform: translateY(-3px);
 }
 
-.fbr-benefit-card:hover {
-  box-shadow: 0 6px 24px rgba(27, 51, 40, 0.08);
-  transform: translateY(-2px);
+.lp-offer-card__image {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--ink);
 }
+.lp-offer-card__image img { transition: transform .8s cubic-bezier(.25,.1,.25,1); }
+.lp-offer-card:hover .lp-offer-card__image img { transform: scale(1.025); }
 
-.fbr-benefit-card__icon {
-  font-size: 28px;
-  line-height: 1;
-}
-
-.fbr-benefit-card__title {
-  font-family: var(--serif);
-  font-size: 20px;
-  font-weight: 400;
-  line-height: 1.2;
+.lp-offer-card__badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: var(--gold);
   color: var(--ink);
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  z-index: 1;
 }
 
-.fbr-benefit-card__body {
+.lp-offer-card__body {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+.lp-offer-card__title {
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: 28px;
+  line-height: 1.15;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+}
+
+.lp-offer-card__desc {
+  font-family: var(--sans);
+  font-weight: 300;
   font-size: 14px;
   line-height: 1.7;
   color: var(--mid);
+  text-wrap: pretty;
 }
 
-/* ── Mid-page CTA strip ── */
-.fbr-mid-cta {
-  padding: 56px 0;
-  background: var(--forest);
-  color: var(--cream);
-}
-
-.fbr-mid-cta__text {
-  max-width: 560px;
-  font-size: 18px;
-  line-height: 1.6;
-  margin-bottom: 28px;
-  color: rgba(250, 248, 243, 0.88);
-}
-
-.fbr-mid-cta__actions {
+.lp-offer-card__list {
+  list-style: none;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 14px;
-}
-
-.fbr-mid-cta .btn-primary {
-  display: inline-flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
+  padding-top: 8px;
+  border-top: 0.5px solid var(--line);
+  flex: 1;
 }
-
-.fbr-mid-cta .btn-secondary {
-  color: var(--cream);
-  border-color: rgba(250, 248, 243, 0.4);
-}
-
-.fbr-mid-cta .btn-secondary:hover {
-  background: rgba(250, 248, 243, 0.12);
-}
-
-/* ── Corporate section ── */
-.fbr-corporate {
-  padding: var(--pad-m) 0;
-  background: var(--forest-light);
-}
-
-.fbr-corporate__card {
-  padding: 44px 40px;
-  border: 1px solid rgba(27, 51, 40, 0.15);
-  border-radius: 10px;
-  background: var(--cream);
-}
-
-.fbr-corporate__badge {
-  margin-bottom: 18px;
-}
-
-.fbr-corporate__title {
-  font-family: var(--serif);
-  font-size: 30px;
+.lp-offer-card__list li {
+  font-family: var(--sans);
   font-weight: 300;
-  line-height: 1.18;
-  color: var(--ink);
-  margin-bottom: 14px;
-}
-
-.fbr-corporate__body {
-  max-width: 580px;
-  font-size: 16px;
-  line-height: 1.75;
+  font-size: 13px;
+  line-height: 1.55;
   color: var(--mid);
-  margin-bottom: 28px;
+  padding-left: 16px;
+  position: relative;
+}
+.lp-offer-card__list li::before {
+  content: "â€“";
+  position: absolute;
+  left: 0;
+  color: var(--gold);
+  font-weight: 400;
 }
 
-.fbr-corporate__cta {
+.lp-offer-card__cta {
+  margin-top: 8px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  align-self: flex-start;
 }
 
-/* ── Compliance note ── */
-.fbr-compliance {
-  padding: 24px 0;
-  border-top: 1px solid var(--line);
+.lp-offers__footer {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding-top: 40px;
+  border-top: 0.5px solid var(--line);
+  margin-top: 40px;
+  flex-wrap: wrap;
+}
+.lp-offers__footer-note {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--mid);
+}
+
+/* â”€â”€ 06 BENEFITS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.lp-benefits {
   background: var(--cream);
+  padding: var(--pad-m) 0;
 }
 
-.fbr-compliance__text {
+.lp-benefits__head { margin-bottom: 56px; }
+
+.lp-benefits__title {
+  margin-top: 14px;
+  font-size: clamp(28px, 3.8vw, 38px);
+}
+
+.lp-benefits__note {
+  font-style: italic;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.lp-benefits__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border-top: 0.5px solid var(--line);
+  padding-top: 48px;
+}
+
+.lp-benefit-item {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 32px 28px 32px 0;
+  border-bottom: 0.5px solid var(--line);
+  border-right: 0.5px solid var(--line);
+  transition: transform .3s ease;
+}
+.lp-benefit-item:last-child { border-right: none; }
+.lp-benefit-item:hover { transform: translateY(-2px); }
+
+.lp-benefit-body {
+  font-family: var(--sans);
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--mid);
+  text-wrap: pretty;
+}
+
+/* â”€â”€ 07 PROCESS â€” extends .how from globals.css â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.lp-process .how-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.lp-process__cta {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding-top: 48px;
+  border-top: 0.5px solid var(--line);
+  flex-wrap: wrap;
+}
+
+/* â”€â”€ 09 FAQ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+.lp-faq {
+  background: var(--white);
+  padding: var(--pad-m) 0;
+}
+
+.lp-faq .campaign-faq__list {
+  margin-top: 40px;
+  border-top: 0.5px solid var(--line);
+}
+
+.lp-faq__compliance {
+  margin-top: 40px;
+  padding: 20px 24px;
+  border-left: 2px solid var(--gold);
+  background: rgba(201,169,90,0.05);
+}
+.lp-faq__compliance-text {
+  font-family: var(--sans);
+  font-weight: 300;
   font-size: 13px;
   line-height: 1.65;
   color: var(--mid);
-  padding: 16px 20px;
-  border-left: 3px solid var(--gold-muted);
-  background: rgba(200, 170, 100, 0.06);
-  border-radius: 0 4px 4px 0;
 }
 
-/* ── Logo anchor ── */
-.fbr-logo-anchor {
-  padding: 40px 0;
-  background: var(--cream);
-  border-top: 1px solid var(--line);
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   RESPONSIVE â€” FBR v2
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+
+@media (max-width: 1080px) {
+  .lp-hero__title { font-size: clamp(40px, 5.5vw, 64px); }
+  .lp-benefits__grid { grid-template-columns: repeat(2, 1fr); }
+  .lp-process .how-grid { grid-template-columns: repeat(2, 1fr); }
+  .lp-benefit-item:nth-child(2) { border-right: none; }
 }
 
-.fbr-logo-anchor__inner {
-  display: flex;
-  align-items: center;
-  gap: 18px;
+@media (max-width: 920px) {
+  .lp-hero { min-height: auto; padding: 130px 0 80px; }
+  .lp-hero__inner { grid-template-columns: 1fr; gap: 0; }
+  .lp-hero__meta { display: none; }
+  .lp-hero__title { font-size: clamp(38px, 9vw, 56px); }
+  .lp-hero__sub { font-size: 16px; max-width: 100%; }
+  .lp-hero__ctas { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .lp-hero__cta-primary { width: 100%; justify-content: center; }
+  .lp-hero__cta-secondary { align-self: center; }
+
+  .lp-manifeste__title { font-size: clamp(28px, 7vw, 42px); }
+  .lp-manifeste__watermark { display: none; }
+
+  .lp-offers__grid { grid-template-columns: 1fr; gap: 24px; }
+  .lp-offer-card__cta { width: 100%; justify-content: center; }
+
+  .lp-benefits__grid { grid-template-columns: repeat(2, 1fr); }
+  .lp-benefit-item { border-right: none; }
+
+  .lp-process .how-grid { grid-template-columns: repeat(2, 1fr); }
+  .lp-process__cta { flex-direction: column; align-items: stretch; }
+  .lp-process__cta .btn-primary { justify-content: center; }
+  .lp-process__cta .btn-inline { justify-content: center; }
 }
 
-.fbr-logo-anchor__img {
-  border-radius: 50%;
-  opacity: 0.88;
-}
+@media (max-width: 640px) {
+  .lp-hero { padding: 100px 0 70px; }
+  .lp-hero__title { font-size: clamp(32px, 10vw, 44px); }
 
-.fbr-logo-anchor__name {
-  font-size: 11px;
-}
+  .lp-manifeste__lead { font-size: 16px; }
+  .lp-manifeste__points { width: 100%; text-align: left; }
 
-/* ── Responsive FBR ── */
-@media (max-width: 1040px) {
-  .fbr-benefits__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  .lp-benefits__grid { grid-template-columns: 1fr; }
 
-  .fbr-benefits__title {
-    font-size: 28px;
-  }
-}
-
-@media (max-width: 760px) {
-  .fbr-benefits__grid {
+  .lp-process .how-grid {
     grid-template-columns: 1fr;
+    border-bottom: none;
   }
+  .lp-process .how-step { border-right: none; border-bottom: 0.5px solid var(--line); }
+  .lp-process .how-step:last-child { border-bottom: none; }
 
-  .fbr-benefits,
-  .fbr-corporate,
-  .fbr-mid-cta {
-    padding: 56px 0;
-  }
+  .lp-offer-card__body { padding: 24px 20px; }
+  .lp-offer-card__title { font-size: 24px; }
 
-  .fbr-benefits__title {
-    font-size: 26px;
-  }
-
-  .fbr-corporate__card {
-    padding: 28px 22px;
-  }
-
-  .fbr-corporate__title {
-    font-size: 24px;
-  }
-
-  .fbr-mid-cta__actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .fbr-mid-cta__actions .btn-primary,
-  .fbr-mid-cta__actions .btn-secondary {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .fbr-logo-anchor__inner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
+  .lp-offers__footer { flex-direction: column; align-items: flex-start; gap: 16px; }
 }
+
