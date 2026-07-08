@@ -6,10 +6,7 @@ import {
   routeAlternates,
   type LocalizedRouteKey,
 } from "@/lib/seo";
-import {
-  CDMX_PRIVATE_SESSION_CAMPAIGNS,
-  getCdmxCampaignAlternates,
-} from "@/data/campaign-landings";
+import { getLiveIndexableStaticLandings } from "@/data/static-landings-registry";
 import { prisma } from "@/lib/prisma";
 import { getArticleCanonicalUrl } from "@/lib/routes";
 
@@ -37,24 +34,14 @@ const STATIC_ROUTE_LASTMOD: Record<LocalizedRouteKey, string> = {
   luxuryHospitality: "2026-06-05",
 };
 
-const CDMX_CAMPAIGN_ALTERNATES = Object.fromEntries(
-  Object.entries(getCdmxCampaignAlternates()).map(([locale, route]) => [
-    locale,
-    absoluteUrl(route),
-  ])
-);
-
-const CAMPAIGN_ROUTES: MetadataRoute.Sitemap = Object.values(
-  CDMX_PRIVATE_SESSION_CAMPAIGNS
-).map((campaign) => ({
-  url: absoluteUrl(campaign.route),
-  lastModified: new Date("2026-06-30T00:00:00.000Z"),
-  changeFrequency: "weekly",
-  priority: campaign.htmlLang === "es" ? 0.85 : 0.8,
-  alternates: {
-    languages: CDMX_CAMPAIGN_ALTERNATES,
-  },
-}));
+function deduplicateSitemapByUrl(entries: MetadataRoute.Sitemap): MetadataRoute.Sitemap {
+  const seen = new Set<string>();
+  return entries.filter((entry) => {
+    if (seen.has(entry.url)) return false;
+    seen.add(entry.url);
+    return true;
+  });
+}
 
 function staticLastModified(routeKey: LocalizedRouteKey) {
   return new Date(`${STATIC_ROUTE_LASTMOD[routeKey]}T00:00:00.000Z`);
@@ -73,9 +60,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   );
 
+  const staticLandingPages: MetadataRoute.Sitemap = getLiveIndexableStaticLandings().map((landing) => ({
+    url: absoluteUrl(landing.route),
+    lastModified: new Date(`${landing.lastModified}T00:00:00.000Z`),
+    changeFrequency: "weekly" as const,
+    priority: landing.priority,
+  }));
+
   let articlePages: MetadataRoute.Sitemap = [];
   let growthPages: MetadataRoute.Sitemap = [];
-  let dbAvailable = false;
 
   try {
     const articles = await prisma.article.findMany({
@@ -123,14 +116,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
     growthPages = await getGrowthLandingPages();
-    dbAvailable = true;
   } catch (error) {
-    console.error("Sitemap database fetch failed, using fallback static campaigns:", error);
+    console.error("Sitemap database fetch failed:", error);
   }
 
-  const campaignPages = dbAvailable ? [] : CAMPAIGN_ROUTES;
-
-  return [...staticPages, ...campaignPages, ...articlePages, ...growthPages];
+  return deduplicateSitemapByUrl([
+    ...staticPages,
+    ...staticLandingPages,
+    ...articlePages,
+    ...growthPages,
+  ]);
 }
 
 async function getGrowthLandingPages(): Promise<MetadataRoute.Sitemap> {

@@ -93,7 +93,7 @@ export default async function LandingsPage({ searchParams }: PageProps) {
         </select>
         <button type="submit" className="admin-btn admin-btn--ghost">Filtrer</button>
         {hasFilters && <Link href="/admin/landings" className="admin-btn admin-btn--ghost">Réinitialiser</Link>}
-        <Link href="/admin/pages" className="admin-btn admin-btn--ghost">Studio Puck</Link>
+        <Link href="/admin/pages" className="admin-btn admin-btn--ghost">Builder legacy</Link>
       </form>
 
       {items.length === 0 ? (
@@ -129,7 +129,7 @@ export default async function LandingsPage({ searchParams }: PageProps) {
                   <td><AdminStatusBadge status={l.status} /></td>
                   <td className="admin-table__date">{fmt.format(l.updatedAt)}</td>
                   <td className="admin-table__actions">
-                    <Link href={`/admin/pages/${l.id}/studio`} className="admin-action">Studio</Link>
+                    <Link href={`/admin/pages/${l.id}/studio`} className="admin-action">Builder</Link>
                     <Link href={`/admin/landings/${l.id}/edit`} className="admin-action">Expert</Link>
                     {l.status === "LIVE" && (
                       <a href={`/${localeToLang(l.locale)}/${l.slug}`} target="_blank" rel="noopener noreferrer" className="admin-action admin-action--view">↗</a>

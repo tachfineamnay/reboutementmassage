@@ -13,7 +13,7 @@ import AdminPageHeader from "@/components/admin/growth/AdminPageHeader";
 import AdminStatusBadge from "@/components/admin/growth/AdminStatusBadge";
 import StudioClient from "@/components/admin/studio/StudioClient";
 
-export const metadata: Metadata = { title: "Studio page — TMS Admin", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "Builder legacy — TMS Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
 
 type PageProps = {
@@ -41,9 +41,9 @@ export default async function LandingStudioPage({ params, searchParams }: PagePr
   return (
     <div className="admin-page admin-page--studio">
       <AdminPageHeader
-        title="Landing Studio"
+        title="Builder legacy"
         meta={`${landing.heroTitle} · ${landing.locale}`}
-        description="Édition visuelle Puck. La publication reste bloquée tant que la readiness est insuffisante."
+        description="Édition visuelle Puck (legacy). Ne pas utiliser pour les pages premium. La publication reste bloquée tant que la readiness est insuffisante."
       >
         <AdminStatusBadge status={landing.status} />
         <Link href="/admin/pages" className="admin-btn admin-btn--ghost">
@@ -53,7 +53,7 @@ export default async function LandingStudioPage({ params, searchParams }: PagePr
 
       {created === "1" ? (
         <p className="landing-studio__message" role="status">
-          Brouillon créé. Le contenu Studio est prêt à être ajusté.
+          Brouillon créé. Le contenu du builder est prêt à être ajusté.
         </p>
       ) : null}
 

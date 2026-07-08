@@ -65,7 +65,7 @@ export default async function PagesAdminPage({ searchParams }: PageProps) {
       <AdminPageHeader
         title="Pages"
         meta={`${total} landing${total !== 1 ? "s" : ""}`}
-        description="Studio visuel Puck pour les pages locales. Le mode expert historique reste disponible."
+        description="Builder expérimental Puck — ne pas utiliser pour les pages premium. Voir Landings statiques."
         action={{ href: "/admin/pages/new", label: "+ Créer une page" }}
       />
 
@@ -141,7 +141,7 @@ export default async function PagesAdminPage({ searchParams }: PageProps) {
                         {landing.heroTitle}
                       </Link>
                       <span className="admin-table__meta">
-                        {hasStudio ? "Studio Puck" : "Legacy"} · <code className="admin-table__slug-code">{liveUrl}</code>
+                        {hasStudio ? "Builder exp." : "Legacy"} · <code className="admin-table__slug-code">{liveUrl}</code>
                       </span>
                     </td>
                     <td>{landing.destination.cityName}</td>
@@ -157,7 +157,7 @@ export default async function PagesAdminPage({ searchParams }: PageProps) {
                     <td className="admin-table__date">{fmt.format(landing.updatedAt)}</td>
                     <td className="admin-table__actions">
                       <Link href={`/admin/pages/${landing.id}/studio`} className="admin-action">
-                        Studio
+                        Builder
                       </Link>
                       <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="admin-action">
                         Preview
