@@ -1,4 +1,5 @@
 import type { CampaignLandingConfig, CampaignLeadOption, WhatsappIntent } from "@/data/campaign-landings";
+import { CDMX_WHATSAPP_PHONE } from "@/data/campaign-landings";
 import type { Language } from "@/data/copy";
 import type { LandingPageWithRelations } from "@/lib/growth/types";
 import { localeToLang, langToLocale } from "@/lib/growth/types";
@@ -195,9 +196,16 @@ function buildWhatsappMessages(
   };
 }
 
-function buildWhatsappUrl(channel: WhatsappChannel | null, message: string) {
-  if (!channel) return "#";
-  const phone = channel.phoneE164.replace(/\D/g, "");
+function buildWhatsappUrl(
+  channel: WhatsappChannel | null,
+  message: string,
+  destinationSlug?: string
+) {
+  const phone =
+    destinationSlug === "cdmx"
+      ? CDMX_WHATSAPP_PHONE
+      : channel?.phoneE164.replace(/\D/g, "") ?? "";
+  if (!phone) return "#";
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 }
 
@@ -239,32 +247,44 @@ export function landingPageToCampaignConfig(landing: LandingPageWithRelations): 
   const messages = buildWhatsappMessages(channel, content, lang);
   const cityContext = { city: landing.destination.cityName };
   const hasContentMessages = typeof content.whatsappMessages === "object" && content.whatsappMessages !== null;
+  const destinationSlug = landing.destination.slug;
+  const cdmxPhone = destinationSlug === "cdmx" ? CDMX_WHATSAPP_PHONE : undefined;
   const whatsappUrls = {
     default: hasContentMessages
-      ? buildWhatsappUrl(channel, messages.default)
+      ? buildWhatsappUrl(channel, messages.default, destinationSlug)
       : channel
-        ? generateWhatsappUrl(channel, landing.locale, "default", cityContext)
-        : "#",
+        ? generateWhatsappUrl(channel, landing.locale, "default", cityContext, cdmxPhone)
+        : destinationSlug === "cdmx"
+          ? buildWhatsappUrl(null, messages.default, destinationSlug)
+          : "#",
     book_intent: hasContentMessages
-      ? buildWhatsappUrl(channel, messages.book_intent)
+      ? buildWhatsappUrl(channel, messages.book_intent, destinationSlug)
       : channel
-        ? generateWhatsappUrl(channel, landing.locale, "book_intent", cityContext)
-        : "#",
+        ? generateWhatsappUrl(channel, landing.locale, "book_intent", cityContext, cdmxPhone)
+        : destinationSlug === "cdmx"
+          ? buildWhatsappUrl(null, messages.book_intent, destinationSlug)
+          : "#",
     more_info_intent: hasContentMessages
-      ? buildWhatsappUrl(channel, messages.more_info_intent)
+      ? buildWhatsappUrl(channel, messages.more_info_intent, destinationSlug)
       : channel
-        ? generateWhatsappUrl(channel, landing.locale, "more_info_intent", cityContext)
-        : "#",
+        ? generateWhatsappUrl(channel, landing.locale, "more_info_intent", cityContext, cdmxPhone)
+        : destinationSlug === "cdmx"
+          ? buildWhatsappUrl(null, messages.more_info_intent, destinationSlug)
+          : "#",
     testimonial_cta: hasContentMessages
-      ? buildWhatsappUrl(channel, messages.testimonial_cta)
+      ? buildWhatsappUrl(channel, messages.testimonial_cta, destinationSlug)
       : channel
-        ? generateWhatsappUrl(channel, landing.locale, "testimonial_cta", cityContext)
-        : "#",
+        ? generateWhatsappUrl(channel, landing.locale, "testimonial_cta", cityContext, cdmxPhone)
+        : destinationSlug === "cdmx"
+          ? buildWhatsappUrl(null, messages.testimonial_cta, destinationSlug)
+          : "#",
     sticky_cta: hasContentMessages
-      ? buildWhatsappUrl(channel, messages.sticky_cta)
+      ? buildWhatsappUrl(channel, messages.sticky_cta, destinationSlug)
       : channel
-        ? generateWhatsappUrl(channel, landing.locale, "sticky_cta", cityContext)
-        : "#",
+        ? generateWhatsappUrl(channel, landing.locale, "sticky_cta", cityContext, cdmxPhone)
+        : destinationSlug === "cdmx"
+          ? buildWhatsappUrl(null, messages.sticky_cta, destinationSlug)
+          : "#",
   };
   const branchData = asStringRecord(content.branchData);
   const leadSegment =

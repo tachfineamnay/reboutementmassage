@@ -6,7 +6,7 @@ import Link from "next/link";
 import SharedHeader from "@/components/SharedHeader";
 import SharedFooter from "@/components/SharedFooter";
 import MobileStickyCta from "@/components/campaign/MobileStickyCta";
-import { CDMX_PRIVATE_SESSION_CAMPAIGNS, CDMX_WHATSAPP_URL } from "@/data/campaign-landings";
+import { CDMX_PRIVATE_SESSION_CAMPAIGNS, CDMX_WHATSAPP_URL, CDMX_WHATSAPP_PHONE_DISPLAY } from "@/data/campaign-landings";
 import { RESET_CORPORAL_AEO_QUESTIONS } from "@/data/reset-corporal-aeo";
 import { trackGrowthEvent } from "@/lib/growth/tracking";
 
@@ -681,7 +681,7 @@ function BrandSignature() {
                   <WhatsAppIcon />
                   <span>Reservar por WhatsApp</span>
                 </a>
-                <span className="brand-sig__note">+52 56 3300 3042</span>
+                <span className="brand-sig__note">{CDMX_WHATSAPP_PHONE_DISPLAY}</span>
               </div>
             </Reveal>
           </div>

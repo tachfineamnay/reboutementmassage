@@ -178,29 +178,19 @@ export type CampaignLandingConfig = {
   };
 };
 
-const DEFAULT_WHATSAPP_NUMBER = "";
+/** Mexico (CDMX) WhatsApp — +52 56 3300 3042 — all locales */
+export const CDMX_WHATSAPP_PHONE = "525633003042";
+export const CDMX_WHATSAPP_PHONE_DISPLAY = "+52 56 3300 3042";
 
 export function getCdmxWhatsappNumber() {
-  return process.env.NEXT_PUBLIC_CDMX_WHATSAPP_NUMBER?.replace(/\D/g, "") || DEFAULT_WHATSAPP_NUMBER;
+  return CDMX_WHATSAPP_PHONE;
 }
-
-// Hardcoded CDMX WhatsApp URLs for the static landing page
-// These bypass the env-var system for the stable /es/reset-corporal-frances-cdmx route
-const CDMX_STATIC_PHONE = "525633003042";
 
 // Single, unified WhatsApp link for the /es/reset-corporal-frances-cdmx landing.
 // Every CTA on that page must point here.
-export const CDMX_WHATSAPP_URL = `https://wa.me/${CDMX_STATIC_PHONE}?text=${encodeURIComponent(
+export const CDMX_WHATSAPP_URL = `https://wa.me/${CDMX_WHATSAPP_PHONE}?text=${encodeURIComponent(
   "Hola, quiero reservar una sesi\u00f3n de French Body Reset en CDMX. Quiero saber qu\u00e9 formato me conviene: Body Reset Fix o Body Reset Full."
 )}`;
-
-export const CDMX_STATIC_WA_URLS = {
-  book_intent: CDMX_WHATSAPP_URL,
-  more_info_intent: CDMX_WHATSAPP_URL,
-  corporate: CDMX_WHATSAPP_URL,
-  sticky_cta: CDMX_WHATSAPP_URL,
-  default: CDMX_WHATSAPP_URL,
-};
 
 const CDMX_WHATSAPP_MESSAGES: Record<"fr" | "en" | "es", Record<WhatsappIntent, string>> = {
   es: {
@@ -242,14 +232,22 @@ const CDMX_WHATSAPP_MESSAGES: Record<"fr" | "en" | "es", Record<WhatsappIntent, 
 };
 
 function buildCdmxWhatsappUrl(locale: "fr" | "en" | "es", intent: WhatsappIntent) {
-  const phone = getCdmxWhatsappNumber();
-  if (!phone) return "#";
   const text = CDMX_WHATSAPP_MESSAGES[locale][intent];
-  return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+  return `https://wa.me/${CDMX_WHATSAPP_PHONE}?text=${encodeURIComponent(text)}`;
 }
 
 export function getCdmxWhatsappUrl(locale: "fr" | "en" | "es", intent: WhatsappIntent = "default") {
   return buildCdmxWhatsappUrl(locale, intent);
+}
+
+export function getCdmxWhatsappUrls(locale: "fr" | "en" | "es") {
+  return {
+    default: buildCdmxWhatsappUrl(locale, "default"),
+    book_intent: buildCdmxWhatsappUrl(locale, "book_intent"),
+    more_info_intent: buildCdmxWhatsappUrl(locale, "more_info_intent"),
+    testimonial_cta: buildCdmxWhatsappUrl(locale, "testimonial_cta"),
+    sticky_cta: buildCdmxWhatsappUrl(locale, "sticky_cta"),
+  };
 }
 
 const campaignCore = {
@@ -316,13 +314,7 @@ export const CDMX_PRIVATE_SESSION_CAMPAIGNS: Record<"fr" | "en" | "es", Campaign
     route: "/es/reset-corporal-frances-cdmx",
     language: "ES",
     htmlLang: "es",
-    whatsappUrls: {
-      default: CDMX_STATIC_WA_URLS.book_intent,
-      book_intent: CDMX_STATIC_WA_URLS.book_intent,
-      more_info_intent: CDMX_STATIC_WA_URLS.more_info_intent,
-      testimonial_cta: CDMX_STATIC_WA_URLS.more_info_intent,
-      sticky_cta: CDMX_STATIC_WA_URLS.sticky_cta,
-    },
+    whatsappUrls: getCdmxWhatsappUrls("es"),
     meta: {
       title: "Reset Corporal Francés en CDMX | Sesión manual profunda",
       description:
@@ -336,7 +328,7 @@ export const CDMX_PRIVATE_SESSION_CAMPAIGNS: Record<"fr" | "en" | "es", Campaign
       microNote: "Reserva simple por WhatsApp · Atención premium en CDMX",
       ctaPrimary: "Reservar por WhatsApp",
       ctaSecondary: "Pedir información",
-      ctaSecondaryHref: CDMX_STATIC_WA_URLS.more_info_intent,
+      ctaSecondaryHref: getCdmxWhatsappUrl("es", "more_info_intent"),
       proofLine: "Método francés · Preciso · Profundo · Personalizado",
       imageAlt: "French Body Reset en Ciudad de México — sesión manual premium",
     },
@@ -519,13 +511,7 @@ export const CDMX_PRIVATE_SESSION_CAMPAIGNS: Record<"fr" | "en" | "es", Campaign
     route: "/en/mexico-city-french-body-reset",
     language: "EN",
     htmlLang: "en",
-    whatsappUrls: {
-      default: getCdmxWhatsappUrl("en", "default"),
-      book_intent: getCdmxWhatsappUrl("en", "book_intent"),
-      more_info_intent: getCdmxWhatsappUrl("en", "more_info_intent"),
-      testimonial_cta: getCdmxWhatsappUrl("en", "testimonial_cta"),
-      sticky_cta: getCdmxWhatsappUrl("en", "sticky_cta"),
-    },
+    whatsappUrls: getCdmxWhatsappUrls("en"),
     meta: {
       title: "French Body Reset in Mexico City | Not a regular massage | Grégory Tordjman",
       description:
@@ -674,13 +660,7 @@ export const CDMX_PRIVATE_SESSION_CAMPAIGNS: Record<"fr" | "en" | "es", Campaign
     route: "/fr/french-body-reset-mexico-city",
     language: "FR",
     htmlLang: "fr",
-    whatsappUrls: {
-      default: getCdmxWhatsappUrl("fr", "default"),
-      book_intent: getCdmxWhatsappUrl("fr", "book_intent"),
-      more_info_intent: getCdmxWhatsappUrl("fr", "more_info_intent"),
-      testimonial_cta: getCdmxWhatsappUrl("fr", "testimonial_cta"),
-      sticky_cta: getCdmxWhatsappUrl("fr", "sticky_cta"),
-    },
+    whatsappUrls: getCdmxWhatsappUrls("fr"),
     meta: {
       title: "French Body Reset à Mexico City | Pas un massage classique | Grégory Tordjman",
       description:

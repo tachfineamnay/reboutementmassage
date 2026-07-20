@@ -51,9 +51,10 @@ export function generateWhatsappUrl(
   channel: WhatsappChannel,
   locale: Locale,
   intent: WhatsappIntent = "default",
-  context?: { city?: string }
+  context?: { city?: string },
+  phoneOverride?: string
 ): string {
-  const phone = channel.phoneE164.replace(/\D/g, "");
+  const phone = (phoneOverride ?? channel.phoneE164).replace(/\D/g, "");
   const text = buildWhatsappMessage(channel, locale, intent, context);
   return `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
 }

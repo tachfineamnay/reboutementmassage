@@ -2,7 +2,7 @@
  * Seed Growth CMS — CDMX destination, offer, channels, landings, redirects.
  */
 import type { PrismaClient, Locale } from "@prisma/client";
-import { CDMX_PRIVATE_SESSION_CAMPAIGNS } from "@/data/campaign-landings";
+import { CDMX_PRIVATE_SESSION_CAMPAIGNS, getCdmxWhatsappNumber } from "@/data/campaign-landings";
 import { COMPLIANCE_DEFAULT_FR } from "@/lib/growth/types";
 import { computeLandingReadiness } from "@/lib/growth/landing-readiness";
 import { growthLandingInclude } from "@/lib/growth/types";
@@ -286,10 +286,7 @@ function buildLandingContent(loc: "en" | "es" | "fr") {
 }
 
 export async function seedGrowthCdmx(prisma: PrismaClient) {
-  const phone = process.env.NEXT_PUBLIC_CDMX_WHATSAPP_NUMBER?.replace(/\D/g, "");
-  if (!phone) {
-    throw new Error("NEXT_PUBLIC_CDMX_WHATSAPP_NUMBER must be set before seeding CDMX landings.");
-  }
+  const phone = getCdmxWhatsappNumber();
   const phoneE164 = `+${phone}`;
 
   const destination = await prisma.destination.upsert({
