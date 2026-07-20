@@ -63,7 +63,10 @@ export default function LandingRenderer({
       >
         <Render config={puckConfig as unknown as Config} data={puckData as unknown as Data} />
       </main>
-      <SharedFooter lang={config.language} />
+      <SharedFooter
+        lang={config.language}
+        market={config.destinationSlug === "cdmx" ? "cdmx" : "default"}
+      />
       <MobileStickyCta config={config} />
     </LandingRenderContextProvider>
   );

@@ -740,7 +740,7 @@ export default function ResetCorporalPage() {
         <BrandSignature />
       </main>
 
-      <SharedFooter lang="ES" />
+      <SharedFooter lang="ES" market="cdmx" />
       <MobileStickyCta config={config} singleCta />
     </>
   );

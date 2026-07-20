@@ -74,7 +74,10 @@ export default function MobileWhatsappFirstLanding({ config }: { config: MobileL
         <CampaignFaq config={config} />
         <CampaignFinalCta config={config} />
       </main>
-      <SharedFooter lang={config.language} />
+      <SharedFooter
+        lang={config.language}
+        market={config.destinationSlug === "cdmx" ? "cdmx" : "default"}
+      />
       <MobileStickyCta config={config} />
     </>
   );

@@ -1,25 +1,29 @@
 "use client";
 
 import Image from "next/image";
+import { CDMX_WHATSAPP_PHONE_DISPLAY } from "@/data/campaign-landings";
 import { Language } from "@/data/copy";
+
+const FRANCE_CONTACT = "+33 6 65 51 77 35 · contact@reboutementmassage.fr";
+const CDMX_CONTACT = `${CDMX_WHATSAPP_PHONE_DISPLAY} · contact@reboutementmassage.fr`;
 
 const FOOTER_DATA: Record<Language, string[]> = {
   FR: [
     "Grégory Tordjman · Méthode TMS®",
     "Reboutement TMS® · Accompagnement manuel · Workshops · Hospitality · Villas · Yachting",
-    "+33 6 65 51 77 35 · contact@reboutementmassage.fr",
+    FRANCE_CONTACT,
     "International sur demande",
   ],
   EN: [
     "Grégory Tordjman · Méthode TMS®",
     "TMS® hands-on support · French bonesetting inspiration · Workshops · Hospitality · Villas · Yachting",
-    "+33 6 65 51 77 35 · contact@reboutementmassage.fr",
+    FRANCE_CONTACT,
     "International on request",
   ],
   ES: [
     "Grégory Tordjman · Método TMS®",
     "Acompañamiento manual TMS® · Reboutement tradicional francés · Workshops · Hospitality · Villas · Yachting",
-    "+33 6 65 51 77 35 · contact@reboutementmassage.fr",
+    FRANCE_CONTACT,
     "Internacional bajo solicitud",
   ],
 };
@@ -42,8 +46,18 @@ const FOOTER_LINKS: Record<Language, Array<{ href: string; label: string }>> = {
   ],
 };
 
-export default function SharedFooter({ lang }: { lang: Language }) {
-  const lines = FOOTER_DATA[lang];
+export default function SharedFooter({
+  lang,
+  market = "default",
+}: {
+  lang: Language;
+  market?: "default" | "cdmx";
+}) {
+  const baseLines = FOOTER_DATA[lang];
+  const lines =
+    market === "cdmx"
+      ? [baseLines[0], baseLines[1], CDMX_CONTACT, baseLines[3]]
+      : baseLines;
   const links = FOOTER_LINKS[lang];
 
   return (
