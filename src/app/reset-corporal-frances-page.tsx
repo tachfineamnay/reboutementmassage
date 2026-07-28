@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import SharedHeader from "@/components/SharedHeader";
 import SharedFooter from "@/components/SharedFooter";
+import BodyResetFixLeadForm from "@/components/campaign/BodyResetFixLeadForm";
 import MobileStickyCta from "@/components/campaign/MobileStickyCta";
 import { CDMX_PRIVATE_SESSION_CAMPAIGNS, CDMX_WHATSAPP_URL, CDMX_WHATSAPP_PHONE_DISPLAY } from "@/data/campaign-landings";
 import { RESET_CORPORAL_AEO_QUESTIONS } from "@/data/reset-corporal-aeo";
@@ -731,6 +732,7 @@ export default function ResetCorporalPage() {
         <Manifeste />
         <TrustBar />
         <Offres />
+        <BodyResetFixLeadForm />
         <QuickQuestions />
         <ForYouIf />
         <Benefits />

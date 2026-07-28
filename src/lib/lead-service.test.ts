@@ -1,0 +1,473 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { Prisma } from "@prisma/client";
+
+const prismaMock = vi.hoisted(() => ({
+  leadSubmission: {
+    findFirst: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    findUnique: vi.fn(),
+  },
+  landingPage: {
+    findFirst: vi.fn(),
+  },
+  crmRoutingRule: {
+    findMany: vi.fn(),
+  },
+  offer: {
+    findUnique: vi.fn(),
+  },
+}));
+
+vi.mock("server-only", () => ({}));
+vi.mock("@/lib/prisma", () => ({ prisma: prismaMock }));
+vi.mock("@/lib/growth/landing-metrics", () => ({
+  incrementLandingLeadMetric: vi.fn(),
+}));
+vi.mock("resend", () => ({
+  Resend: class {
+    emails = {
+      send: vi.fn().mockResolvedValue({ data: { id: "email_1" }, error: null }),
+    };
+  },
+}));
+
+import { handleLeadRequest } from "@/lib/lead-service";
+
+function makeRequest(body: Record<string, unknown>) {
+  return new Request("http://localhost/api/lead", {
+    method: "POST",
+    body: JSON.stringify({
+      firstName: "Ana",
+      contact: "+52 56 3300 3042",
+      type: "Training",
+      lang: "FR",
+      intent: "training",
+      preferredChannel: "ghl",
+      context: "Je veux me former.",
+      eventId: "evt_1",
+      ...body,
+    }),
+  });
+}
+
+function makeBodyResetFixRequest(body: Record<string, unknown> = {}) {
+  return makeRequest({
+    formKind: "body_reset_fix",
+    firstName: "Ana",
+    contact: "+52 56 3300 3042",
+    type: "Body Reset Fix CDMX",
+    context: "Dolor lumbar desde hace dos semanas, intensidad 7/10.",
+    lang: "ES",
+    intent: "private_session",
+    preferredChannel: "ghl",
+    currentLocation: "Condesa, CDMX",
+    destination: "Ciudad de Mexico",
+    leadSegment: "b2c_premium",
+    needType: "Body Reset Fix",
+    urgency: "Martes por la tarde, contacto por WhatsApp.",
+    eventId: "evt_body_reset_fix",
+    branchData: {
+      formKind: "body_reset_fix",
+      sessionLocationPreference: "Cabinet",
+      preSessionNotes: "Martes por la tarde, contacto por WhatsApp.",
+      marketingConsent: "true",
+    },
+    ...body,
+  });
+}
+
+function liveGhlEnv() {
+  process.env.GHL_LEAD_MODE = "live";
+  process.env.GHL_PRIVATE_INTEGRATION_TOKEN = "token";
+  process.env.GHL_LOCATION_ID = "loc_1";
+  process.env.GHL_BASE_URL = "https://services.leadconnectorhq.com";
+  process.env.GHL_WORKFLOW_ID = "workflow_1";
+  process.env.GHL_PIPELINE_ID = "pipeline_1";
+  process.env.GHL_PIPELINE_STAGE_ID = "stage_1";
+  process.env.GHL_DEFAULT_TAGS = "legacy-import,channel-ghl,intent_training";
+}
+
+function mockSuccessfulFetch() {
+  return vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+    void init;
+    const href = String(url);
+    if (href.includes("/contacts/upsert")) {
+      return Response.json({ contact: { id: "contact_1" } });
+    }
+    if (href.includes("/customFields")) {
+      return Response.json({
+        customFields: [
+          { id: "field_intention", name: "Intention", model: "contact" },
+          { id: "field_main_objective", name: "Main Objective", model: "contact" },
+          { id: "field_language", name: "Form Language", model: "contact" },
+        ],
+      });
+    }
+    return Response.json({});
+  });
+}
+
+beforeEach(() => {
+  vi.restoreAllMocks();
+  vi.clearAllMocks();
+  vi.useRealTimers();
+  liveGhlEnv();
+  prismaMock.leadSubmission.findFirst.mockResolvedValue(null);
+  prismaMock.leadSubmission.findUnique.mockResolvedValue(null);
+  prismaMock.leadSubmission.create.mockResolvedValue({
+    id: "lead_1",
+    status: "CAPTURED",
+    ghlContactId: null,
+  });
+  prismaMock.leadSubmission.update.mockResolvedValue({});
+  prismaMock.crmRoutingRule.findMany.mockResolvedValue([]);
+  prismaMock.offer.findUnique.mockResolvedValue(null);
+  prismaMock.landingPage.findFirst.mockResolvedValue(null);
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  delete process.env.GHL_LEAD_MODE;
+  delete process.env.GHL_PRIVATE_INTEGRATION_TOKEN;
+  delete process.env.GHL_LOCATION_ID;
+  delete process.env.GHL_BASE_URL;
+  delete process.env.GHL_WORKFLOW_ID;
+  delete process.env.GHL_PIPELINE_ID;
+  delete process.env.GHL_PIPELINE_STAGE_ID;
+  delete process.env.GHL_DEFAULT_TAGS;
+  delete process.env.GHL_TIMEOUT_MS;
+});
+
+describe("handleLeadRequest GHL contract", () => {
+  it("always keeps source-site-premium and filters unvalidated tags", async () => {
+    const fetchMock = mockSuccessfulFetch();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await handleLeadRequest(makeRequest({}));
+
+    const tagCall = fetchMock.mock.calls.find(([url]) => String(url).includes("/tags"));
+    expect(tagCall).toBeDefined();
+    const body = JSON.parse((tagCall?.[1] as RequestInit).body as string);
+    expect(body.tags).toContain("source-site-premium");
+    expect(body.tags).not.toContain("intent_training");
+    expect(body.tags).not.toContain("channel-ghl");
+    expect(body.tags).not.toContain("intent-training");
+  });
+
+  it("does not create direct opportunities for source-site-premium leads", async () => {
+    const fetchMock = mockSuccessfulFetch();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await handleLeadRequest(makeRequest({}));
+
+    expect(fetchMock.mock.calls.map(([url]) => String(url)).join("\n")).not.toContain("/opportunities/");
+  });
+
+  it("does not let GHL_DEFAULT_TAGS remove the source-site-premium safety tag", async () => {
+    process.env.GHL_DEFAULT_TAGS = "legacy-import";
+    const fetchMock = mockSuccessfulFetch();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await handleLeadRequest(makeRequest({ eventId: "evt_legacy" }));
+
+    const tagCall = fetchMock.mock.calls.find(([url]) => String(url).includes("/tags"));
+    expect(tagCall).toBeDefined();
+    const body = JSON.parse((tagCall?.[1] as RequestInit).body as string);
+    expect(body.tags).toContain("source-site-premium");
+    expect(fetchMock.mock.calls.map(([url]) => String(url)).join("\n")).not.toContain("/opportunities/");
+  });
+
+  it("reuses duplicate eventId submissions", async () => {
+    const fetchMock = mockSuccessfulFetch();
+    vi.stubGlobal("fetch", fetchMock);
+    prismaMock.leadSubmission.findUnique.mockResolvedValue({
+      id: "lead_existing",
+      status: "SENT_TO_GHL",
+      ghlContactId: "contact_existing",
+    });
+
+    const response = await handleLeadRequest(makeRequest({}));
+    const body = await response.json();
+
+    expect(body.duplicate).toBe(true);
+    expect(prismaMock.leadSubmission.create).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("reuses the existing lead when concurrent eventId creation collides", async () => {
+    const fetchMock = mockSuccessfulFetch();
+    vi.stubGlobal("fetch", fetchMock);
+    prismaMock.leadSubmission.findUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        id: "lead_existing",
+        status: "CAPTURED",
+        ghlContactId: null,
+      });
+    prismaMock.leadSubmission.create.mockRejectedValueOnce(
+      new Prisma.PrismaClientKnownRequestError("Unique constraint failed on eventId", {
+        code: "P2002",
+        clientVersion: "test",
+        meta: { target: ["eventId"] },
+      })
+    );
+
+    const response = await handleLeadRequest(makeRequest({ eventId: "evt_race" }));
+    const body = await response.json();
+
+    expect(body.duplicate).toBe(true);
+    expect(prismaMock.leadSubmission.create).toHaveBeenCalledTimes(1);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("returns partial and records an actionable error when a required GHL field is missing", async () => {
+    process.env.GHL_BASE_URL = "https://missing-fields.example";
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const fetchMock = vi.fn(async (url: RequestInfo | URL) => {
+      if (String(url).includes("/contacts/upsert")) {
+        return Response.json({ contact: { id: "contact_1" } });
+      }
+      return Response.json({ customFields: [] });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await handleLeadRequest(makeRequest({ eventId: "evt_missing_field" }));
+    const body = await response.json();
+
+    expect(body.ok).toBe(true);
+    expect(body.ghlStatus).toBe("partial");
+    expect(body.warnings).toEqual(
+      expect.arrayContaining([expect.stringContaining("GHL_REQUIRED_CUSTOM_FIELDS_MISSING")])
+    );
+    expect(warn).toHaveBeenCalledWith(
+      "GHL custom fields not found",
+      expect.objectContaining({ fields: expect.arrayContaining(["Intention"]) })
+    );
+    expect(prismaMock.leadSubmission.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          status: "FAILED",
+          ghlContactId: "contact_1",
+          errorMessage: expect.stringContaining("GHL_REQUIRED_CUSTOM_FIELDS_MISSING"),
+        }),
+      })
+    );
+  });
+
+  it("records timeout failures without marking GHL as sent", async () => {
+    process.env.GHL_BASE_URL = "https://timeout.example";
+    process.env.GHL_TIMEOUT_MS = "1";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((_url: RequestInfo | URL, init?: RequestInit) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () => {
+            const error = new Error("aborted");
+            error.name = "AbortError";
+            reject(error);
+          });
+        })
+      )
+    );
+
+    const response = await handleLeadRequest(makeRequest({ eventId: "evt_timeout" }));
+    const body = await response.json();
+
+    expect(body.ghlStatus).toBe("failed");
+    expect(prismaMock.leadSubmission.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          status: "FAILED",
+          errorMessage: expect.stringContaining("GHL_TIMEOUT"),
+        }),
+      })
+    );
+  });
+
+  it("sets exact private-session tags for Body Reset Fix without dashed variants", async () => {
+    process.env.GHL_DEFAULT_TAGS = "source-site-premium,channel-ghl";
+    const fetchMock = mockSuccessfulFetch();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await handleLeadRequest(makeBodyResetFixRequest());
+
+    const tagCall = fetchMock.mock.calls.find(([url]) => String(url).includes("/tags"));
+    expect(tagCall).toBeDefined();
+    const body = JSON.parse((tagCall?.[1] as RequestInit).body as string);
+    expect(body.tags).toEqual(
+      expect.arrayContaining(["source-site-premium", "intent_private_session", "lang_es"])
+    );
+    expect(body.tags).not.toContain("channel-ghl");
+    expect(body.tags).not.toContain("intent-private-session");
+  });
+
+  it("maps Body Reset Fix fields into the canonical GHL contact fields", async () => {
+    process.env.GHL_DEFAULT_TAGS = "source-site-premium,channel-ghl";
+    process.env.GHL_BASE_URL = "https://body-reset-fields.example";
+    const fetchMock = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+      void init;
+      const href = String(url);
+      if (href.includes("/customFields")) {
+        return Response.json({
+          customFields: [
+            { id: "field_intention", name: "Intention", model: "contact" },
+            { id: "field_main_objective", name: "Main Objective", model: "contact" },
+            { id: "field_pre_session_notes", name: "Pre-Session Notes", model: "contact" },
+            {
+              id: "field_session_location_preference",
+              name: "Session Location Preference",
+              model: "contact",
+            },
+            { id: "field_current_location", name: "Current Location", model: "contact" },
+            { id: "field_language", name: "Form Language", model: "contact" },
+            { id: "field_other", name: "Other (Please Specify)", model: "contact" },
+          ],
+        });
+      }
+      if (href.includes("/contacts/upsert")) {
+        return Response.json({ contact: { id: "contact_1" } });
+      }
+      return Response.json({});
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await handleLeadRequest(makeBodyResetFixRequest({ eventId: "evt_body_reset_fix_mapping" }));
+
+    const upsertCall = fetchMock.mock.calls.find(([url]) => String(url).includes("/contacts/upsert"));
+    expect(upsertCall).toBeDefined();
+    const body = JSON.parse((upsertCall?.[1] as RequestInit).body as string);
+    expect(body.customFields).toEqual(
+      expect.arrayContaining([
+        { id: "field_intention", fieldValue: "Private Session" },
+        {
+          id: "field_main_objective",
+          fieldValue: "Dolor lumbar desde hace dos semanas, intensidad 7/10.",
+        },
+        {
+          id: "field_pre_session_notes",
+          fieldValue: "Martes por la tarde, contacto por WhatsApp.",
+        },
+        { id: "field_session_location_preference", fieldValue: "Cabinet" },
+        { id: "field_current_location", fieldValue: "Condesa, CDMX" },
+        { id: "field_language", fieldValue: "ES" },
+      ])
+    );
+  });
+
+  it("preserves training qualification without mapping volumePotential into Readiness or context into Other", async () => {
+    process.env.GHL_BASE_URL = "https://training-fields.example";
+    const fetchMock = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+      void init;
+      const href = String(url);
+      if (href.includes("/customFields")) {
+        return Response.json({
+          customFields: [
+            { id: "field_intention", name: "Intention", model: "contact" },
+            { id: "field_main_objective", name: "Main Objective", model: "contact" },
+            { id: "field_readiness", name: "Readiness", model: "contact" },
+            { id: "field_language", name: "Form Language", model: "contact" },
+            { id: "field_other", name: "Other (Please Specify)", model: "contact" },
+          ],
+        });
+      }
+      if (href.includes("/contacts/upsert")) {
+        return Response.json({ contact: { id: "contact_1" } });
+      }
+      return Response.json({});
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await handleLeadRequest(
+      makeRequest({
+        eventId: "evt_training_mapping",
+        intent: "training",
+        context: "Je veux structurer une pratique premium.",
+        volumePotential: "Récurrent",
+        branchData: {
+          trainingGoal: "Intégrer à ma pratique",
+          trainingLevel: "Débutant",
+        },
+      })
+    );
+
+    const upsertCall = fetchMock.mock.calls.find(([url]) => String(url).includes("/contacts/upsert"));
+    const body = JSON.parse((upsertCall?.[1] as RequestInit).body as string);
+    expect(body.customFields).toEqual(
+      expect.arrayContaining([
+        { id: "field_intention", fieldValue: "Training" },
+        {
+          id: "field_main_objective",
+          fieldValue: "Intégrer à ma pratique — Je veux structurer une pratique premium.",
+        },
+        { id: "field_language", fieldValue: "FR" },
+      ])
+    );
+    expect(body.customFields).not.toEqual(
+      expect.arrayContaining([
+        { id: "field_readiness", fieldValue: "Récurrent" },
+        { id: "field_other", fieldValue: "Je veux structurer une pratique premium." },
+      ])
+    );
+  });
+
+  it("preserves workshop type and context and maps Chosen Format only when selected", async () => {
+    process.env.GHL_BASE_URL = "https://workshop-fields.example";
+    const fetchMock = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+      void init;
+      const href = String(url);
+      if (href.includes("/customFields")) {
+        return Response.json({
+          customFields: [
+            { id: "field_intention", name: "Intention", model: "contact" },
+            { id: "field_main_objective", name: "Main Objective", model: "contact" },
+            { id: "field_language", name: "Form Language", model: "contact" },
+            { id: "field_chosen_format", name: "Chosen Format", model: "contact" },
+          ],
+        });
+      }
+      if (href.includes("/contacts/upsert")) {
+        return Response.json({ contact: { id: "contact_1" } });
+      }
+      return Response.json({});
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await handleLeadRequest(
+      makeRequest({
+        eventId: "evt_workshop_mapping",
+        intent: "workshop",
+        type: "Workshop",
+        needType: "Équipe spa",
+        context: "Préparer une équipe avant la saison.",
+        branchData: {
+          workshopType: "Équipe spa",
+          bookingFormat: "Workshop privé",
+        },
+      })
+    );
+
+    const upsertCall = fetchMock.mock.calls.find(([url]) => String(url).includes("/contacts/upsert"));
+    const body = JSON.parse((upsertCall?.[1] as RequestInit).body as string);
+    expect(body.customFields).toEqual(
+      expect.arrayContaining([
+        { id: "field_intention", fieldValue: "Workshop" },
+        {
+          id: "field_main_objective",
+          fieldValue: "Équipe spa — Préparer une équipe avant la saison.",
+        },
+        { id: "field_chosen_format", fieldValue: "Workshop privé" },
+      ])
+    );
+  });
+
+  it("does not create direct opportunities for Body Reset Fix submissions", async () => {
+    process.env.GHL_DEFAULT_TAGS = "source-site-premium,channel-ghl";
+    const fetchMock = mockSuccessfulFetch();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await handleLeadRequest(makeBodyResetFixRequest({ eventId: "evt_body_reset_fix_no_opp" }));
+
+    expect(fetchMock.mock.calls.map(([url]) => String(url)).join("\n")).not.toContain("/opportunities/");
+  });
+});

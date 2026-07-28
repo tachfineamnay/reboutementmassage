@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { absoluteUrl, renderJsonLd } from "@/lib/seo";
-import { CDMX_PRIVATE_SESSION_CAMPAIGNS, CDMX_WHATSAPP_URL } from "@/data/campaign-landings";
+import {
+  CDMX_PRIVATE_SESSION_CAMPAIGNS,
+  CDMX_WHATSAPP_URL,
+  getCdmxCampaignAlternates,
+} from "@/data/campaign-landings";
 import { RESET_CORPORAL_AEO_QUESTIONS } from "@/data/reset-corporal-aeo";
 import ResetCorporalPage from "@/app/reset-corporal-frances-page";
 
@@ -24,10 +28,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     description: config.meta.description,
     alternates: {
       canonical: absoluteUrl(CANONICAL),
-      languages: {
-        es: absoluteUrl(CANONICAL),
-        "x-default": absoluteUrl(CANONICAL),
-      },
+      languages: Object.fromEntries(
+        Object.entries(getCdmxCampaignAlternates()).map(([locale, route]) => [locale, absoluteUrl(route)])
+      ),
     },
     openGraph: {
       type: "website",

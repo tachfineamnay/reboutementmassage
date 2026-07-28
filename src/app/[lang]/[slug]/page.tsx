@@ -8,6 +8,7 @@ import type { ExperimentVariant } from "@prisma/client";
 import { buildLandingMetadata, buildLandingJsonLd, resolveTestimonialForLanding } from "@/lib/growth/landing-seo";
 import { absoluteUrl } from "@/lib/seo";
 import { isLocale } from "@/lib/seo";
+import { getCdmxCampaignAlternates } from "@/data/campaign-landings";
 import CookieSetterClient from "@/components/admin/growth/CookieSetterClient";
 
 type PageProps = {
@@ -28,6 +29,11 @@ const RESERVED_SLUGS = new Set([
   "hotellerie-luxe",
   "hospitalidad-lujo",
   "llms.txt",
+]);
+
+const CDMX_DYNAMIC_SLUGS = new Set([
+  "mexico-city-french-body-reset",
+  "french-body-reset-mexico-city",
 ]);
 
 function pickWeightedVariant(variants: ExperimentVariant[], seed: string): ExperimentVariant {
@@ -60,7 +66,11 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   if (landing.status !== "LIVE" && !isPreview) return { robots: { index: false, follow: false } };
 
   let alternates: Record<string, string> | undefined;
-  if (landing.hreflangGroupId) {
+  if (CDMX_DYNAMIC_SLUGS.has(slug)) {
+    alternates = Object.fromEntries(
+      Object.entries(getCdmxCampaignAlternates()).map(([locale, route]) => [locale, absoluteUrl(route)])
+    );
+  } else if (landing.hreflangGroupId) {
     const group = await prisma.landingPage.findMany({
       where: { hreflangGroupId: landing.hreflangGroupId, status: "LIVE" },
     });

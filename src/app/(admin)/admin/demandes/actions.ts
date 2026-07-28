@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { ensureAdminSchema } from "@/lib/admin-schema";
-import { retryLeadSubmissionGhl } from "@/lib/lead-service";
+import { retryLeadSubmissionGhlHardened } from "@/lib/lead-service-handoff";
 
 export async function archiveLeadAction(formData: FormData) {
   const session = await getSession();
@@ -38,7 +38,7 @@ export async function retryLeadToGhlAction(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
 
-  await retryLeadSubmissionGhl(id);
+  await retryLeadSubmissionGhlHardened(id);
 
   revalidatePath("/admin/overview");
   revalidatePath("/admin/demandes");

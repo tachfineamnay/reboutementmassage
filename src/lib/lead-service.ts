@@ -1,15 +1,26 @@
 import "server-only";
 
 import type { Prisma } from "@prisma/client";
+import { Prisma as PrismaClient } from "@prisma/client";
 import { Resend } from "resend";
 import { z } from "zod";
+import {
+  GHL_CUSTOM_FIELDS,
+  GHL_SYSTEM_TAGS,
+  getConfiguredGhlFieldId,
+  isCanonicalGhlSystemTag,
+  resolveGhlIntentValue,
+  type GhlCustomFieldKey,
+} from "@/lib/ghl/crm-contract";
 import { matchCrmRoutingRule, parseCustomFields, parseTags } from "@/lib/growth/crm-routing";
 import { incrementLandingLeadMetric } from "@/lib/growth/landing-metrics";
 import { prisma } from "@/lib/prisma";
 
 type LeadSubmissionStatus = "CAPTURED" | "MOCKED" | "SENT_TO_GHL" | "FAILED" | "ARCHIVED";
+type GhlStatus = "sent" | "partial" | "failed" | "mocked" | "captured";
 
 type LeadPayload = {
+  formKind: string | null;
   firstName: string;
   contact: string;
   type: string;
@@ -74,6 +85,7 @@ type GhlContactCustomField = {
 type GhlRequestOptions = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
+  timeoutMs?: number;
 };
 
 type NotificationResult =
@@ -83,7 +95,8 @@ type NotificationResult =
 
 const DEFAULT_GHL_BASE_URL = "https://services.leadconnectorhq.com";
 const DEFAULT_GHL_API_VERSION = "2021-07-28";
-const DEFAULT_TAGS = ["source-site-premium", "channel-ghl"];
+const DEFAULT_GHL_TIMEOUT_MS = 10_000;
+const DEFAULT_TAGS = [GHL_SYSTEM_TAGS.sourceSitePremium];
 const DEFAULT_GHL_SOURCE = "Landing Méthode TMS";
 const GHL_INTENT_LABELS: Record<string, string> = {
   private_session: "Demande privée Méthode TMS",
@@ -96,24 +109,11 @@ const GHL_INTENT_LABELS: Record<string, string> = {
   partnership: "Partenariat",
   other: "Demande générale site",
 };
-const GHL_CUSTOM_FIELD_NAMES = {
-  intent: "GT - Intention",
-  channel: "GT - Canal",
-  segment: "GT - Segment",
-  needType: "GT - Besoin principal",
-  urgency: "GT - Urgence / période",
-  location: "GT - Lieu actuel / destination",
-  bookingFormat: "GT - Format choisi",
-  duration: "GT - Durée",
-  companyName: "GT - Établissement / société",
-  jobTitle: "GT - Fonction",
-  propertyType: "GT - Type établissement",
-  participantCount: "GT - Nombre participants",
-} as const;
 const ghlCustomFieldCache = new Map<string, Promise<Map<string, string>>>();
 
 const LeadRequestSchema = z
   .object({
+    formKind: z.literal("body_reset_fix").optional().nullable(),
     firstName: z.string().trim().min(2).max(120),
     contact: z.string().trim().min(3).max(255),
     type: z.string().trim().min(2).max(255),
@@ -158,6 +158,49 @@ const LeadRequestSchema = z
     currentLocation: z.string().trim().max(255).optional().nullable(),
   })
   .superRefine((data, context) => {
+    if (data.formKind === "body_reset_fix") {
+      if (normalizeLocale(data.lang) !== "ES") {
+        context.addIssue({
+          code: "custom",
+          path: ["lang"],
+          message: "Form Language must be ES for body_reset_fix",
+        });
+      }
+
+      if (!data.context?.trim()) {
+        context.addIssue({
+          code: "custom",
+          path: ["context"],
+          message: "Pain description is required for body_reset_fix",
+        });
+      }
+
+      if (!data.currentLocation?.trim()) {
+        context.addIssue({
+          code: "custom",
+          path: ["currentLocation"],
+          message: "Current Location is required for body_reset_fix",
+        });
+      }
+
+      const branchData = isRecord(data.branchData) ? data.branchData : {};
+      if (!branchText(branchData, "sessionLocationPreference")) {
+        context.addIssue({
+          code: "custom",
+          path: ["branchData", "sessionLocationPreference"],
+          message: "Session Location Preference is required for body_reset_fix",
+        });
+      }
+
+      if (!branchText(branchData, "preSessionNotes")) {
+        context.addIssue({
+          code: "custom",
+          path: ["branchData", "preSessionNotes"],
+          message: "Pre-Session Notes are required for body_reset_fix",
+        });
+      }
+    }
+
     const isInternalBooking =
       (data.intent === "training" || data.intent === "workshop") &&
       data.preferredChannel === "internal_booking";
@@ -309,7 +352,7 @@ async function applyCrmRouting(
     if (!matched) return { tags };
 
     const ruleTags = parseTags(matched.tags);
-    const mergedTags = Array.from(new Set([...tags, ...ruleTags].map((tag) => slugTag(tag)).filter(Boolean)));
+    const mergedTags = Array.from(new Set([...tags, ...ruleTags].map(normalizeTag).filter(Boolean)));
 
     const customFields = parseCustomFields(matched.customFields);
     if (Object.keys(customFields).length > 0) {
@@ -339,6 +382,7 @@ function normalizePayload(raw: unknown): LeadPayload | null {
 
   const data = parsed.data;
   const payloadWithoutSegment: Omit<LeadPayload, "leadSegment"> = {
+    formKind: nullableText(data.formKind),
     firstName: data.firstName,
     contact: data.contact,
     type: data.type,
@@ -427,43 +471,62 @@ function slugTag(value: string) {
     .slice(0, 60);
 }
 
+function normalizeTag(value: string) {
+  const tag = value.trim();
+  if (!tag) return "";
+  if (isCanonicalGhlSystemTag(tag)) return tag;
+  if (/^[a-z0-9]+(?:_[a-z0-9]+)+$/.test(tag)) return tag;
+  return slugTag(tag);
+}
+
 function configuredTags(payload: LeadPayload) {
-  const branchData = getBranchData(payload);
-  const campaignCity = branchText(branchData, "campaignCity");
-  const campaignOffer = branchText(branchData, "offer");
-  const campaignLanding = branchText(branchData, "landing");
   const envTags = process.env.GHL_DEFAULT_TAGS?.split(",") ?? DEFAULT_TAGS;
   const derivedTags = [
-    `type ${payload.type}`,
-    payload.lang ? `lang ${payload.lang.toLowerCase()}` : "",
-    payload.leadSegment ? `segment ${payload.leadSegment}` : "",
-    payload.propertyType ? `property ${payload.propertyType}` : "",
-    payload.destination ? `destination ${payload.destination}` : "",
-    payload.intent ? `intent ${payload.intent}` : "",
-    payload.preferredChannel ? `channel ${payload.preferredChannel}` : "channel ghl",
-    payload.preferredChannel === "internal_booking" ? "internal booking" : "",
-    "channel ghl",
-    "source site premium",
-    payload.intent === "hospitality_partner" ? "segment b2b" : "",
-    payload.intent === "hospitality_partner" ? "hospitality premium" : "",
-    payload.intent === "training" ? "training premium" : "",
-    payload.intent === "workshop" ? "workshop premium" : "",
-    campaignCity ? `city ${campaignCity}` : "",
-    campaignOffer ? `offer ${campaignOffer}` : "",
-    campaignLanding ? `landing ${campaignLanding}` : "",
+    GHL_SYSTEM_TAGS.sourceSitePremium,
+    payload.formKind === "body_reset_fix" ? GHL_SYSTEM_TAGS.privateSession : "",
+    payload.lang ? `lang_${payload.lang.toLowerCase()}` : "",
   ];
 
   return Array.from(
     new Set(
       [...envTags, ...derivedTags]
-        .map((tag) => slugTag(tag.trim()))
+        .map(normalizeTag)
+        .filter((tag) => tag !== "channel-ghl")
+        .filter((tag) => payload.formKind === "body_reset_fix" || tag !== GHL_SYSTEM_TAGS.training)
         .filter(Boolean)
     )
   );
 }
 
-async function createLeadSubmission(payload: LeadPayload, tags: string[]) {
+type LeadPersistenceResult = {
+  id: string;
+  reused: boolean;
+  status: LeadSubmissionStatus;
+  ghlContactId: string | null;
+};
+
+async function createLeadSubmission(payload: LeadPayload, tags: string[]): Promise<LeadPersistenceResult | null> {
   try {
+    if (payload.eventId) {
+      const existing = await prisma.leadSubmission.findUnique({
+        where: { eventId: payload.eventId },
+        select: {
+          id: true,
+          status: true,
+          ghlContactId: true,
+        },
+      });
+
+      if (existing) {
+        return {
+          id: existing.id,
+          reused: true,
+          status: existing.status as LeadSubmissionStatus,
+          ghlContactId: existing.ghlContactId,
+        };
+      }
+    }
+
     const lead = await prisma.leadSubmission.create({
       data: {
         firstName: payload.firstName,
@@ -504,7 +567,7 @@ async function createLeadSubmission(payload: LeadPayload, tags: string[]) {
         tags,
         status: "CAPTURED",
       },
-      select: { id: true },
+      select: { id: true, status: true, ghlContactId: true },
     });
 
     if (payload.landingPageId) {
@@ -513,11 +576,47 @@ async function createLeadSubmission(payload: LeadPayload, tags: string[]) {
       });
     }
 
-    return lead.id;
+    return {
+      id: lead.id,
+      reused: false,
+      status: lead.status as LeadSubmissionStatus,
+      ghlContactId: lead.ghlContactId,
+    };
   } catch (error) {
+    if (
+      payload.eventId &&
+      error instanceof PrismaClient.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      const existing = await prisma.leadSubmission.findUnique({
+        where: { eventId: payload.eventId },
+        select: {
+          id: true,
+          status: true,
+          ghlContactId: true,
+        },
+      });
+
+      if (existing) {
+        return {
+          id: existing.id,
+          reused: true,
+          status: existing.status as LeadSubmissionStatus,
+          ghlContactId: existing.ghlContactId,
+        };
+      }
+    }
+
     console.error("Lead persistence failed", error);
     return null;
   }
+}
+
+function ghlStatusFromLeadStatus(status: LeadSubmissionStatus, ghlContactId: string | null): GhlStatus {
+  if (status === "MOCKED") return "mocked";
+  if (status === "FAILED") return ghlContactId ? "partial" : "failed";
+  if (status === "SENT_TO_GHL" || ghlContactId) return "sent";
+  return "captured";
 }
 
 async function updateLeadSubmission(
@@ -565,6 +664,7 @@ function mockLeadResponse(payload: LeadPayload, tags: string[], notification: No
     ok: true,
     mode: "mock",
     ghlStatus: "mocked",
+    warnings: [],
     tags,
     notification: notification.status,
   });
@@ -594,6 +694,61 @@ function branchNumber(branchData: Record<string, unknown>, key: string) {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+function joinFieldParts(parts: Array<string | null | undefined>) {
+  const values = parts.map((part) => part?.trim()).filter(Boolean);
+  return values.length > 0 ? values.join(" — ") : null;
+}
+
+function firstBranchText(branchData: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = branchText(branchData, key);
+    if (value) return value;
+  }
+  return null;
+}
+
+function getMainObjectiveValue(payload: LeadPayload, branchData: Record<string, unknown>) {
+  if (payload.formKind === "body_reset_fix") return payload.context;
+
+  const trainingGoal = branchText(branchData, "trainingGoal");
+  const workshopType = branchText(branchData, "workshopType");
+  const usefulContext = payload.context;
+
+  switch (payload.intent) {
+    case "training":
+      return joinFieldParts([trainingGoal, usefulContext]);
+    case "private_session":
+      return joinFieldParts([payload.needType, usefulContext]);
+    case "workshop":
+      return joinFieldParts([workshopType || payload.needType, usefulContext]);
+    case "hospitality_partner":
+    case "partnership":
+      return joinFieldParts([payload.needType, payload.context]);
+    default:
+      return payload.context || payload.needType;
+  }
+}
+
+function getReadinessValue(branchData: Record<string, unknown>) {
+  return firstBranchText(branchData, [
+    "readiness",
+    "preparation",
+    "investmentReadiness",
+    "investmentLevel",
+    "budgetReadiness",
+  ]);
+}
+
+function getOtherSpecifyValue(payload: LeadPayload, branchData: Record<string, unknown>) {
+  const explicitOther = firstBranchText(branchData, [
+    "otherSpecify",
+    "otherPleaseSpecify",
+    "explicitOther",
+  ]);
+  if (explicitOther) return explicitOther;
+  return payload.intent === "other" ? payload.context : null;
+}
+
 function normalizeCustomFieldName(value: string) {
   return value
     .normalize("NFD")
@@ -620,7 +775,10 @@ async function getGhlContactCustomFieldIds(
       return new Map(
         fields
           .filter((field) => field.id && field.name && field.model !== "opportunity")
-          .map((field) => [normalizeCustomFieldName(field.name), field.id])
+          .flatMap((field) => [
+            [normalizeCustomFieldName(field.name), field.id],
+            ...(field.fieldKey ? [[normalizeCustomFieldName(field.fieldKey), field.id] as const] : []),
+          ])
       );
     })
     .catch((error) => {
@@ -632,51 +790,96 @@ async function getGhlContactCustomFieldIds(
   return request;
 }
 
+function resolveCustomFieldId(
+  key: GhlCustomFieldKey,
+  fieldIdsByNameOrKey: Map<string, string>
+) {
+  const configured = getConfiguredGhlFieldId(key);
+  if (configured) return configured;
+
+  const field = GHL_CUSTOM_FIELDS[key];
+  const fallback = fieldIdsByNameOrKey.get(normalizeCustomFieldName(field.label));
+  if (fallback) {
+    console.warn("GHL custom field fallback by visible name", {
+      fieldKey: key,
+      label: field.label,
+      env: field.env,
+    });
+  }
+  return fallback ?? null;
+}
+
 async function makeGhlCustomFields(
   config: NonNullable<ReturnType<typeof getGhlConfig>>,
   payload: LeadPayload
-): Promise<GhlContactCustomField[]> {
+): Promise<{
+  fields: GhlContactCustomField[];
+  missingRequiredFields: string[];
+  warnings: string[];
+}> {
   const branchData = getBranchData(payload);
   const bookingFormat = branchText(branchData, "bookingFormat");
   const durationMinutes = branchNumber(branchData, "durationMinutes");
-  const values = new Map<string, string | null>([
-    [GHL_CUSTOM_FIELD_NAMES.intent, payload.intent],
-    [GHL_CUSTOM_FIELD_NAMES.channel, payload.preferredChannel],
-    [GHL_CUSTOM_FIELD_NAMES.segment, payload.leadSegment],
-    [GHL_CUSTOM_FIELD_NAMES.needType, payload.needType],
-    [GHL_CUSTOM_FIELD_NAMES.urgency, payload.urgency],
-    [
-      GHL_CUSTOM_FIELD_NAMES.location,
-      payload.currentLocation || payload.destination,
-    ],
-    [GHL_CUSTOM_FIELD_NAMES.bookingFormat, bookingFormat],
-    [
-      GHL_CUSTOM_FIELD_NAMES.duration,
-      durationMinutes === null ? null : `${durationMinutes} min`,
-    ],
-    [GHL_CUSTOM_FIELD_NAMES.companyName, payload.companyName],
-    [GHL_CUSTOM_FIELD_NAMES.jobTitle, payload.jobTitle],
-    [GHL_CUSTOM_FIELD_NAMES.propertyType, payload.propertyType],
-    [GHL_CUSTOM_FIELD_NAMES.participantCount, payload.participantCount],
+  const isBodyResetFix = payload.formKind === "body_reset_fix";
+  const values = new Map<GhlCustomFieldKey, string | null>([
+    ["intention", resolveGhlIntentValue(payload.intent)],
+    ["mainObjective", getMainObjectiveValue(payload, branchData)],
+    ["priorExperience", branchText(branchData, "trainingLevel")],
+    ["readiness", getReadinessValue(branchData)],
+    ["timingUrgency", payload.urgency],
+    ["currentLocation", payload.currentLocation || payload.destination],
+    ["chosenFormat", bookingFormat],
+    ["sessionLocationPreference", branchText(branchData, "sessionLocationPreference")],
+    ["preSessionNotes", branchText(branchData, "preSessionNotes")],
+    ["roleFunction", payload.jobTitle],
+    ["companyEstablishment", payload.companyName],
+    ["establishmentType", payload.propertyType],
+    ["numberOfParticipants", payload.participantCount],
+    ["duration", durationMinutes === null ? null : `${durationMinutes} min`],
+    ["currentPracticeSummary", branchText(branchData, "trainingProfile")],
+    ["formLanguage", isBodyResetFix ? "ES" : normalizeLocale(payload.lang)],
+    ["marketingConsent", branchText(branchData, "marketingConsent")],
+    ["otherSpecify", getOtherSpecifyValue(payload, branchData)],
   ]);
+
+  const requiredKeys: GhlCustomFieldKey[] = isBodyResetFix
+    ? [
+        "intention",
+        "formLanguage",
+        "mainObjective",
+        "preSessionNotes",
+        "sessionLocationPreference",
+        "currentLocation",
+      ]
+    : ["intention", "formLanguage", "mainObjective"];
 
   let fieldIds: Map<string, string>;
   try {
     fieldIds = await getGhlContactCustomFieldIds(config);
   } catch (error) {
     console.error("GHL custom field lookup failed", error);
-    return [];
+    return {
+      fields: [],
+      missingRequiredFields: requiredKeys
+        .filter((key) => values.get(key))
+        .map((key) => GHL_CUSTOM_FIELDS[key].label),
+      warnings: ["GHL_CUSTOM_FIELD_LOOKUP_FAILED"],
+    };
   }
 
   const customFields: GhlContactCustomField[] = [];
   const missingFields: string[] = [];
+  const missingRequiredFields: string[] = [];
+  const warnings: string[] = [];
 
-  for (const [name, value] of values) {
+  for (const [key, value] of values) {
     if (!value) continue;
 
-    const id = fieldIds.get(normalizeCustomFieldName(name));
+    const id = resolveCustomFieldId(key, fieldIds);
     if (!id) {
-      missingFields.push(name);
+      const label = GHL_CUSTOM_FIELDS[key].label;
+      missingFields.push(label);
+      if (requiredKeys.includes(key)) missingRequiredFields.push(label);
       continue;
     }
 
@@ -710,9 +913,14 @@ async function makeGhlCustomFields(
 
   if (missingFields.length > 0) {
     console.warn("GHL custom fields not found", { fields: missingFields });
+    warnings.push(`GHL_CUSTOM_FIELDS_NOT_FOUND:${missingFields.join(", ")}`);
   }
 
-  return customFields;
+  return {
+    fields: customFields,
+    missingRequiredFields,
+    warnings,
+  };
 }
 
 function getTaskTitle(intent: string | null) {
@@ -828,6 +1036,7 @@ function getGhlConfig() {
     pipelineStageId: process.env.GHL_PIPELINE_STAGE_ID,
     workflowId: process.env.GHL_WORKFLOW_ID,
     source: process.env.GHL_SOURCE || DEFAULT_GHL_SOURCE,
+    timeoutMs: Number(process.env.GHL_TIMEOUT_MS || DEFAULT_GHL_TIMEOUT_MS),
   };
 }
 
@@ -836,16 +1045,31 @@ async function ghlFetch<T>(
   path: string,
   options: GhlRequestOptions = {}
 ) {
-  const response = await fetch(`${config.baseUrl}${path}`, {
-    method: options.method ?? "POST",
-    headers: {
-      Accept: "application/json",
-      Authorization: `Bearer ${config.token}`,
-      "Content-Type": "application/json",
-      Version: config.version,
-    },
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  });
+  const controller = new AbortController();
+  const timeoutMs = options.timeoutMs ?? config.timeoutMs;
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  let response: Response;
+  try {
+    response = await fetch(`${config.baseUrl}${path}`, {
+      method: options.method ?? "POST",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${config.token}`,
+        "Content-Type": "application/json",
+        Version: config.version,
+      },
+      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new Error(`GHL_TIMEOUT ${path}`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
 
   const text = await response.text();
   let data: T;
@@ -860,6 +1084,10 @@ async function ghlFetch<T>(
   }
 
   return data;
+}
+
+function shouldCreateDirectOpportunity(tags: string[]) {
+  return !tags.includes(GHL_SYSTEM_TAGS.sourceSitePremium);
 }
 
 async function optionalGhlStep(label: string, run: () => Promise<unknown>) {
@@ -981,8 +1209,19 @@ export async function handleLeadRequest(request: Request) {
   let tags = configuredTags(payload);
   const routing = await applyCrmRouting(payload, tags);
   tags = routing.tags;
-  const leadSubmissionId = await createLeadSubmission(payload, tags);
-  if (!leadSubmissionId) return jsonError(500, "LEAD_PERSISTENCE_FAILED");
+  const leadSubmission = await createLeadSubmission(payload, tags);
+  if (!leadSubmission) return jsonError(500, "LEAD_PERSISTENCE_FAILED");
+  const leadSubmissionId = leadSubmission.id;
+
+  if (leadSubmission.reused) {
+    return Response.json({
+      ok: true,
+      duplicate: true,
+      ghlStatus: ghlStatusFromLeadStatus(leadSubmission.status, leadSubmission.ghlContactId),
+      warnings: [],
+      notification: "skipped",
+    });
+  }
 
   const notification = await sendLeadNotification(payload, tags);
   await persistNotificationResult(leadSubmissionId, notification);
@@ -1002,6 +1241,7 @@ export async function handleLeadRequest(request: Request) {
     return Response.json({
       ok: true,
       ghlStatus: "failed",
+      warnings: ["GHL_NOT_CONFIGURED"],
       notification: notification.status,
     });
   }
@@ -1023,7 +1263,7 @@ export async function handleLeadRequest(request: Request) {
         name: payload.firstName,
         ...parsedContact,
         source: ghlConfig.source,
-        ...(customFields.length > 0 ? { customFields } : {}),
+        ...(customFields.fields.length > 0 ? { customFields: customFields.fields } : {}),
         ...(ghlConfig.assignedUserId ? { assignedTo: ghlConfig.assignedUserId } : {}),
       },
     });
@@ -1058,6 +1298,22 @@ export async function handleLeadRequest(request: Request) {
       body: { tags },
     });
 
+    if (customFields.missingRequiredFields.length > 0) {
+      const message = `GHL_REQUIRED_CUSTOM_FIELDS_MISSING: ${customFields.missingRequiredFields.join(", ")}`;
+      await updateLeadSubmission(leadSubmissionId, {
+        status: "FAILED",
+        ghlContactId: contactId,
+        errorMessage: message,
+      });
+
+      return Response.json({
+        ok: true,
+        ghlStatus: "partial",
+        warnings: [...customFields.warnings, message],
+        notification: notification.status,
+      });
+    }
+
     await ghlFetch(ghlConfig, `/contacts/${contactId}/notes`, {
       body: {
         title: `${getIntentLabel(payload.intent)} — Méthode TMS®`,
@@ -1079,7 +1335,7 @@ export async function handleLeadRequest(request: Request) {
 
     await createTask();
 
-    if (ghlConfig.pipelineId && ghlConfig.pipelineStageId) {
+    if (ghlConfig.pipelineId && ghlConfig.pipelineStageId && shouldCreateDirectOpportunity(tags)) {
       await optionalGhlStep("create opportunity", () =>
         ghlFetch(ghlConfig, "/opportunities/", {
           body: {
@@ -1114,17 +1370,20 @@ export async function handleLeadRequest(request: Request) {
     return Response.json({
       ok: true,
       ghlStatus: "sent",
+      warnings: customFields.warnings,
       notification: notification.status,
     });
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message.slice(0, 4000) : "GHL_SUBMISSION_FAILED";
     console.error("GHL lead submission failed", error);
     await updateLeadSubmission(leadSubmissionId, {
       status: "FAILED",
-      errorMessage: error instanceof Error ? error.message.slice(0, 4000) : "GHL_SUBMISSION_FAILED",
+      errorMessage,
     });
     return Response.json({
       ok: true,
       ghlStatus: "failed",
+      warnings: [errorMessage],
       notification: notification.status,
     });
   }
@@ -1138,7 +1397,9 @@ export async function retryLeadSubmissionGhl(leadId: string): Promise<{ ok: bool
     return { ok: false, error: "Lead introuvable" };
   }
 
+  const leadBranchData = isRecord(lead.branchData) ? lead.branchData : {};
   const payload: LeadPayload = {
+    formKind: branchText(leadBranchData, "formKind"),
     firstName: lead.firstName,
     contact: lead.contact,
     type: lead.type,
@@ -1160,7 +1421,7 @@ export async function retryLeadSubmissionGhl(leadId: string): Promise<{ ok: bool
     creativeAngle: lead.creativeAngle,
     ctaLocation: lead.ctaLocation,
     utm: (lead.utm as Record<string, string>) || {},
-    branchData: lead.branchData || {},
+    branchData: leadBranchData,
     companyName: lead.companyName,
     jobTitle: lead.jobTitle,
     propertyType: lead.propertyType,
@@ -1216,7 +1477,7 @@ export async function retryLeadSubmissionGhl(leadId: string): Promise<{ ok: bool
         name: payload.firstName,
         ...parsedContact,
         source: ghlConfig.source,
-        ...(customFields.length > 0 ? { customFields } : {}),
+        ...(customFields.fields.length > 0 ? { customFields: customFields.fields } : {}),
         ...(ghlConfig.assignedUserId ? { assignedTo: ghlConfig.assignedUserId } : {}),
       },
     });
@@ -1251,6 +1512,16 @@ export async function retryLeadSubmissionGhl(leadId: string): Promise<{ ok: bool
       body: { tags },
     });
 
+    if (customFields.missingRequiredFields.length > 0) {
+      const err = `GHL_REQUIRED_CUSTOM_FIELDS_MISSING: ${customFields.missingRequiredFields.join(", ")}`;
+      await updateLeadSubmission(leadId, {
+        status: "FAILED",
+        ghlContactId: contactId,
+        errorMessage: err,
+      });
+      return { ok: false, error: err };
+    }
+
     await ghlFetch(ghlConfig, `/contacts/${contactId}/notes`, {
       body: {
         title: `${getIntentLabel(payload.intent)} — Méthode TMS®`,
@@ -1272,7 +1543,7 @@ export async function retryLeadSubmissionGhl(leadId: string): Promise<{ ok: bool
 
     await createTask();
 
-    if (ghlConfig.pipelineId && ghlConfig.pipelineStageId) {
+    if (ghlConfig.pipelineId && ghlConfig.pipelineStageId && shouldCreateDirectOpportunity(tags)) {
       await optionalGhlStep("create opportunity", () =>
         ghlFetch(ghlConfig, "/opportunities/", {
           body: {
