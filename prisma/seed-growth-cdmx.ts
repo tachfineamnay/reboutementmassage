@@ -404,7 +404,7 @@ export async function seedGrowthCdmx(prisma: PrismaClient) {
     where: { id: "cdmx-crm-seed" },
     update: {
       status: "ACTIVE",
-      tags: ["city-cdmx", "offer-body-reset", "landing-cdmx"],
+      tags: ["city_cdmx", "offer_body_reset", "landing_cdmx"],
       customFields: { campaignCity: "cdmx", offerFamily: "body_reset" },
       intent: null,
       ghlWorkflowId: process.env.GHL_WORKFLOW_ID ?? null,
@@ -418,7 +418,7 @@ export async function seedGrowthCdmx(prisma: PrismaClient) {
       offerType: "FOUNDER_SESSION",
       intent: null,
       leadSegment: "b2c_premium",
-      tags: ["city-cdmx", "offer-body-reset", "landing-cdmx"],
+      tags: ["city_cdmx", "offer_body_reset", "landing_cdmx"],
       customFields: { campaignCity: "cdmx", offerFamily: "body_reset" },
       priority: 10,
       status: "ACTIVE",

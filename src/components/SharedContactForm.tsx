@@ -3,39 +3,13 @@
 import Image from "next/image";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { COPY, Language } from "@/data/copy";
-import BookingExperience, {
-  type BookingConfirmationPayload,
-} from "@/components/BookingExperience";
-import { createGoogleCalendarUrl } from "@/lib/calendar-link";
 import { INTENT_LABELS, ConversionIntent } from "@/config/conversionRoutes";
 import { trackMetaLead } from "@/components/MetaPixel";
-
-/* ─────────────────────────────────────────────────────────────
-   HandLogo SVG
-   ──────────────────────────────────────────────────────────── */
-function HandLogo({ size = 46, color = "currentColor" }: { size?: number; color?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 200 200" fill="none" aria-hidden="true">
-      <circle cx="100" cy="100" r="94" stroke={color} strokeWidth="5" fill="none" />
-      <path
-        d="M90 52 C90 52, 82 52, 80 64 L74 108 C72 118, 58 120, 56 110 L52 88 C50 78, 62 74, 64 84 L66 96"
-        stroke={color} strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none"
-      />
-      <line x1="88" y1="52" x2="88" y2="92" stroke={color} strokeWidth="5" strokeLinecap="round" />
-      <line x1="100" y1="46" x2="100" y2="92" stroke={color} strokeWidth="5" strokeLinecap="round" />
-      <line x1="112" y1="50" x2="112" y2="92" stroke={color} strokeWidth="5" strokeLinecap="round" />
-      <line x1="124" y1="58" x2="122" y2="90" stroke={color} strokeWidth="5" strokeLinecap="round" />
-      <path
-        d="M74 108 C74 120, 78 132, 86 140 C94 148, 106 152, 118 148 C130 144, 136 132, 134 118 L126 90"
-        stroke={color} strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" fill="none"
-      />
-      <path
-        d="M100 118 C92 118, 88 112, 88 106 C88 98, 94 94, 100 94 C108 94, 112 100, 112 106 C112 114, 106 120, 98 122 C88 124, 82 118, 80 110 C78 100, 84 90, 96 88"
-        stroke={color} strokeWidth="4.5" strokeLinecap="round" fill="none"
-      />
-    </svg>
-  );
-}
+import {
+  resolveGhlCalendarUrl,
+  type GhlCalendarIntent,
+  type GhlCalendarResolution,
+} from "@/lib/ghl/calendar-resolver";
 
 /* ─────────────────────────────────────────────────────────────
    Reveal — fade-up on scroll
@@ -80,27 +54,6 @@ function Reveal({
     ...style,
   };
   return <Tag ref={ref} className={className} style={s} {...rest}>{children}</Tag>;
-}
-
-/* ─────────────────────────────────────────────────────────────
-   Slot generator
-   ──────────────────────────────────────────────────────────── */
-function generateSlots(lang: Language) {
-  const now = new Date();
-  const locale = lang === "FR" ? "fr-FR" : lang === "ES" ? "es-ES" : "en-US";
-  const times = ["9:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"];
-  return [1, 2].map((offset) => {
-    const date = new Date(now);
-    date.setDate(date.getDate() + offset);
-    const dayHash = date.getDate() % 7;
-    const takenSet = new Set([(dayHash + 1) % times.length, (dayHash + 4) % times.length]);
-    const label = new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long" }).format(date);
-    return {
-      date,
-      label: label.charAt(0).toUpperCase() + label.slice(1),
-      slots: times.map((time, i) => ({ time, taken: takenSet.has(i) })),
-    };
-  });
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -197,6 +150,29 @@ function getLeadSegment(intent: ConversionIntent | "") {
   }
 }
 
+export function getGhlCalendarIntent(
+  intent: ConversionIntent | "",
+  preferredChannel: "ghl" | "callback" | "" = ""
+): GhlCalendarIntent | null {
+  if (intent === "training" || intent === "workshop") return intent;
+  if (intent === "private_session" && preferredChannel === "callback") return "callback";
+  if (preferredChannel === "callback") return "callback";
+  return null;
+}
+
+export function resolveSharedContactCalendar(
+  intent: ConversionIntent | "",
+  lang: Language,
+  preferredChannel: "ghl" | "callback" | "" = ""
+): GhlCalendarResolution | null {
+  const calendarIntent = getGhlCalendarIntent(intent, preferredChannel);
+  return calendarIntent ? resolveGhlCalendarUrl(calendarIntent, lang) : null;
+}
+
+export function shouldUseGhlCalendarBeforeLocalSubmission(resolution: GhlCalendarResolution | null) {
+  return resolution?.status === "configured";
+}
+
 /* ─────────────────────────────────────────────────────────────
    Form state
    ──────────────────────────────────────────────────────────── */
@@ -205,8 +181,6 @@ type ContactFormState = {
   firstName: string;
   contact: string;
   context: string;
-  selectedDay: number;
-  selectedTime: string;
 
   // private_session specific
   currentLocation: string;
@@ -239,8 +213,6 @@ const initialForm: ContactFormState = {
   firstName: "",
   contact: "",
   context: "",
-  selectedDay: 0,
-  selectedTime: "",
 
   currentLocation: "",
   needType: "",
@@ -281,14 +253,16 @@ const EXTRA_TEXTS = {
     hospitalitySubmit: "Transmettre ma demande partenaire",
     hospitalityCallback: "Demander un rappel",
     finalTitle: "Finalisez votre demande",
+    calendarOpen: "Ouvrir le calendrier officiel",
+    calendarMissing: "Calendrier GHL non configuré. Vous pouvez transmettre une demande de contact.",
+    contactFallback: "Être recontacté",
     submitting: "Transmission en cours...",
     requiredField: "Ce champ est requis.",
     privateConfirmation:
       "Votre demande privée a bien été transmise. Grégory ou son équipe reviendra vers vous personnellement.",
     requestConfirmation:
       "Votre demande a bien été transmise. Grégory ou son équipe l’analysera personnellement et reviendra vers vous.",
-    calendarTitle: "Méthode TMS® — Consultation privée",
-    steps: ["Intention", "Identité", "Qualification", "Finalisation", "Agenda", "Confirmé"],
+    steps: ["Intention", "Identité", "Qualification", "Finalisation", "Confirmé"],
     fields: {
       currentLocation: "Lieu actuel ou destination",
       currentLocationPh: "Ex: Monaco, Chalet Courchevel, Yacht Cannes...",
@@ -345,14 +319,16 @@ const EXTRA_TEXTS = {
     hospitalitySubmit: "Submit my partner request",
     hospitalityCallback: "Request a callback",
     finalTitle: "Finalize your request",
+    calendarOpen: "Open official calendar",
+    calendarMissing: "GHL calendar is not configured. You can submit a contact request instead.",
+    contactFallback: "Request contact",
     submitting: "Submitting...",
     requiredField: "This field is required.",
     privateConfirmation:
       "Your private request has been submitted. Grégory or his team will personally get back to you.",
     requestConfirmation:
       "Your request has been submitted. Grégory or his team will personally review it and get back to you.",
-    calendarTitle: "TMS® Method — Private consultation",
-    steps: ["Intent", "Identity", "Qualification", "Finalize", "Scheduler", "Confirmed"],
+    steps: ["Intent", "Identity", "Qualification", "Finalize", "Confirmed"],
     fields: {
       currentLocation: "Current location or destination",
       currentLocationPh: "E.g., Monaco, Chalet Courchevel, Yacht Cannes...",
@@ -409,14 +385,16 @@ const EXTRA_TEXTS = {
     hospitalitySubmit: "Enviar mi solicitud de colaboración",
     hospitalityCallback: "Solicitar una llamada",
     finalTitle: "Finalice su solicitud",
+    calendarOpen: "Abrir calendario oficial",
+    calendarMissing: "El calendario GHL no está configurado. Puede enviar una solicitud de contacto.",
+    contactFallback: "Solicitar contacto",
     submitting: "Enviando...",
     requiredField: "Este campo es obligatorio.",
     privateConfirmation:
       "Su solicitud privada ha sido enviada. Grégory o su equipo se pondrá en contacto personalmente.",
     requestConfirmation:
       "Su solicitud ha sido enviada. Grégory o su equipo la revisará personalmente y se pondrá en contacto.",
-    calendarTitle: "Método TMS® — Consulta privada",
-    steps: ["Solicitud", "Identidad", "Calificación", "Finalización", "Cita", "Confirmado"],
+    steps: ["Solicitud", "Identidad", "Calificación", "Finalización", "Confirmado"],
     fields: {
       currentLocation: "Ubicación actual o destino",
       currentLocationPh: "Ej: Mónaco, Chalet Courchevel, Yate Cannes...",
@@ -471,8 +449,7 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
      1: Intent selection
      2: Identity & Contact (Prénom + Contact)
      3: Intent-specific details (Lieu, besoin, etc.)
-     4: Finalization or embedded booking experience
-     5: Callback Scheduler (Date/time picker - only for private session callback / B2B callback)
+     4: Finalization or official GHL calendar handoff
      6: Success confirmation
   */
   const [step, setStep] = useState(1);
@@ -481,7 +458,6 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const days = useMemo(() => generateSlots(lang), [lang]);
   const firstNameRef = useRef<HTMLInputElement>(null);
   const isFirstRender = useRef(true);
   const submissionInFlightRef = useRef(false);
@@ -512,29 +488,16 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
         if (form.intent === "partnership" && !form.companyName) return s;
       }
 
-      if (s === 5 && !form.selectedTime) return s;
-
       return Math.min(s + 1, 6);
     });
   }
 
   function goBack() {
     setStep((s) => {
-      if (s === 6 && form.preferredChannel !== "callback") return 4;
+      if (s === 6) return 4;
       return Math.max(s - 1, 1);
     });
   }
-
-  const selectedSlotStart = useMemo(() => {
-    if (!form.selectedTime || !days[form.selectedDay]) return null;
-    const date = days[form.selectedDay].date;
-    const [hours, minutes] = form.selectedTime.split(":").map(Number);
-    const start = new Date(date);
-    start.setHours(hours, minutes || 0, 0, 0);
-    return start;
-  }, [days, form.selectedDay, form.selectedTime]);
-
-  const selectedDayLabel = form.selectedTime ? days[form.selectedDay]?.label : "";
 
   // Helper to serialize custom inputs into Context so we don't lose any detail
   const compiledContext = useMemo(() => {
@@ -575,10 +538,8 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
 
   async function submitLead({
     preferredChannel,
-    booking,
   }: {
-    preferredChannel: "ghl" | "callback" | "internal_booking";
-    booking?: BookingConfirmationPayload;
+    preferredChannel: "ghl" | "callback";
   }) {
     if (submissionInFlightRef.current) {
       throw new Error("SUBMISSION_IN_PROGRESS");
@@ -594,26 +555,15 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
           key.toLowerCase().startsWith("utm_")
         )
       );
-      const selectedDateTime =
-        booking?.selectedDateTime ?? selectedSlotStart?.toISOString() ?? null;
-      const branchData = booking
-        ? {
-            bookingFormat: booking.bookingFormat,
-            bookingInternalType: booking.bookingInternalType,
-            durationMinutes: booking.durationMinutes,
-            timezone: booking.timezone,
-            selectedDate: booking.selectedDate,
-            selectedTime: booking.selectedTime,
-            selectedDateTime: booking.selectedDateTime,
-            trainingProfile: form.profile || null,
-            trainingLevel: form.level || null,
-            trainingGoal: form.goal || null,
-            targetLang: form.targetLang || null,
-            workshopType: form.needType || null,
-            participantCount: form.participantCount || null,
-            periodPreference: form.urgency || null,
-          }
-        : {};
+      const branchData = {
+        trainingProfile: form.profile || null,
+        trainingLevel: form.level || null,
+        trainingGoal: form.goal || null,
+        targetLang: form.targetLang || null,
+        workshopType: form.needType || null,
+        participantCount: form.participantCount || null,
+        periodPreference: form.urgency || null,
+      };
 
       const response = await fetch("/api/lead", {
         method: "POST",
@@ -624,11 +574,10 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
           type: mappedType,
           context: compiledContext || null,
           lang,
-          selectedDayLabel: booking?.selectedDayLabel ?? (selectedDayLabel || null),
-          selectedTime: booking?.selectedTime ?? (form.selectedTime || null),
-          selectedDateTime,
-          timezone:
-            booking?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
+          selectedDayLabel: null,
+          selectedTime: null,
+          selectedDateTime: null,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           pageUrl: window.location.href,
           eventId,
           utm,
@@ -708,19 +657,6 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
     }
   }
 
-  async function handleBookingConfirm(booking: BookingConfirmationPayload) {
-    if (submissionInFlightRef.current) {
-      throw new Error("SUBMISSION_IN_PROGRESS");
-    }
-
-    return submitLead({
-      preferredChannel: "internal_booking",
-      booking,
-    });
-  }
-
-  const availableCount = days.reduce((a, d) => a + d.slots.filter((s) => !s.taken).length, 0);
-  
   const canProceed2 = isValidFirstName(form.firstName) && isValidContactValue(form.contact);
   
   const canProceed3 = useMemo(() => {
@@ -734,26 +670,40 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
   }, [form]);
 
   const showContactError = form.contact.trim().length > 0 && !isValidContactValue(form.contact);
+  const bookingCalendarResolution = useMemo(
+    () => resolveSharedContactCalendar(form.intent, lang),
+    [form.intent, lang]
+  );
+  const callbackCalendarResolution = useMemo(
+    () => resolveSharedContactCalendar(form.intent, lang, "callback"),
+    [form.intent, lang]
+  );
+  const hasBookingCalendar = shouldUseGhlCalendarBeforeLocalSubmission(bookingCalendarResolution);
+  const hasCallbackCalendar = shouldUseGhlCalendarBeforeLocalSubmission(callbackCalendarResolution);
 
-  const calendarLink = useMemo(() => {
-    if (!selectedSlotStart) return "#";
-    return createGoogleCalendarUrl({
-      title: ext.calendarTitle,
-      startDateTime: selectedSlotStart,
-      durationMinutes: 30,
-    });
-  }, [ext.calendarTitle, selectedSlotStart]);
+  useEffect(() => {
+    if (step !== 4) return;
+
+    const resolution =
+      form.intent === "training" || form.intent === "workshop"
+        ? bookingCalendarResolution
+        : form.intent === "private_session" || form.intent === "hospitality_partner"
+          ? callbackCalendarResolution
+          : null;
+
+    if (resolution?.status === "missing") {
+      console.warn("Missing public GHL calendar URL", {
+        envVar: resolution.envVar,
+        intent: resolution.intent,
+        lang: resolution.lang,
+      });
+    }
+  }, [bookingCalendarResolution, callbackCalendarResolution, form.intent, lang, step]);
 
   const arrow = (
     <svg width="14" height="10" viewBox="0 0 14 10" fill="none" aria-hidden="true">
       <line x1="0" y1="5" x2="12" y2="5" stroke="currentColor" strokeWidth="0.7" />
       <polyline points="8,1 12,5 8,9" fill="none" stroke="currentColor" strokeWidth="0.7" />
-    </svg>
-  );
-
-  const checkIcon = (
-    <svg width="12" height="9" viewBox="0 0 12 9" fill="none" aria-hidden="true">
-      <polyline points="1,4.5 4.5,8 11,1" stroke="currentColor" strokeWidth="1.2" fill="none" />
     </svg>
   );
 
@@ -769,8 +719,7 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
   const activeIndicatorIndex = useMemo(() => {
     if (step <= 3) return step - 1; // 0, 1, 2
     if (step === 4) return 3; // Finalisation
-    if (step === 5) return 4; // Agenda
-    return 5; // Confirmed
+    return 4; // Confirmed
   }, [step]);
 
   return (
@@ -800,7 +749,7 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
         {/* Progress bar */}
         <Reveal delay={0.3}>
           <div className="sf-progress">
-            <div className="sf-progress__fill" style={{ width: `${(step / 6) * 100}%` }} />
+            <div className="sf-progress__fill" style={{ width: `${(Math.min(step, 5) / 5) * 100}%` }} />
           </div>
         </Reveal>
 
@@ -1143,15 +1092,26 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
                       
                       <button
                         className="sf-btn sf-btn--ghost"
-                        onClick={() => {
-                          setForm((f) => ({ ...f, preferredChannel: "callback" }));
-                          setStep(5);
-                        }}
+                        onClick={() => handleFinalSubmit("callback")}
+                        disabled={loading}
                         type="button"
                         style={{ padding: "18px", border: "1px solid var(--forest)" }}
                       >
-                        {ext.channelCallback}
+                        {loading ? <span className="sf-spinner" /> : <span>{ext.contactFallback}</span>}
                       </button>
+                      {hasCallbackCalendar && callbackCalendarResolution?.status === "configured" ? (
+                        <a
+                          className="sf-btn sf-btn--calendar"
+                          href={callbackCalendarResolution.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{ justifyContent: "center", padding: "18px" }}
+                        >
+                          {ext.channelCallback}
+                        </a>
+                      ) : (
+                        <p className="sf-help">{ext.calendarMissing}</p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1172,41 +1132,64 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
                       </button>
                       <button
                         className="sf-btn sf-btn--ghost"
-                        onClick={() => {
-                          setForm((f) => ({ ...f, preferredChannel: "callback" }));
-                          setStep(5);
-                        }}
+                        onClick={() => handleFinalSubmit("callback")}
+                        disabled={loading}
                         type="button"
                         style={{ padding: "18px", border: "1px solid var(--forest)" }}
                       >
-                        {ext.hospitalityCallback}
+                        {loading ? <span className="sf-spinner" /> : <span>{ext.contactFallback}</span>}
                       </button>
+                      {hasCallbackCalendar && callbackCalendarResolution?.status === "configured" ? (
+                        <a
+                          className="sf-btn sf-btn--calendar"
+                          href={callbackCalendarResolution.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{ justifyContent: "center", padding: "18px" }}
+                        >
+                          {ext.hospitalityCallback}
+                        </a>
+                      ) : (
+                        <p className="sf-help">{ext.calendarMissing}</p>
+                      )}
                     </div>
                   </div>
                 )}
 
-                {/* Branch C & D: Embedded training/workshop booking */}
+                {/* Branch C & D: Official GHL training/workshop calendar */}
                 {(form.intent === "training" || form.intent === "workshop") && (
-                  <BookingExperience
-                    lang={lang}
-                    intent={form.intent}
-                    firstName={form.firstName}
-                    contact={form.contact}
-                    qualificationData={{
-                      destination: form.destination,
-                      currentLocation: form.currentLocation,
-                      context: form.context,
-                      trainingProfile: form.profile,
-                      trainingLevel: form.level,
-                      trainingGoal: form.goal,
-                      targetLang: form.targetLang,
-                      workshopType: form.needType,
-                      participantCount: form.participantCount,
-                      periodPreference: form.urgency,
-                    }}
-                    onConfirmBooking={handleBookingConfirm}
-                    onBack={goBack}
-                  />
+                  <div>
+                    <p className="sf-step__title">{ext.finalTitle}</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "16px", margin: "30px 0" }}>
+                      {hasBookingCalendar && bookingCalendarResolution?.status === "configured" ? (
+                        <a
+                          className="sf-btn sf-btn--cta"
+                          href={bookingCalendarResolution.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{ justifyContent: "center", padding: "18px" }}
+                        >
+                          <span>{ext.calendarOpen}</span>
+                        </a>
+                      ) : (
+                        <>
+                          <p className="sf-help">{ext.calendarMissing}</p>
+                          <button
+                            className="sf-btn sf-btn--cta"
+                            onClick={() => handleFinalSubmit("ghl")}
+                            disabled={loading}
+                            type="button"
+                            style={{ justifyContent: "center", padding: "18px" }}
+                          >
+                            {loading ? <span className="sf-spinner" /> : <span>{ext.contactFallback}</span>}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                    <div className="sf-nav">
+                      <button className="sf-btn sf-btn--back" onClick={goBack} type="button">←</button>
+                    </div>
+                  </div>
                 )}
 
                 {/* Branch E & F: Partnership & Other Submit flow */}
@@ -1236,62 +1219,6 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
               </div>
             )}
 
-            {/* STEP 5: Callback Scheduler */}
-            {step === 5 && (
-              <div className="sf-slide is-active">
-                <p className="sf-step__title">{tc.step3.title}</p>
-                <p className="sf-step__avail">
-                  <span className="sf-step__avail-n">{availableCount}</span>{" "}{tc.step3.slotsAvailable}
-                </p>
-                <div className="sf-scheduler">
-                  {days.map((day, di) => (
-                    <div className="sf-day" key={di}>
-                      <p className="sf-day__label">{day.label}</p>
-                      <div className="sf-day__grid">
-                        {day.slots.map((slot) => (
-                          <button
-                            key={`${di}-${slot.time}`}
-                            className={`sf-slot ${slot.taken ? "sf-slot--taken" : ""} ${form.selectedDay === di && form.selectedTime === slot.time && !slot.taken ? "sf-slot--selected" : ""}`}
-                            disabled={slot.taken}
-                            onClick={() => { setForm((f) => ({ ...f, selectedDay: di, selectedTime: slot.time })); setSubmitError(null); }}
-                            type="button"
-                          >
-                            <span className="sf-slot__time">{slot.time}</span>
-                            {slot.taken && <span className="sf-slot__tag">{tc.step3.taken}</span>}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="sf-trust sf-trust--enhanced">
-                  <div className="sf-trust__brand" aria-hidden="true">
-                    <HandLogo size={28} color="var(--forest)" />
-                  </div>
-                  {tc.step3.trust.map((sig: string, i: number) => (
-                    <span key={i} className="sf-trust__item">
-                      <span className="sf-trust__icon">{checkIcon}</span>
-                      {sig}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="sf-nav sf-nav--between">
-                  <button className="sf-btn sf-btn--back" onClick={() => setStep(4)} type="button">←</button>
-                  <button
-                    className={`sf-btn sf-btn--cta ${loading ? "is-loading" : ""}`}
-                    onClick={() => handleFinalSubmit("callback")}
-                    disabled={!form.selectedTime || loading}
-                    type="button"
-                  >
-                    {loading ? <span className="sf-spinner" /> : <><span>{tc.step3.cta}</span>{arrow}</>}
-                  </button>
-                </div>
-                {submitError && <p className="sf-error" role="alert" aria-live="polite">{submitError}</p>}
-              </div>
-            )}
-
             {/* STEP 6: Confirmation */}
             {step === 6 && (
               <div className="sf-slide is-active">
@@ -1306,39 +1233,12 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
                     />
                   </div>
                   
-                  {selectedSlotStart ? (
-                    <>
-                      <h3 className="sf-confirm__headline">{tc.step4.headline}</h3>
-                      <p className="sf-confirm__call">
-                        {tc.step4.callLine}{" "}
-                        <strong>{selectedDayLabel}</strong>{" "}
-                        {tc.step4.at}{" "}
-                        <strong>{form.selectedTime}</strong>.
-                      </p>
-                      <p className="sf-confirm__therapist">Grégory Tordjman — {tc.step4.therapistLine}</p>
-                      <p className="sf-confirm__sms">{tc.step4.smsNote}</p>
-                      <div className="sf-confirm__actions">
-                        <a href={calendarLink} target="_blank" rel="noreferrer" className="sf-btn sf-btn--calendar">
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                            <rect x="1" y="3" width="14" height="12" rx="1.5" stroke="currentColor" strokeWidth="1" />
-                            <line x1="1" y1="7" x2="15" y2="7" stroke="currentColor" strokeWidth="0.7" />
-                            <line x1="5" y1="1" x2="5" y2="5" stroke="currentColor" strokeWidth="1" />
-                            <line x1="11" y1="1" x2="11" y2="5" stroke="currentColor" strokeWidth="1" />
-                          </svg>
-                          <span>{tc.step4.addCalendar}</span>
-                        </a>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <h3 className="sf-confirm__headline">{tc.step4.headline}</h3>
-                      <p className="sf-confirm__call" style={{ margin: "20px 0" }}>
-                        {form.intent === "private_session"
-                          ? ext.privateConfirmation
-                          : ext.requestConfirmation}
-                      </p>
-                    </>
-                  )}
+                  <h3 className="sf-confirm__headline">{tc.step4.headline}</h3>
+                  <p className="sf-confirm__call" style={{ margin: "20px 0" }}>
+                    {form.intent === "private_session"
+                      ? ext.privateConfirmation
+                      : ext.requestConfirmation}
+                  </p>
                   
                   <button className="sf-btn sf-btn--ghost" onClick={resetAll} type="button" style={{ marginTop: "24px" }}>
                     {tc.step4.newRequest}

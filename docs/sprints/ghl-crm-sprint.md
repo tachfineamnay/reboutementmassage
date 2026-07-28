@@ -27,10 +27,10 @@
 
 ## Legacy components
 
-- `BookingExperience` stays in place temporarily but is legacy.
-- Local simulated booking slots are not the target architecture.
-- `CampaignLeadForm` is legacy unless a new usage is proven.
+- `BookingExperience` and local simulated booking slots were retired after GHL calendar handoff.
+- `CampaignLeadForm` was removed after `git grep` confirmed no active imports.
 - `copywriting-claude/source` is a historical snapshot, not the active stack.
+- `copywriting-claude/source` is excluded from TypeScript, ESLint and Docker context; propose deletion in a separate cleanup.
 
 ## Pipeline routing ownership
 
