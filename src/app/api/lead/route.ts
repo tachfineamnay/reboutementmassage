@@ -1,5 +1,5 @@
-import { handleLeadRequest } from "@/lib/lead-service";
+import { handleLeadRequestHardened } from "@/lib/lead-service-handoff";
 
 export async function POST(request: Request) {
-  return handleLeadRequest(request);
+  return handleLeadRequestHardened(request);
 }
