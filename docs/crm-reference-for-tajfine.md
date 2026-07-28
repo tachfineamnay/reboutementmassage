@@ -3,7 +3,7 @@
 ## Logic
 
 ```text
-formulaire → tags/champs → workflow GHL → un seul pipeline
+formulaire → champs GHL → tags déclencheurs → workflow GHL → un seul pipeline
 ```
 
 ## Tags
@@ -89,6 +89,8 @@ Other (Please Specify)
 
 No new GHL field may be created without explicit validation.
 
+The `GHL_FIELD_*_ID` environment variables accept existing GHL **field IDs only**. A GHL field key must never be sent in the API `id` property. Visible-name lookup is a temporary fallback and must emit a warning.
+
 ## Field Roles and Writers
 
 | Field | Role | Written by |
@@ -137,18 +139,33 @@ A contact must never remain in two pipelines after routing.
 ```text
 Official form
 → /api/lead
-→ source-site-premium + lang_* + fields Intention/Form Language/Main Objective
-→ GHL workflow derives intent_* tags from Intention
+→ local LeadSubmission
+→ GHL contact + required fields
+→ source-site-premium + lang_*
+→ mandatory workflow enrollment
+→ workflow derives intent_* from Intention
 → Prospection, Transmission, Séances or Interv. pro
 ```
 
 ```text
 Body Reset Fix
 → /api/lead
-→ source-site-premium + intent_private_session + lang_es + geo_country_mexique + geo_city_mexico_city + campaign_private_sessions when CDMX routing applies
-→ required fields Intention/Form Language/Main Objective/Pre-Session Notes/Session Location Preference/Current Location
-→ GHL private-session workflow
+→ server resolves Destination.slug = cdmx without relying on a dynamic ES landing
+→ local LeadSubmission
+→ GHL contact + required fields
+→ source-site-premium + intent_private_session + lang_es + geo_country_mexique + geo_city_mexico_city + campaign_private_sessions
+→ mandatory private-session workflow
 → Séances
 ```
 
-If a required GHL field is missing, `/api/lead` keeps the local lead and any created contact, returns `ghlStatus: partial`, records `GHL_REQUIRED_CUSTOM_FIELDS_MISSING`, and requires human takeover or admin retry. Use `human_takeover_needed` only from a validated workflow or manual CRM action.
+Trigger tags, notes and tasks are buffered by the API handoff guard and sent in this order only after required fields are confirmed:
+
+```text
+tags → note → task → workflow
+```
+
+If a required GHL field is missing, `/api/lead` keeps the local lead and any created contact, sends no trigger tag, returns `ghlStatus: partial`, records `GHL_REQUIRED_CUSTOM_FIELDS_MISSING`, and requires human takeover or admin retry.
+
+If no workflow is configured, `/api/lead` records `GHL_WORKFLOW_NOT_CONFIGURED`. If enrollment fails, it records `GHL_WORKFLOW_ENROLLMENT_FAILED`. In both cases the lead remains local with `FAILED`, the API returns `ghlStatus: partial`, and it must never be reported as `SENT_TO_GHL`.
+
+Use `human_takeover_needed` only from a validated workflow or manual CRM action.
