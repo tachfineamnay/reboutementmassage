@@ -182,9 +182,6 @@ const ES_PROOF_BADGES = [
   { value: "CDMX", label: "sesiones limitadas" },
 ];
 
-const ES_COMPLIANCE =
-  "Body Reset es un acompañamiento manual de bienestar corporal. No reemplaza un diagnóstico, tratamiento médico ni seguimiento con un profesional de salud.";
-
 const esBodyResetCopy = {
   heroTitle: "Body Reset — CDMX",
   heroSubtitle:
@@ -440,12 +437,11 @@ export async function seedGrowthCdmx(prisma: PrismaClient) {
     },
   });
 
-  const locales = ["en", "es", "fr"] as const;
+  const dynamicLandingLocales = ["en", "fr"] as const;
 
-  for (const loc of locales) {
+  for (const loc of dynamicLandingLocales) {
     const cfg = CDMX_PRIVATE_SESSION_CAMPAIGNS[loc];
-    const locale: Locale = loc === "en" ? "EN" : loc === "es" ? "ES" : "FR";
-    const isSpanish = loc === "es";
+    const locale: Locale = loc === "en" ? "EN" : "FR";
     const landingData = {
       destinationId: destination.id,
       offerId: offer.id,
@@ -453,29 +449,25 @@ export async function seedGrowthCdmx(prisma: PrismaClient) {
       template: "MOBILE_WHATSAPP_FIRST" as const,
       slug: SLUGS[loc],
       status: "LIVE" as const,
-      heroTitle: isSpanish ? esBodyResetCopy.heroTitle : cfg.hero.title,
-      heroSubtitle: isSpanish ? esBodyResetCopy.heroSubtitle : cfg.hero.subtitle,
-      microNote: isSpanish ? esBodyResetCopy.microNote : cfg.hero.microNote,
-      primaryCta: isSpanish ? esBodyResetCopy.primaryCta : cfg.hero.ctaPrimary,
-      secondaryCta: isSpanish ? esBodyResetCopy.secondaryCta : cfg.hero.ctaSecondary,
-      painChips: isSpanish ? esBodyResetCopy.painChips : cfg.forYouIf.items,
-      proofBadges: isSpanish ? esBodyResetCopy.proofBadges : cfg.proof.badges,
-      processSteps: isSpanish ? esBodyResetCopy.processSteps : cfg.process.steps,
-      faq: isSpanish ? esBodyResetCopy.faq : cfg.faq,
-      complianceText: isSpanish ? ES_COMPLIANCE : COMPLIANCE_DEFAULT_FR,
+      heroTitle: cfg.hero.title,
+      heroSubtitle: cfg.hero.subtitle,
+      microNote: cfg.hero.microNote,
+      primaryCta: cfg.hero.ctaPrimary,
+      secondaryCta: cfg.hero.ctaSecondary,
+      painChips: cfg.forYouIf.items,
+      proofBadges: cfg.proof.badges,
+      processSteps: cfg.process.steps,
+      faq: cfg.faq,
+      complianceText: COMPLIANCE_DEFAULT_FR,
       whatsappChannelId: whatsapp.id,
       trackingProfileId: tracking.id,
       crmRoutingRuleId: crmRule.id,
-      seoTitle: isSpanish
-        ? "Body Reset CDMX | Reset Corporal Francés en Ciudad de México"
-        : cfg.meta.title,
-      metaDescription: isSpanish
-        ? "Sesión privada de Body Reset en CDMX con Grégory Tordjman. Una experiencia manual precisa para soltar tensiones, recuperar movilidad y elegir entre Body Reset Fix o French Body Reset Full."
-        : cfg.meta.description,
+      seoTitle: cfg.meta.title,
+      metaDescription: cfg.meta.description,
       canonical: `/${loc}/${SLUGS[loc]}`,
       noindex: false,
       hreflangGroupId: HREFLANG_GROUP,
-      xDefault: loc === "es",
+      xDefault: false,
       areaServed: "Ciudad de México",
       publishedAt: new Date(),
       content: buildLandingContent(loc),
@@ -505,25 +497,28 @@ export async function seedGrowthCdmx(prisma: PrismaClient) {
     await prisma.testimonial.upsert({
       where: { id: `cdmx-testimonial-${loc}` },
       update: {
-        quoteShort: isSpanish ? esBodyResetCopy.content.testimonial.cta : cfg.testimonial.cta,
+        quoteShort: cfg.testimonial.cta,
         status: "LIVE",
       },
       create: {
         id: `cdmx-testimonial-${loc}`,
-        displayName: loc === "es" ? "Cliente CDMX" : loc === "en" ? "US Client" : "Cliente FR",
+        displayName: loc === "en" ? "US Client" : "Cliente FR",
         locale,
         destinationId: destination.id,
         offerId: offer.id,
-        quoteShort: isSpanish ? esBodyResetCopy.content.testimonial.cta : cfg.testimonial.cta,
+        quoteShort: cfg.testimonial.cta,
         consentWebsite: true,
         consentOrganic: true,
         status: "LIVE",
-        priority: loc === "en" ? 10 : loc === "es" ? 9 : 8,
+        priority: loc === "en" ? 10 : 8,
         emotionalScore: 8,
         credibilityScore: 8,
       },
     });
+  }
 
+  const redirectLocales = ["en", "es", "fr"] as const;
+  for (const loc of redirectLocales) {
     await prisma.redirectRule.upsert({
       where: { sourcePath: LEGACY_PATHS[loc] },
       update: { targetPath: `/${loc}/${SLUGS[loc]}`, active: true, statusCode: 301 },

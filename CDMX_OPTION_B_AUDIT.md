@@ -1,3 +1,7 @@
+Document historique. La landing ES officielle actuelle est la route statique
+/es/reset-corporal-frances-cdmx, WhatsApp-first. La landing dynamique ES homonyme
+ne doit plus être utilisée.
+
 # CDMX Option B — Rapport d'audit et déploiement
 
 Date : 2026-07-04
