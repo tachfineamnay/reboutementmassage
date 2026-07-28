@@ -35,12 +35,25 @@
 ## Pipeline routing ownership
 
 - GHL workflows own pipeline creation and movement.
-- The site should collect the form, tags and fields, then trigger the configured workflow.
+- The site collects the form and required fields, then sends the trigger tags and enrolls the contact in the configured workflow.
+- A site lead is never considered `SENT_TO_GHL` unless mandatory workflow enrollment succeeds.
 - A contact must not remain in two pipelines after routing.
+
+## Final handoff hardening
+
+- `/api/lead` uses `handleLeadRequestHardened`.
+- Admin retry uses `retryLeadSubmissionGhlHardened`.
+- GHL tags, notes and tasks are buffered per request with `AsyncLocalStorage`.
+- Required-field failure clears the buffer, so no trigger tag reaches GHL.
+- Successful handoff order is `tags → note → task → workflow`.
+- Missing workflow returns `partial` with `GHL_WORKFLOW_NOT_CONFIGURED`.
+- Failed enrollment returns `partial` with `GHL_WORKFLOW_ENROLLMENT_FAILED`.
+- Body Reset Fix resolves `Destination.slug = cdmx` server-side and does not depend on a dynamic ES landing.
+- The compatibility guard is isolated to the public lead route and admin retry; other server fetches pass through unchanged.
 
 ## Decisions still requiring GHL IDs or URLs
 
 - Confirm workflow IDs per intention.
 - Confirm calendar URLs for training, workshop and private session.
-- Confirm custom field IDs or stable keys for every field currently mapped by visible name.
+- Confirm existing GHL custom field IDs for every field currently mapped by visible name.
 - Confirm the single target pipeline strategy for unqualified contacts.
