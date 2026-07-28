@@ -155,8 +155,7 @@ export function getGhlCalendarIntent(
   preferredChannel: "ghl" | "callback" | "" = ""
 ): GhlCalendarIntent | null {
   if (intent === "training" || intent === "workshop") return intent;
-  if (intent === "private_session" && preferredChannel === "callback") return "callback";
-  if (preferredChannel === "callback") return "callback";
+  if (intent === "private_session" && preferredChannel === "callback") return "private_session";
   return null;
 }
 
@@ -208,6 +207,13 @@ type ContactFormState = {
   collabNature: string;
 };
 
+type LeadApiResult = {
+  ok?: boolean;
+  error?: string;
+  ghlStatus?: "sent" | "partial" | "failed" | "mocked" | "captured";
+  warnings?: string[];
+};
+
 const initialForm: ContactFormState = {
   intent: "",
   firstName: "",
@@ -255,6 +261,8 @@ const EXTRA_TEXTS = {
     finalTitle: "Finalisez votre demande",
     calendarOpen: "Ouvrir le calendrier officiel",
     calendarMissing: "Calendrier GHL non configuré. Vous pouvez transmettre une demande de contact.",
+    calendarSyncWarning: "Demande enregistrée localement — synchronisation CRM à reprendre.",
+    calendarContinue: "Poursuivre vers le calendrier",
     contactFallback: "Être recontacté",
     submitting: "Transmission en cours...",
     requiredField: "Ce champ est requis.",
@@ -321,6 +329,8 @@ const EXTRA_TEXTS = {
     finalTitle: "Finalize your request",
     calendarOpen: "Open official calendar",
     calendarMissing: "GHL calendar is not configured. You can submit a contact request instead.",
+    calendarSyncWarning: "Request saved locally — CRM sync must be resumed.",
+    calendarContinue: "Continue to calendar",
     contactFallback: "Request contact",
     submitting: "Submitting...",
     requiredField: "This field is required.",
@@ -387,6 +397,8 @@ const EXTRA_TEXTS = {
     finalTitle: "Finalice su solicitud",
     calendarOpen: "Abrir calendario oficial",
     calendarMissing: "El calendario GHL no está configurado. Puede enviar una solicitud de contacto.",
+    calendarSyncWarning: "Solicitud registrada localmente — sincronización CRM pendiente.",
+    calendarContinue: "Continuar al calendario",
     contactFallback: "Solicitar contacto",
     submitting: "Enviando...",
     requiredField: "Este campo es obligatorio.",
@@ -457,11 +469,14 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
   const [validated, setValidated] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submissionGhlStatus, setSubmissionGhlStatus] = useState<LeadApiResult["ghlStatus"] | null>(null);
+  const [pendingCalendarUrl, setPendingCalendarUrl] = useState<string | null>(null);
 
   const firstNameRef = useRef<HTMLInputElement>(null);
   const isFirstRender = useRef(true);
   const submissionInFlightRef = useRef(false);
   const trackedLeadEventIdsRef = useRef<Set<string>>(new Set());
+  const pendingLeadEventIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return; }
@@ -530,23 +545,20 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
     return "Autre";
   }, [form.intent, form.propertyType]);
 
-  type LeadApiResult = {
-    ok?: boolean;
-    error?: string;
-    ghlStatus?: "sent" | "failed" | "mocked";
-  };
-
   async function submitLead({
     preferredChannel,
+    routedToUrl = null,
   }: {
     preferredChannel: "ghl" | "callback";
+    routedToUrl?: string | null;
   }) {
     if (submissionInFlightRef.current) {
       throw new Error("SUBMISSION_IN_PROGRESS");
     }
 
     submissionInFlightRef.current = true;
-    const eventId = createMetaEventId();
+    const eventId = pendingLeadEventIdRef.current ?? createMetaEventId();
+    pendingLeadEventIdRef.current = eventId;
 
     try {
       const searchParams = new URLSearchParams(window.location.search);
@@ -584,7 +596,7 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
           branchData,
           intent: form.intent,
           preferredChannel,
-          routedToUrl: null,
+          routedToUrl,
           urgency: form.urgency || null,
           needType: form.needType || null,
           volumePotential: form.volumePotential || null,
@@ -624,6 +636,7 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
       return {
         ok: true,
         ghlStatus: result.ghlStatus,
+        warnings: result.warnings ?? [],
       };
     } finally {
       submissionInFlightRef.current = false;
@@ -637,15 +650,53 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
 
     setLoading(true);
     setSubmitError(null);
+    setSubmissionGhlStatus(null);
+    setPendingCalendarUrl(null);
     const preferredChannel = overrideChannel || form.preferredChannel || "ghl";
     setForm((current) => ({ ...current, preferredChannel }));
 
     try {
-      await submitLead({
+      const result = await submitLead({
         preferredChannel,
       });
 
+      setSubmissionGhlStatus(result.ghlStatus ?? null);
+      pendingLeadEventIdRef.current = null;
       setStep(6);
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error && error.message === "INVALID_CONTACT"
+          ? tc.step1.contactError
+          : tc.submitError
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleCalendarHandoff(resolution: GhlCalendarResolution) {
+    if (loading || submissionInFlightRef.current || resolution.status !== "configured") return;
+
+    setLoading(true);
+    setSubmitError(null);
+    setSubmissionGhlStatus(null);
+    setPendingCalendarUrl(null);
+    setForm((current) => ({ ...current, preferredChannel: "ghl" }));
+
+    try {
+      const result = await submitLead({
+        preferredChannel: "ghl",
+        routedToUrl: resolution.url,
+      });
+
+      if (result.ghlStatus === "failed" || result.ghlStatus === "partial") {
+        setSubmissionGhlStatus(result.ghlStatus);
+        setPendingCalendarUrl(resolution.url);
+        return;
+      }
+
+      pendingLeadEventIdRef.current = null;
+      window.location.assign(resolution.url);
     } catch (error) {
       setSubmitError(
         error instanceof Error && error.message === "INVALID_CONTACT"
@@ -687,7 +738,7 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
     const resolution =
       form.intent === "training" || form.intent === "workshop"
         ? bookingCalendarResolution
-        : form.intent === "private_session" || form.intent === "hospitality_partner"
+        : form.intent === "private_session"
           ? callbackCalendarResolution
           : null;
 
@@ -709,10 +760,13 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
 
   function resetAll() {
     trackedLeadEventIdsRef.current.clear();
+    pendingLeadEventIdRef.current = null;
     setStep(1);
     setForm(initialForm);
     setValidated({});
     setSubmitError(null);
+    setSubmissionGhlStatus(null);
+    setPendingCalendarUrl(null);
   }
 
   // Step Indicators mapping based on step
@@ -1100,15 +1154,15 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
                         {loading ? <span className="sf-spinner" /> : <span>{ext.contactFallback}</span>}
                       </button>
                       {hasCallbackCalendar && callbackCalendarResolution?.status === "configured" ? (
-                        <a
+                        <button
                           className="sf-btn sf-btn--calendar"
-                          href={callbackCalendarResolution.url}
-                          target="_blank"
-                          rel="noreferrer"
+                          onClick={() => handleCalendarHandoff(callbackCalendarResolution)}
+                          disabled={loading}
+                          type="button"
                           style={{ justifyContent: "center", padding: "18px" }}
                         >
-                          {ext.channelCallback}
-                        </a>
+                          {loading ? <span className="sf-spinner" /> : <span>{ext.channelCallback}</span>}
+                        </button>
                       ) : (
                         <p className="sf-help">{ext.calendarMissing}</p>
                       )}
@@ -1139,19 +1193,6 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
                       >
                         {loading ? <span className="sf-spinner" /> : <span>{ext.contactFallback}</span>}
                       </button>
-                      {hasCallbackCalendar && callbackCalendarResolution?.status === "configured" ? (
-                        <a
-                          className="sf-btn sf-btn--calendar"
-                          href={callbackCalendarResolution.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          style={{ justifyContent: "center", padding: "18px" }}
-                        >
-                          {ext.hospitalityCallback}
-                        </a>
-                      ) : (
-                        <p className="sf-help">{ext.calendarMissing}</p>
-                      )}
                     </div>
                   </div>
                 )}
@@ -1162,15 +1203,15 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
                     <p className="sf-step__title">{ext.finalTitle}</p>
                     <div style={{ display: "flex", flexDirection: "column", gap: "16px", margin: "30px 0" }}>
                       {hasBookingCalendar && bookingCalendarResolution?.status === "configured" ? (
-                        <a
+                        <button
                           className="sf-btn sf-btn--cta"
-                          href={bookingCalendarResolution.url}
-                          target="_blank"
-                          rel="noreferrer"
+                          onClick={() => handleCalendarHandoff(bookingCalendarResolution)}
+                          disabled={loading}
+                          type="button"
                           style={{ justifyContent: "center", padding: "18px" }}
                         >
-                          <span>{ext.calendarOpen}</span>
-                        </a>
+                          {loading ? <span className="sf-spinner" /> : <span>{ext.calendarOpen}</span>}
+                        </button>
                       ) : (
                         <>
                           <p className="sf-help">{ext.calendarMissing}</p>
@@ -1210,6 +1251,25 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
                   </div>
                 )}
 
+                {pendingCalendarUrl && (submissionGhlStatus === "failed" || submissionGhlStatus === "partial") && (
+                  <div className="sf-confirm" role="status" aria-live="polite" style={{ marginTop: "20px" }}>
+                    <p className="sf-confirm__call">{ext.calendarSyncWarning}</p>
+                    <button
+                      className="sf-btn sf-btn--calendar"
+                      type="button"
+                      onClick={() => {
+                        const url = pendingCalendarUrl;
+                        pendingLeadEventIdRef.current = null;
+                        setPendingCalendarUrl(null);
+                        window.location.assign(url);
+                      }}
+                      style={{ justifyContent: "center", padding: "18px" }}
+                    >
+                      {ext.calendarContinue}
+                    </button>
+                  </div>
+                )}
+
                 {form.intent !== "training" && form.intent !== "workshop" && (
                   <div className="sf-nav">
                     <button className="sf-btn sf-btn--back" onClick={goBack} type="button">←</button>
@@ -1235,7 +1295,9 @@ export default function SharedContactForm({ lang, id = "contact" }: { lang: Lang
                   
                   <h3 className="sf-confirm__headline">{tc.step4.headline}</h3>
                   <p className="sf-confirm__call" style={{ margin: "20px 0" }}>
-                    {form.intent === "private_session"
+                    {submissionGhlStatus === "failed" || submissionGhlStatus === "partial"
+                      ? ext.calendarSyncWarning
+                      : form.intent === "private_session"
                       ? ext.privateConfirmation
                       : ext.requestConfirmation}
                   </p>

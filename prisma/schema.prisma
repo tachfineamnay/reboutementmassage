@@ -354,7 +354,7 @@ model LeadSubmission {
   notificationError  String?   @db.Text
 
   // Growth CMS attribution
-  eventId        String?
+  eventId        String? @unique
   landingPageId  String?
   landingPage    LandingPage?  @relation(fields: [landingPageId], references: [id], onDelete: SetNull)
   destinationId  String?
@@ -378,7 +378,6 @@ model LeadSubmission {
   @@index([landingPageId])
   @@index([destinationId])
   @@index([offerId])
-  @@index([eventId])
   @@map("lead_submissions")
 }
 

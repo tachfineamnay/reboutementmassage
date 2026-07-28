@@ -7,6 +7,7 @@ import {
   type LocalizedRouteKey,
 } from "@/lib/seo";
 import { getLiveIndexableStaticLandings } from "@/data/static-landings-registry";
+import { getCdmxCampaignAlternates } from "@/data/campaign-landings";
 import { prisma } from "@/lib/prisma";
 import { getArticleCanonicalUrl } from "@/lib/routes";
 
@@ -33,6 +34,17 @@ const STATIC_ROUTE_LASTMOD: Record<LocalizedRouteKey, string> = {
   stagesWorkshops: "2026-06-05",
   luxuryHospitality: "2026-06-05",
 };
+
+const CDMX_DYNAMIC_SLUGS = new Set([
+  "mexico-city-french-body-reset",
+  "french-body-reset-mexico-city",
+]);
+
+function absoluteLanguageAlternates(alternates: Record<string, string>) {
+  return Object.fromEntries(
+    Object.entries(alternates).map(([locale, route]) => [locale, absoluteUrl(route)])
+  );
+}
 
 function deduplicateSitemapByUrl(entries: MetadataRoute.Sitemap): MetadataRoute.Sitemap {
   const seen = new Set<string>();
@@ -65,6 +77,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(`${landing.lastModified}T00:00:00.000Z`),
     changeFrequency: "weekly" as const,
     priority: landing.priority,
+    alternates: {
+      languages: landing.route === "/es/reset-corporal-frances-cdmx"
+        ? absoluteLanguageAlternates(getCdmxCampaignAlternates())
+        : { [landing.locale]: absoluteUrl(landing.route) },
+    },
   }));
 
   let articlePages: MetadataRoute.Sitemap = [];
@@ -154,7 +171,9 @@ async function getGrowthLandingPages(): Promise<MetadataRoute.Sitemap> {
       const group = landing.hreflangGroupId ? grouped.get(landing.hreflangGroupId) : null;
 
       const languages: Record<string, string> = {};
-      if (group && group.length > 0) {
+      if (CDMX_DYNAMIC_SLUGS.has(landing.slug)) {
+        Object.assign(languages, absoluteLanguageAlternates(getCdmxCampaignAlternates()));
+      } else if (group && group.length > 0) {
         for (const item of group) {
           languages[item.locale.toLowerCase()] = absoluteUrl(
             `/${item.locale.toLowerCase()}/${item.slug}`

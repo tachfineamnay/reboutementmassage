@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { CDMX_WHATSAPP_URL } from "@/data/campaign-landings";
 
 export const BODY_RESET_FIX_FORM_KIND = "body_reset_fix" as const;
 
@@ -11,7 +12,6 @@ export type BodyResetFixFormState = {
   painDescription: string;
   sessionLocationPreference: string;
   availability: string;
-  marketingConsent: boolean;
 };
 
 export type BodyResetFixFormErrors = Partial<Record<keyof BodyResetFixFormState, string>>;
@@ -34,7 +34,6 @@ export type BodyResetFixPayload = {
     formKind: typeof BODY_RESET_FIX_FORM_KIND;
     sessionLocationPreference: string;
     preSessionNotes: string;
-    marketingConsent: "true" | "false";
   };
   companyName: null;
   jobTitle: null;
@@ -54,12 +53,12 @@ export type BodyResetFixPayload = {
 type LeadApiResult = {
   ok?: boolean;
   error?: string;
-  ghlStatus?: "sent" | "mocked" | "failed" | "captured";
+  ghlStatus?: "sent" | "mocked" | "partial" | "failed" | "captured";
   duplicate?: boolean;
 };
 
 const REQUIRED_MESSAGE = "Completa este campo para enviar tu solicitud.";
-const CONTACT_MESSAGE = "Incluye un WhatsApp o teléfono válido.";
+const CONTACT_MESSAGE = "Incluye un teléfono en formato internacional, por ejemplo +525633003042.";
 
 const INITIAL_FORM: BodyResetFixFormState = {
   name: "",
@@ -68,7 +67,6 @@ const INITIAL_FORM: BodyResetFixFormState = {
   painDescription: "",
   sessionLocationPreference: "",
   availability: "",
-  marketingConsent: false,
 };
 
 function createMetaEventId() {
@@ -90,11 +88,11 @@ export function normalizeBodyResetFixPhone(value: string) {
   const trimmed = value.trim();
   const digits = trimmed.replace(/\D/g, "");
   if (!digits) return "";
-  return trimmed.startsWith("+") ? `+${digits}` : digits;
+  return trimmed.startsWith("+") ? `+${digits}` : "";
 }
 
 function isValidPhone(value: string) {
-  return normalizeBodyResetFixPhone(value).replace(/\D/g, "").length >= 6;
+  return /^\+[1-9]\d{7,14}$/.test(normalizeBodyResetFixPhone(value));
 }
 
 export function validateBodyResetFixForm(form: BodyResetFixFormState): BodyResetFixFormErrors {
@@ -142,7 +140,6 @@ export function buildBodyResetFixPayload(
       formKind: BODY_RESET_FIX_FORM_KIND,
       sessionLocationPreference: form.sessionLocationPreference.trim(),
       preSessionNotes,
-      marketingConsent: form.marketingConsent ? "true" : "false",
     },
     companyName: null,
     jobTitle: null,
@@ -217,7 +214,7 @@ export default function BodyResetFixLeadForm() {
         throw new Error(result?.error || "LEAD_SUBMISSION_FAILED");
       }
 
-      setGhlFailed(result.ghlStatus === "failed");
+      setGhlFailed(result.ghlStatus === "failed" || result.ghlStatus === "partial");
       setSubmitted(true);
     } catch {
       setSubmitError("No pudimos enviar la solicitud. Puedes escribir directamente por WhatsApp.");
@@ -232,12 +229,17 @@ export default function BodyResetFixLeadForm() {
       <section className="contact campaign-form campaign-short-form" id="solicitud-body-reset-fix">
         <div className="container container--form">
           <div className="sf-confirm campaign-form__confirm">
-            <h3 className="sf-confirm__headline">Solicitud recibida.</h3>
+            <h3 className="sf-confirm__headline">Tu solicitud quedó registrada.</h3>
             <p className="sf-confirm__call">
               {ghlFailed
-                ? "Tu solicitud quedo registrada. Si la sincronizacion CRM falla, tambien puedes escribir por WhatsApp para acelerar la respuesta."
-                : "Te responderemos por WhatsApp con la mejor orientacion para tu Body Reset Fix."}
+                ? "Tu solicitud quedó registrada. La sincronización CRM queda por retomar; también puedes escribir por WhatsApp para acelerar la respuesta."
+                : "Te responderemos por WhatsApp con la mejor orientación para tu Body Reset Fix."}
             </p>
+            {ghlFailed ? (
+              <a className="sf-btn sf-btn--calendar" href={CDMX_WHATSAPP_URL}>
+                Escribir por WhatsApp
+              </a>
+            ) : null}
             <button
               className="sf-btn sf-btn--ghost"
               type="button"
@@ -261,7 +263,7 @@ export default function BodyResetFixLeadForm() {
           <span className="eyebrow eyebrow--gold">Alternativa al WhatsApp</span>
           <h2>Solicitud Body Reset Fix</h2>
           <p>
-            Si prefieres dejar una demanda estructurada, comparte la zona de dolor y tus
+            Si prefieres dejar una solicitud estructurada, comparte la zona de molestia y tus
             disponibilidades.
           </p>
         </div>
@@ -269,7 +271,7 @@ export default function BodyResetFixLeadForm() {
         <form className="campaign-short-form__form" onSubmit={submitLead} noValidate>
           <div className="campaign-short-form__grid">
             <label className="campaign-short-form__field">
-              <span>Nom</span>
+              <span>Nombre</span>
               <input
                 className="campaign-short-form__input"
                 value={form.name}
@@ -281,7 +283,7 @@ export default function BodyResetFixLeadForm() {
             </label>
 
             <label className="campaign-short-form__field">
-              <span>WhatsApp/teléfono</span>
+              <span>WhatsApp con indicativo internacional</span>
               <input
                 className="campaign-short-form__input"
                 value={form.phone}
@@ -294,7 +296,7 @@ export default function BodyResetFixLeadForm() {
             </label>
 
             <label className="campaign-short-form__field">
-              <span>Ville/localisation</span>
+              <span>Ciudad / ubicación</span>
               <input
                 className="campaign-short-form__input"
                 value={form.city}
@@ -306,24 +308,24 @@ export default function BodyResetFixLeadForm() {
             </label>
 
             <label className="campaign-short-form__field">
-              <span>Cabinet ou domicile</span>
+              <span>Consultorio o domicilio</span>
               <select
                 className="campaign-short-form__input"
                 value={form.sessionLocationPreference}
                 onChange={(event) => updateField("sessionLocationPreference", event.target.value)}
                 aria-invalid={Boolean(errors.sessionLocationPreference)}
               >
-                <option value="">Choisir</option>
-                <option value="Cabinet">Cabinet</option>
-                <option value="Domicile">Domicilio</option>
-                <option value="Prefiero orientacion">Prefiero orientacion</option>
+                <option value="">Elegir</option>
+                <option value="Consultorio">Consultorio</option>
+                <option value="Domicilio">Domicilio</option>
+                <option value="Prefiero orientación">Prefiero orientación</option>
               </select>
               {errors.sessionLocationPreference ? <small>{errors.sessionLocationPreference}</small> : null}
             </label>
           </div>
 
           <label className="campaign-short-form__field">
-            <span>Description de la douleur : zone, ancienneté, intensité</span>
+            <span>Describe la molestia: zona, desde cuándo e intensidad</span>
             <textarea
               className="campaign-short-form__input"
               value={form.painDescription}
@@ -335,7 +337,7 @@ export default function BodyResetFixLeadForm() {
           </label>
 
           <label className="campaign-short-form__field">
-            <span>Disponibilités : jour, créneau, moyen de contact</span>
+            <span>Disponibilidad: día, horario y medio de contacto</span>
             <textarea
               className="campaign-short-form__input"
               value={form.availability}
@@ -344,15 +346,6 @@ export default function BodyResetFixLeadForm() {
               aria-invalid={Boolean(errors.availability)}
             />
             {errors.availability ? <small>{errors.availability}</small> : null}
-          </label>
-
-          <label className="campaign-short-form__consent">
-            <input
-              type="checkbox"
-              checked={form.marketingConsent}
-              onChange={(event) => updateField("marketingConsent", event.target.checked)}
-            />
-            <span>Acepto recibir seguimiento relacionado con esta solicitud.</span>
           </label>
 
           {submitError ? <p className="campaign-short-form__error">{submitError}</p> : null}

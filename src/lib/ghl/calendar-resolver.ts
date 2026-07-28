@@ -1,7 +1,7 @@
 import type { Language } from "@/data/copy";
 import type { ConversionIntent } from "@/config/conversionRoutes";
 
-export type GhlCalendarIntent = Extract<ConversionIntent, "training" | "workshop" | "private_session"> | "callback";
+export type GhlCalendarIntent = Extract<ConversionIntent, "training" | "workshop" | "private_session">;
 
 export type GhlCalendarResolution =
   | {
@@ -50,7 +50,7 @@ function trimUrl(value: string | undefined) {
 
 function resolveEnvVar(intent: GhlCalendarIntent, lang: Language): keyof GhlCalendarEnv {
   if (intent === "workshop") return PUBLIC_GHL_CALENDAR_ENV.workshop;
-  if (intent === "private_session" || intent === "callback") return PUBLIC_GHL_CALENDAR_ENV.privateSession;
+  if (intent === "private_session") return PUBLIC_GHL_CALENDAR_ENV.privateSession;
   if (lang === "EN") return PUBLIC_GHL_CALENDAR_ENV.trainingEn;
   if (lang === "ES") return PUBLIC_GHL_CALENDAR_ENV.trainingEs;
   return PUBLIC_GHL_CALENDAR_ENV.trainingFr;

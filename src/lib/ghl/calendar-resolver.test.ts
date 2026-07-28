@@ -33,16 +33,11 @@ describe("resolveGhlCalendarUrl", () => {
     });
   });
 
-  it("resolves workshop and private-session callback calendars", () => {
+  it("resolves workshop and explicit private-session calendars", () => {
     expect(resolveGhlCalendarUrl("workshop", "FR", env)).toMatchObject({
       status: "configured",
       url: "https://calendar.example/workshop",
       envVar: PUBLIC_GHL_CALENDAR_ENV.workshop,
-    });
-    expect(resolveGhlCalendarUrl("callback", "ES", env)).toMatchObject({
-      status: "configured",
-      url: "https://calendar.example/private-session",
-      envVar: PUBLIC_GHL_CALENDAR_ENV.privateSession,
     });
     expect(resolveGhlCalendarUrl("private_session", "EN", env)).toMatchObject({
       status: "configured",

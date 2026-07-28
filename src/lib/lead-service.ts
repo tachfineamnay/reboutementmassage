@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { Prisma } from "@prisma/client";
+import { Prisma as PrismaClient } from "@prisma/client";
 import { Resend } from "resend";
 import { z } from "zod";
 import {
@@ -16,6 +17,7 @@ import { incrementLandingLeadMetric } from "@/lib/growth/landing-metrics";
 import { prisma } from "@/lib/prisma";
 
 type LeadSubmissionStatus = "CAPTURED" | "MOCKED" | "SENT_TO_GHL" | "FAILED" | "ARCHIVED";
+type GhlStatus = "sent" | "partial" | "failed" | "mocked" | "captured";
 
 type LeadPayload = {
   formKind: string | null;
@@ -94,7 +96,7 @@ type NotificationResult =
 const DEFAULT_GHL_BASE_URL = "https://services.leadconnectorhq.com";
 const DEFAULT_GHL_API_VERSION = "2021-07-28";
 const DEFAULT_GHL_TIMEOUT_MS = 10_000;
-const DEFAULT_TAGS = [GHL_SYSTEM_TAGS.sourceSitePremium, "channel-ghl"];
+const DEFAULT_TAGS = [GHL_SYSTEM_TAGS.sourceSitePremium];
 const DEFAULT_GHL_SOURCE = "Landing Méthode TMS";
 const GHL_INTENT_LABELS: Record<string, string> = {
   private_session: "Demande privée Méthode TMS",
@@ -480,16 +482,17 @@ function normalizeTag(value: string) {
 function configuredTags(payload: LeadPayload) {
   const envTags = process.env.GHL_DEFAULT_TAGS?.split(",") ?? DEFAULT_TAGS;
   const derivedTags = [
-    payload.formKind === "body_reset_fix" ? GHL_SYSTEM_TAGS.sourceSitePremium : "",
+    GHL_SYSTEM_TAGS.sourceSitePremium,
     payload.formKind === "body_reset_fix" ? GHL_SYSTEM_TAGS.privateSession : "",
     payload.lang ? `lang_${payload.lang.toLowerCase()}` : "",
-    payload.preferredChannel ? `channel ${payload.preferredChannel}` : "channel ghl",
   ];
 
   return Array.from(
     new Set(
       [...envTags, ...derivedTags]
         .map(normalizeTag)
+        .filter((tag) => tag !== "channel-ghl")
+        .filter((tag) => payload.formKind === "body_reset_fix" || tag !== GHL_SYSTEM_TAGS.training)
         .filter(Boolean)
     )
   );
@@ -505,7 +508,7 @@ type LeadPersistenceResult = {
 async function createLeadSubmission(payload: LeadPayload, tags: string[]): Promise<LeadPersistenceResult | null> {
   try {
     if (payload.eventId) {
-      const existing = await prisma.leadSubmission.findFirst({
+      const existing = await prisma.leadSubmission.findUnique({
         where: { eventId: payload.eventId },
         select: {
           id: true,
@@ -580,14 +583,38 @@ async function createLeadSubmission(payload: LeadPayload, tags: string[]): Promi
       ghlContactId: lead.ghlContactId,
     };
   } catch (error) {
+    if (
+      payload.eventId &&
+      error instanceof PrismaClient.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      const existing = await prisma.leadSubmission.findUnique({
+        where: { eventId: payload.eventId },
+        select: {
+          id: true,
+          status: true,
+          ghlContactId: true,
+        },
+      });
+
+      if (existing) {
+        return {
+          id: existing.id,
+          reused: true,
+          status: existing.status as LeadSubmissionStatus,
+          ghlContactId: existing.ghlContactId,
+        };
+      }
+    }
+
     console.error("Lead persistence failed", error);
     return null;
   }
 }
 
-function ghlStatusFromLeadStatus(status: LeadSubmissionStatus, ghlContactId: string | null) {
+function ghlStatusFromLeadStatus(status: LeadSubmissionStatus, ghlContactId: string | null): GhlStatus {
   if (status === "MOCKED") return "mocked";
-  if (status === "FAILED") return "failed";
+  if (status === "FAILED") return ghlContactId ? "partial" : "failed";
   if (status === "SENT_TO_GHL" || ghlContactId) return "sent";
   return "captured";
 }
@@ -637,6 +664,7 @@ function mockLeadResponse(payload: LeadPayload, tags: string[], notification: No
     ok: true,
     mode: "mock",
     ghlStatus: "mocked",
+    warnings: [],
     tags,
     notification: notification.status,
   });
@@ -664,6 +692,61 @@ function branchText(branchData: Record<string, unknown>, key: string) {
 function branchNumber(branchData: Record<string, unknown>, key: string) {
   const value = branchData[key];
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function joinFieldParts(parts: Array<string | null | undefined>) {
+  const values = parts.map((part) => part?.trim()).filter(Boolean);
+  return values.length > 0 ? values.join(" — ") : null;
+}
+
+function firstBranchText(branchData: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = branchText(branchData, key);
+    if (value) return value;
+  }
+  return null;
+}
+
+function getMainObjectiveValue(payload: LeadPayload, branchData: Record<string, unknown>) {
+  if (payload.formKind === "body_reset_fix") return payload.context;
+
+  const trainingGoal = branchText(branchData, "trainingGoal");
+  const workshopType = branchText(branchData, "workshopType");
+  const usefulContext = payload.context;
+
+  switch (payload.intent) {
+    case "training":
+      return joinFieldParts([trainingGoal, usefulContext]);
+    case "private_session":
+      return joinFieldParts([payload.needType, usefulContext]);
+    case "workshop":
+      return joinFieldParts([workshopType || payload.needType, usefulContext]);
+    case "hospitality_partner":
+    case "partnership":
+      return joinFieldParts([payload.needType, payload.context]);
+    default:
+      return payload.context || payload.needType;
+  }
+}
+
+function getReadinessValue(branchData: Record<string, unknown>) {
+  return firstBranchText(branchData, [
+    "readiness",
+    "preparation",
+    "investmentReadiness",
+    "investmentLevel",
+    "budgetReadiness",
+  ]);
+}
+
+function getOtherSpecifyValue(payload: LeadPayload, branchData: Record<string, unknown>) {
+  const explicitOther = firstBranchText(branchData, [
+    "otherSpecify",
+    "otherPleaseSpecify",
+    "explicitOther",
+  ]);
+  if (explicitOther) return explicitOther;
+  return payload.intent === "other" ? payload.context : null;
 }
 
 function normalizeCustomFieldName(value: string) {
@@ -729,21 +812,20 @@ function resolveCustomFieldId(
 async function makeGhlCustomFields(
   config: NonNullable<ReturnType<typeof getGhlConfig>>,
   payload: LeadPayload
-): Promise<GhlContactCustomField[]> {
+): Promise<{
+  fields: GhlContactCustomField[];
+  missingRequiredFields: string[];
+  warnings: string[];
+}> {
   const branchData = getBranchData(payload);
   const bookingFormat = branchText(branchData, "bookingFormat");
   const durationMinutes = branchNumber(branchData, "durationMinutes");
   const isBodyResetFix = payload.formKind === "body_reset_fix";
   const values = new Map<GhlCustomFieldKey, string | null>([
     ["intention", resolveGhlIntentValue(payload.intent)],
-    [
-      "mainObjective",
-      isBodyResetFix
-        ? payload.context
-        : branchText(branchData, "trainingGoal") || payload.needType || payload.context,
-    ],
+    ["mainObjective", getMainObjectiveValue(payload, branchData)],
     ["priorExperience", branchText(branchData, "trainingLevel")],
-    ["readiness", payload.volumePotential],
+    ["readiness", getReadinessValue(branchData)],
     ["timingUrgency", payload.urgency],
     ["currentLocation", payload.currentLocation || payload.destination],
     ["chosenFormat", bookingFormat],
@@ -757,26 +839,47 @@ async function makeGhlCustomFields(
     ["currentPracticeSummary", branchText(branchData, "trainingProfile")],
     ["formLanguage", isBodyResetFix ? "ES" : normalizeLocale(payload.lang)],
     ["marketingConsent", branchText(branchData, "marketingConsent")],
-    ["otherSpecify", payload.context],
+    ["otherSpecify", getOtherSpecifyValue(payload, branchData)],
   ]);
+
+  const requiredKeys: GhlCustomFieldKey[] = isBodyResetFix
+    ? [
+        "intention",
+        "formLanguage",
+        "mainObjective",
+        "preSessionNotes",
+        "sessionLocationPreference",
+        "currentLocation",
+      ]
+    : ["intention", "formLanguage", "mainObjective"];
 
   let fieldIds: Map<string, string>;
   try {
     fieldIds = await getGhlContactCustomFieldIds(config);
   } catch (error) {
     console.error("GHL custom field lookup failed", error);
-    return [];
+    return {
+      fields: [],
+      missingRequiredFields: requiredKeys
+        .filter((key) => values.get(key))
+        .map((key) => GHL_CUSTOM_FIELDS[key].label),
+      warnings: ["GHL_CUSTOM_FIELD_LOOKUP_FAILED"],
+    };
   }
 
   const customFields: GhlContactCustomField[] = [];
   const missingFields: string[] = [];
+  const missingRequiredFields: string[] = [];
+  const warnings: string[] = [];
 
   for (const [key, value] of values) {
     if (!value) continue;
 
     const id = resolveCustomFieldId(key, fieldIds);
     if (!id) {
-      missingFields.push(GHL_CUSTOM_FIELDS[key].label);
+      const label = GHL_CUSTOM_FIELDS[key].label;
+      missingFields.push(label);
+      if (requiredKeys.includes(key)) missingRequiredFields.push(label);
       continue;
     }
 
@@ -810,9 +913,14 @@ async function makeGhlCustomFields(
 
   if (missingFields.length > 0) {
     console.warn("GHL custom fields not found", { fields: missingFields });
+    warnings.push(`GHL_CUSTOM_FIELDS_NOT_FOUND:${missingFields.join(", ")}`);
   }
 
-  return customFields;
+  return {
+    fields: customFields,
+    missingRequiredFields,
+    warnings,
+  };
 }
 
 function getTaskTitle(intent: string | null) {
@@ -1110,6 +1218,7 @@ export async function handleLeadRequest(request: Request) {
       ok: true,
       duplicate: true,
       ghlStatus: ghlStatusFromLeadStatus(leadSubmission.status, leadSubmission.ghlContactId),
+      warnings: [],
       notification: "skipped",
     });
   }
@@ -1132,6 +1241,7 @@ export async function handleLeadRequest(request: Request) {
     return Response.json({
       ok: true,
       ghlStatus: "failed",
+      warnings: ["GHL_NOT_CONFIGURED"],
       notification: notification.status,
     });
   }
@@ -1153,7 +1263,7 @@ export async function handleLeadRequest(request: Request) {
         name: payload.firstName,
         ...parsedContact,
         source: ghlConfig.source,
-        ...(customFields.length > 0 ? { customFields } : {}),
+        ...(customFields.fields.length > 0 ? { customFields: customFields.fields } : {}),
         ...(ghlConfig.assignedUserId ? { assignedTo: ghlConfig.assignedUserId } : {}),
       },
     });
@@ -1187,6 +1297,22 @@ export async function handleLeadRequest(request: Request) {
     await ghlFetch(ghlConfig, `/contacts/${contactId}/tags`, {
       body: { tags },
     });
+
+    if (customFields.missingRequiredFields.length > 0) {
+      const message = `GHL_REQUIRED_CUSTOM_FIELDS_MISSING: ${customFields.missingRequiredFields.join(", ")}`;
+      await updateLeadSubmission(leadSubmissionId, {
+        status: "FAILED",
+        ghlContactId: contactId,
+        errorMessage: message,
+      });
+
+      return Response.json({
+        ok: true,
+        ghlStatus: "partial",
+        warnings: [...customFields.warnings, message],
+        notification: notification.status,
+      });
+    }
 
     await ghlFetch(ghlConfig, `/contacts/${contactId}/notes`, {
       body: {
@@ -1244,17 +1370,20 @@ export async function handleLeadRequest(request: Request) {
     return Response.json({
       ok: true,
       ghlStatus: "sent",
+      warnings: customFields.warnings,
       notification: notification.status,
     });
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message.slice(0, 4000) : "GHL_SUBMISSION_FAILED";
     console.error("GHL lead submission failed", error);
     await updateLeadSubmission(leadSubmissionId, {
       status: "FAILED",
-      errorMessage: error instanceof Error ? error.message.slice(0, 4000) : "GHL_SUBMISSION_FAILED",
+      errorMessage,
     });
     return Response.json({
       ok: true,
       ghlStatus: "failed",
+      warnings: [errorMessage],
       notification: notification.status,
     });
   }
@@ -1348,7 +1477,7 @@ export async function retryLeadSubmissionGhl(leadId: string): Promise<{ ok: bool
         name: payload.firstName,
         ...parsedContact,
         source: ghlConfig.source,
-        ...(customFields.length > 0 ? { customFields } : {}),
+        ...(customFields.fields.length > 0 ? { customFields: customFields.fields } : {}),
         ...(ghlConfig.assignedUserId ? { assignedTo: ghlConfig.assignedUserId } : {}),
       },
     });
@@ -1382,6 +1511,16 @@ export async function retryLeadSubmissionGhl(leadId: string): Promise<{ ok: bool
     await ghlFetch(ghlConfig, `/contacts/${contactId}/tags`, {
       body: { tags },
     });
+
+    if (customFields.missingRequiredFields.length > 0) {
+      const err = `GHL_REQUIRED_CUSTOM_FIELDS_MISSING: ${customFields.missingRequiredFields.join(", ")}`;
+      await updateLeadSubmission(leadId, {
+        status: "FAILED",
+        ghlContactId: contactId,
+        errorMessage: err,
+      });
+      return { ok: false, error: err };
+    }
 
     await ghlFetch(ghlConfig, `/contacts/${contactId}/notes`, {
       body: {

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { Prisma } from "@prisma/client";
 
 const prismaMock = vi.hoisted(() => ({
   leadSubmission: {
@@ -84,7 +85,7 @@ function liveGhlEnv() {
   process.env.GHL_WORKFLOW_ID = "workflow_1";
   process.env.GHL_PIPELINE_ID = "pipeline_1";
   process.env.GHL_PIPELINE_STAGE_ID = "stage_1";
-  process.env.GHL_DEFAULT_TAGS = "source-site-premium,channel-ghl,intent_training";
+  process.env.GHL_DEFAULT_TAGS = "legacy-import,channel-ghl,intent_training";
 }
 
 function mockSuccessfulFetch() {
@@ -98,6 +99,7 @@ function mockSuccessfulFetch() {
       return Response.json({
         customFields: [
           { id: "field_intention", name: "Intention", model: "contact" },
+          { id: "field_main_objective", name: "Main Objective", model: "contact" },
           { id: "field_language", name: "Form Language", model: "contact" },
         ],
       });
@@ -112,6 +114,7 @@ beforeEach(() => {
   vi.useRealTimers();
   liveGhlEnv();
   prismaMock.leadSubmission.findFirst.mockResolvedValue(null);
+  prismaMock.leadSubmission.findUnique.mockResolvedValue(null);
   prismaMock.leadSubmission.create.mockResolvedValue({
     id: "lead_1",
     status: "CAPTURED",
@@ -137,7 +140,7 @@ afterEach(() => {
 });
 
 describe("handleLeadRequest GHL contract", () => {
-  it("keeps canonical tags and never produces dashed intent tags", async () => {
+  it("always keeps source-site-premium and filters unvalidated tags", async () => {
     const fetchMock = mockSuccessfulFetch();
     vi.stubGlobal("fetch", fetchMock);
 
@@ -147,7 +150,8 @@ describe("handleLeadRequest GHL contract", () => {
     expect(tagCall).toBeDefined();
     const body = JSON.parse((tagCall?.[1] as RequestInit).body as string);
     expect(body.tags).toContain("source-site-premium");
-    expect(body.tags).toContain("intent_training");
+    expect(body.tags).not.toContain("intent_training");
+    expect(body.tags).not.toContain("channel-ghl");
     expect(body.tags).not.toContain("intent-training");
   });
 
@@ -160,20 +164,24 @@ describe("handleLeadRequest GHL contract", () => {
     expect(fetchMock.mock.calls.map(([url]) => String(url)).join("\n")).not.toContain("/opportunities/");
   });
 
-  it("preserves legacy direct opportunity behavior for non-site tags", async () => {
+  it("does not let GHL_DEFAULT_TAGS remove the source-site-premium safety tag", async () => {
     process.env.GHL_DEFAULT_TAGS = "legacy-import";
     const fetchMock = mockSuccessfulFetch();
     vi.stubGlobal("fetch", fetchMock);
 
     await handleLeadRequest(makeRequest({ eventId: "evt_legacy" }));
 
-    expect(fetchMock.mock.calls.map(([url]) => String(url)).join("\n")).toContain("/opportunities/");
+    const tagCall = fetchMock.mock.calls.find(([url]) => String(url).includes("/tags"));
+    expect(tagCall).toBeDefined();
+    const body = JSON.parse((tagCall?.[1] as RequestInit).body as string);
+    expect(body.tags).toContain("source-site-premium");
+    expect(fetchMock.mock.calls.map(([url]) => String(url)).join("\n")).not.toContain("/opportunities/");
   });
 
   it("reuses duplicate eventId submissions", async () => {
     const fetchMock = mockSuccessfulFetch();
     vi.stubGlobal("fetch", fetchMock);
-    prismaMock.leadSubmission.findFirst.mockResolvedValue({
+    prismaMock.leadSubmission.findUnique.mockResolvedValue({
       id: "lead_existing",
       status: "SENT_TO_GHL",
       ghlContactId: "contact_existing",
@@ -187,7 +195,33 @@ describe("handleLeadRequest GHL contract", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("warns when a GHL field is missing", async () => {
+  it("reuses the existing lead when concurrent eventId creation collides", async () => {
+    const fetchMock = mockSuccessfulFetch();
+    vi.stubGlobal("fetch", fetchMock);
+    prismaMock.leadSubmission.findUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        id: "lead_existing",
+        status: "CAPTURED",
+        ghlContactId: null,
+      });
+    prismaMock.leadSubmission.create.mockRejectedValueOnce(
+      new Prisma.PrismaClientKnownRequestError("Unique constraint failed on eventId", {
+        code: "P2002",
+        clientVersion: "test",
+        meta: { target: ["eventId"] },
+      })
+    );
+
+    const response = await handleLeadRequest(makeRequest({ eventId: "evt_race" }));
+    const body = await response.json();
+
+    expect(body.duplicate).toBe(true);
+    expect(prismaMock.leadSubmission.create).toHaveBeenCalledTimes(1);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("returns partial and records an actionable error when a required GHL field is missing", async () => {
     process.env.GHL_BASE_URL = "https://missing-fields.example";
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const fetchMock = vi.fn(async (url: RequestInfo | URL) => {
@@ -198,11 +232,26 @@ describe("handleLeadRequest GHL contract", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    await handleLeadRequest(makeRequest({ eventId: "evt_missing_field" }));
+    const response = await handleLeadRequest(makeRequest({ eventId: "evt_missing_field" }));
+    const body = await response.json();
 
+    expect(body.ok).toBe(true);
+    expect(body.ghlStatus).toBe("partial");
+    expect(body.warnings).toEqual(
+      expect.arrayContaining([expect.stringContaining("GHL_REQUIRED_CUSTOM_FIELDS_MISSING")])
+    );
     expect(warn).toHaveBeenCalledWith(
       "GHL custom fields not found",
       expect.objectContaining({ fields: expect.arrayContaining(["Intention"]) })
+    );
+    expect(prismaMock.leadSubmission.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          status: "FAILED",
+          ghlContactId: "contact_1",
+          errorMessage: expect.stringContaining("GHL_REQUIRED_CUSTOM_FIELDS_MISSING"),
+        }),
+      })
     );
   });
 
@@ -249,6 +298,7 @@ describe("handleLeadRequest GHL contract", () => {
     expect(body.tags).toEqual(
       expect.arrayContaining(["source-site-premium", "intent_private_session", "lang_es"])
     );
+    expect(body.tags).not.toContain("channel-ghl");
     expect(body.tags).not.toContain("intent-private-session");
   });
 
@@ -271,7 +321,6 @@ describe("handleLeadRequest GHL contract", () => {
             },
             { id: "field_current_location", name: "Current Location", model: "contact" },
             { id: "field_language", name: "Form Language", model: "contact" },
-            { id: "field_marketing_consent", name: "Marketing Consent", model: "contact" },
             { id: "field_other", name: "Other (Please Specify)", model: "contact" },
           ],
         });
@@ -302,7 +351,112 @@ describe("handleLeadRequest GHL contract", () => {
         { id: "field_session_location_preference", fieldValue: "Cabinet" },
         { id: "field_current_location", fieldValue: "Condesa, CDMX" },
         { id: "field_language", fieldValue: "ES" },
-        { id: "field_marketing_consent", fieldValue: "true" },
+      ])
+    );
+  });
+
+  it("preserves training qualification without mapping volumePotential into Readiness or context into Other", async () => {
+    process.env.GHL_BASE_URL = "https://training-fields.example";
+    const fetchMock = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+      void init;
+      const href = String(url);
+      if (href.includes("/customFields")) {
+        return Response.json({
+          customFields: [
+            { id: "field_intention", name: "Intention", model: "contact" },
+            { id: "field_main_objective", name: "Main Objective", model: "contact" },
+            { id: "field_readiness", name: "Readiness", model: "contact" },
+            { id: "field_language", name: "Form Language", model: "contact" },
+            { id: "field_other", name: "Other (Please Specify)", model: "contact" },
+          ],
+        });
+      }
+      if (href.includes("/contacts/upsert")) {
+        return Response.json({ contact: { id: "contact_1" } });
+      }
+      return Response.json({});
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await handleLeadRequest(
+      makeRequest({
+        eventId: "evt_training_mapping",
+        intent: "training",
+        context: "Je veux structurer une pratique premium.",
+        volumePotential: "Récurrent",
+        branchData: {
+          trainingGoal: "Intégrer à ma pratique",
+          trainingLevel: "Débutant",
+        },
+      })
+    );
+
+    const upsertCall = fetchMock.mock.calls.find(([url]) => String(url).includes("/contacts/upsert"));
+    const body = JSON.parse((upsertCall?.[1] as RequestInit).body as string);
+    expect(body.customFields).toEqual(
+      expect.arrayContaining([
+        { id: "field_intention", fieldValue: "Training" },
+        {
+          id: "field_main_objective",
+          fieldValue: "Intégrer à ma pratique — Je veux structurer une pratique premium.",
+        },
+        { id: "field_language", fieldValue: "FR" },
+      ])
+    );
+    expect(body.customFields).not.toEqual(
+      expect.arrayContaining([
+        { id: "field_readiness", fieldValue: "Récurrent" },
+        { id: "field_other", fieldValue: "Je veux structurer une pratique premium." },
+      ])
+    );
+  });
+
+  it("preserves workshop type and context and maps Chosen Format only when selected", async () => {
+    process.env.GHL_BASE_URL = "https://workshop-fields.example";
+    const fetchMock = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+      void init;
+      const href = String(url);
+      if (href.includes("/customFields")) {
+        return Response.json({
+          customFields: [
+            { id: "field_intention", name: "Intention", model: "contact" },
+            { id: "field_main_objective", name: "Main Objective", model: "contact" },
+            { id: "field_language", name: "Form Language", model: "contact" },
+            { id: "field_chosen_format", name: "Chosen Format", model: "contact" },
+          ],
+        });
+      }
+      if (href.includes("/contacts/upsert")) {
+        return Response.json({ contact: { id: "contact_1" } });
+      }
+      return Response.json({});
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await handleLeadRequest(
+      makeRequest({
+        eventId: "evt_workshop_mapping",
+        intent: "workshop",
+        type: "Workshop",
+        needType: "Équipe spa",
+        context: "Préparer une équipe avant la saison.",
+        branchData: {
+          workshopType: "Équipe spa",
+          bookingFormat: "Workshop privé",
+        },
+      })
+    );
+
+    const upsertCall = fetchMock.mock.calls.find(([url]) => String(url).includes("/contacts/upsert"));
+    const body = JSON.parse((upsertCall?.[1] as RequestInit).body as string);
+    expect(body.customFields).toEqual(
+      expect.arrayContaining([
+        { id: "field_intention", fieldValue: "Workshop" },
+        {
+          id: "field_main_objective",
+          fieldValue: "Équipe spa — Préparer une équipe avant la saison.",
+        },
+        { id: "field_chosen_format", fieldValue: "Workshop privé" },
       ])
     );
   });
