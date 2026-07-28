@@ -18,6 +18,7 @@ import { prisma } from "@/lib/prisma";
 type LeadSubmissionStatus = "CAPTURED" | "MOCKED" | "SENT_TO_GHL" | "FAILED" | "ARCHIVED";
 
 type LeadPayload = {
+  formKind: string | null;
   firstName: string;
   contact: string;
   type: string;
@@ -110,6 +111,7 @@ const ghlCustomFieldCache = new Map<string, Promise<Map<string, string>>>();
 
 const LeadRequestSchema = z
   .object({
+    formKind: z.literal("body_reset_fix").optional().nullable(),
     firstName: z.string().trim().min(2).max(120),
     contact: z.string().trim().min(3).max(255),
     type: z.string().trim().min(2).max(255),
@@ -154,6 +156,49 @@ const LeadRequestSchema = z
     currentLocation: z.string().trim().max(255).optional().nullable(),
   })
   .superRefine((data, context) => {
+    if (data.formKind === "body_reset_fix") {
+      if (normalizeLocale(data.lang) !== "ES") {
+        context.addIssue({
+          code: "custom",
+          path: ["lang"],
+          message: "Form Language must be ES for body_reset_fix",
+        });
+      }
+
+      if (!data.context?.trim()) {
+        context.addIssue({
+          code: "custom",
+          path: ["context"],
+          message: "Pain description is required for body_reset_fix",
+        });
+      }
+
+      if (!data.currentLocation?.trim()) {
+        context.addIssue({
+          code: "custom",
+          path: ["currentLocation"],
+          message: "Current Location is required for body_reset_fix",
+        });
+      }
+
+      const branchData = isRecord(data.branchData) ? data.branchData : {};
+      if (!branchText(branchData, "sessionLocationPreference")) {
+        context.addIssue({
+          code: "custom",
+          path: ["branchData", "sessionLocationPreference"],
+          message: "Session Location Preference is required for body_reset_fix",
+        });
+      }
+
+      if (!branchText(branchData, "preSessionNotes")) {
+        context.addIssue({
+          code: "custom",
+          path: ["branchData", "preSessionNotes"],
+          message: "Pre-Session Notes are required for body_reset_fix",
+        });
+      }
+    }
+
     const isInternalBooking =
       (data.intent === "training" || data.intent === "workshop") &&
       data.preferredChannel === "internal_booking";
@@ -335,6 +380,7 @@ function normalizePayload(raw: unknown): LeadPayload | null {
 
   const data = parsed.data;
   const payloadWithoutSegment: Omit<LeadPayload, "leadSegment"> = {
+    formKind: nullableText(data.formKind),
     firstName: data.firstName,
     contact: data.contact,
     type: data.type,
@@ -434,6 +480,8 @@ function normalizeTag(value: string) {
 function configuredTags(payload: LeadPayload) {
   const envTags = process.env.GHL_DEFAULT_TAGS?.split(",") ?? DEFAULT_TAGS;
   const derivedTags = [
+    payload.formKind === "body_reset_fix" ? GHL_SYSTEM_TAGS.sourceSitePremium : "",
+    payload.formKind === "body_reset_fix" ? GHL_SYSTEM_TAGS.privateSession : "",
     payload.lang ? `lang_${payload.lang.toLowerCase()}` : "",
     payload.preferredChannel ? `channel ${payload.preferredChannel}` : "channel ghl",
   ];
@@ -685,21 +733,29 @@ async function makeGhlCustomFields(
   const branchData = getBranchData(payload);
   const bookingFormat = branchText(branchData, "bookingFormat");
   const durationMinutes = branchNumber(branchData, "durationMinutes");
+  const isBodyResetFix = payload.formKind === "body_reset_fix";
   const values = new Map<GhlCustomFieldKey, string | null>([
     ["intention", resolveGhlIntentValue(payload.intent)],
-    ["mainObjective", branchText(branchData, "trainingGoal") || payload.needType || payload.context],
+    [
+      "mainObjective",
+      isBodyResetFix
+        ? payload.context
+        : branchText(branchData, "trainingGoal") || payload.needType || payload.context,
+    ],
     ["priorExperience", branchText(branchData, "trainingLevel")],
     ["readiness", payload.volumePotential],
     ["timingUrgency", payload.urgency],
     ["currentLocation", payload.currentLocation || payload.destination],
     ["chosenFormat", bookingFormat],
+    ["sessionLocationPreference", branchText(branchData, "sessionLocationPreference")],
+    ["preSessionNotes", branchText(branchData, "preSessionNotes")],
     ["roleFunction", payload.jobTitle],
     ["companyEstablishment", payload.companyName],
     ["establishmentType", payload.propertyType],
     ["numberOfParticipants", payload.participantCount],
     ["duration", durationMinutes === null ? null : `${durationMinutes} min`],
     ["currentPracticeSummary", branchText(branchData, "trainingProfile")],
-    ["formLanguage", normalizeLocale(payload.lang)],
+    ["formLanguage", isBodyResetFix ? "ES" : normalizeLocale(payload.lang)],
     ["marketingConsent", branchText(branchData, "marketingConsent")],
     ["otherSpecify", payload.context],
   ]);
@@ -1212,7 +1268,9 @@ export async function retryLeadSubmissionGhl(leadId: string): Promise<{ ok: bool
     return { ok: false, error: "Lead introuvable" };
   }
 
+  const leadBranchData = isRecord(lead.branchData) ? lead.branchData : {};
   const payload: LeadPayload = {
+    formKind: branchText(leadBranchData, "formKind"),
     firstName: lead.firstName,
     contact: lead.contact,
     type: lead.type,
@@ -1234,7 +1292,7 @@ export async function retryLeadSubmissionGhl(leadId: string): Promise<{ ok: bool
     creativeAngle: lead.creativeAngle,
     ctaLocation: lead.ctaLocation,
     utm: (lead.utm as Record<string, string>) || {},
-    branchData: lead.branchData || {},
+    branchData: leadBranchData,
     companyName: lead.companyName,
     jobTitle: lead.jobTitle,
     propertyType: lead.propertyType,

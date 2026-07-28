@@ -50,6 +50,32 @@ function makeRequest(body: Record<string, unknown>) {
   });
 }
 
+function makeBodyResetFixRequest(body: Record<string, unknown> = {}) {
+  return makeRequest({
+    formKind: "body_reset_fix",
+    firstName: "Ana",
+    contact: "+52 56 3300 3042",
+    type: "Body Reset Fix CDMX",
+    context: "Dolor lumbar desde hace dos semanas, intensidad 7/10.",
+    lang: "ES",
+    intent: "private_session",
+    preferredChannel: "ghl",
+    currentLocation: "Condesa, CDMX",
+    destination: "Ciudad de Mexico",
+    leadSegment: "b2c_premium",
+    needType: "Body Reset Fix",
+    urgency: "Martes por la tarde, contacto por WhatsApp.",
+    eventId: "evt_body_reset_fix",
+    branchData: {
+      formKind: "body_reset_fix",
+      sessionLocationPreference: "Cabinet",
+      preSessionNotes: "Martes por la tarde, contacto por WhatsApp.",
+      marketingConsent: "true",
+    },
+    ...body,
+  });
+}
+
 function liveGhlEnv() {
   process.env.GHL_LEAD_MODE = "live";
   process.env.GHL_PRIVATE_INTEGRATION_TOKEN = "token";
@@ -208,5 +234,86 @@ describe("handleLeadRequest GHL contract", () => {
         }),
       })
     );
+  });
+
+  it("sets exact private-session tags for Body Reset Fix without dashed variants", async () => {
+    process.env.GHL_DEFAULT_TAGS = "source-site-premium,channel-ghl";
+    const fetchMock = mockSuccessfulFetch();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await handleLeadRequest(makeBodyResetFixRequest());
+
+    const tagCall = fetchMock.mock.calls.find(([url]) => String(url).includes("/tags"));
+    expect(tagCall).toBeDefined();
+    const body = JSON.parse((tagCall?.[1] as RequestInit).body as string);
+    expect(body.tags).toEqual(
+      expect.arrayContaining(["source-site-premium", "intent_private_session", "lang_es"])
+    );
+    expect(body.tags).not.toContain("intent-private-session");
+  });
+
+  it("maps Body Reset Fix fields into the canonical GHL contact fields", async () => {
+    process.env.GHL_DEFAULT_TAGS = "source-site-premium,channel-ghl";
+    process.env.GHL_BASE_URL = "https://body-reset-fields.example";
+    const fetchMock = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+      void init;
+      const href = String(url);
+      if (href.includes("/customFields")) {
+        return Response.json({
+          customFields: [
+            { id: "field_intention", name: "Intention", model: "contact" },
+            { id: "field_main_objective", name: "Main Objective", model: "contact" },
+            { id: "field_pre_session_notes", name: "Pre-Session Notes", model: "contact" },
+            {
+              id: "field_session_location_preference",
+              name: "Session Location Preference",
+              model: "contact",
+            },
+            { id: "field_current_location", name: "Current Location", model: "contact" },
+            { id: "field_language", name: "Form Language", model: "contact" },
+            { id: "field_marketing_consent", name: "Marketing Consent", model: "contact" },
+            { id: "field_other", name: "Other (Please Specify)", model: "contact" },
+          ],
+        });
+      }
+      if (href.includes("/contacts/upsert")) {
+        return Response.json({ contact: { id: "contact_1" } });
+      }
+      return Response.json({});
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await handleLeadRequest(makeBodyResetFixRequest({ eventId: "evt_body_reset_fix_mapping" }));
+
+    const upsertCall = fetchMock.mock.calls.find(([url]) => String(url).includes("/contacts/upsert"));
+    expect(upsertCall).toBeDefined();
+    const body = JSON.parse((upsertCall?.[1] as RequestInit).body as string);
+    expect(body.customFields).toEqual(
+      expect.arrayContaining([
+        { id: "field_intention", fieldValue: "Private Session" },
+        {
+          id: "field_main_objective",
+          fieldValue: "Dolor lumbar desde hace dos semanas, intensidad 7/10.",
+        },
+        {
+          id: "field_pre_session_notes",
+          fieldValue: "Martes por la tarde, contacto por WhatsApp.",
+        },
+        { id: "field_session_location_preference", fieldValue: "Cabinet" },
+        { id: "field_current_location", fieldValue: "Condesa, CDMX" },
+        { id: "field_language", fieldValue: "ES" },
+        { id: "field_marketing_consent", fieldValue: "true" },
+      ])
+    );
+  });
+
+  it("does not create direct opportunities for Body Reset Fix submissions", async () => {
+    process.env.GHL_DEFAULT_TAGS = "source-site-premium,channel-ghl";
+    const fetchMock = mockSuccessfulFetch();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await handleLeadRequest(makeBodyResetFixRequest({ eventId: "evt_body_reset_fix_no_opp" }));
+
+    expect(fetchMock.mock.calls.map(([url]) => String(url)).join("\n")).not.toContain("/opportunities/");
   });
 });
